@@ -1,3 +1,6 @@
+import crypto.CipherSuite;
+import messages.extensions.PQTLSExtension;
+import messages.implementations.ClientHelloMessage;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
@@ -7,9 +10,6 @@ import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,6 +19,28 @@ import java.util.Vector;
 
 public class Main {
     public static void main(String[]args){
+        //testProviderImports();
+        byte[] sessionID = new byte[32];
+        new SecureRandom().nextBytes(sessionID);
+        ClientHelloMessage message1 = new ClientHelloMessage.ClientHelloBuilder()
+                .cipherSuites(new CipherSuite[]{
+                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                })
+                .extensions(new PQTLSExtension[]{})
+                .protocolVersion((short)0x0301)
+                .sessionID(sessionID)
+                .build();
+        byte[]message1Bytes = message1.getBytes();
+        ClientHelloMessage message2 = new ClientHelloMessage.ClientHelloBuilder()
+                .fromBytes(message1.getBytes())
+                .build();
+        System.out.println("_________________________________________________________");
+        message1.printVerbose();
+        message2.printVerbose();
+    }
+
+    private static void testProviderImports() {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
@@ -292,7 +314,7 @@ public class Main {
                 }
             };
         } catch (UnknownHostException e) {
-            System.out.println("Exception while testing static import of JSSEProvider!");
+            System.out.println("Exception while using static import of JSSEProvider!");
             throw new RuntimeException(e);
         }
 
