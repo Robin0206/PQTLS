@@ -1,6 +1,6 @@
 import crypto.CipherSuite;
 import messages.extensions.PQTLSExtension;
-import messages.extensions.SignatureAlgorithmsExtension;
+import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.implementations.ClientHelloMessage;
 import org.bouncycastle.jce.interfaces.ECPublicKey;

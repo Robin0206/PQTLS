@@ -43,7 +43,7 @@ public class KeyShareExtension implements PQTLSExtension {
         ArrayList<Byte> buffer = new ArrayList<>();
         //add identifier
         buffer.add((byte) 0x00);
-        buffer.add((byte)0x33);
+        buffer.add((byte) 0x33);
         //add numOfFollowingBytes as {0x0, 0x0}
         buffer.add((byte) 0x00);
         buffer.add((byte) 0x00);

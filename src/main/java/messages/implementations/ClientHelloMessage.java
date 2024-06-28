@@ -301,7 +301,7 @@ public class ClientHelloMessage implements Message {
             ArrayList<Byte> currentExtensionBuffer = new ArrayList<>();
 
             //split the extensions and put them into the splitExtensionBytesBuffer
-            int currentExtensionsLength = 0;
+            int currentExtensionsLength;
             while(index < extensionBytes.length){
                 //add the identifier and the length
                 currentExtensionBuffer.add(extensionBytes[index]);
@@ -314,7 +314,7 @@ public class ClientHelloMessage implements Message {
                 //update the index
                 index += 4;
                 //add the bytes
-                for (int i = 0; i < currentExtensionsLength && index < extensionBytes.length; i++) {
+                for (int i = 0; i < currentExtensionsLength; i++) {
                     currentExtensionBuffer.add(extensionBytes[index]);
                     index++;
                 }

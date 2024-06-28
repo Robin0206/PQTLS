@@ -2,19 +2,13 @@ package messages.implementations;
 
 import crypto.CipherSuite;
 import messages.extensions.PQTLSExtension;
-import messages.extensions.SignatureAlgorithmsExtension;
-import messages.extensions.implementations.KeyShareExtension;
-import misc.Constants;
-import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.util.Arrays;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.security.*;
-import java.security.spec.ECGenParameterSpec;
 
 import static org.junit.jupiter.api.Assertions.*;
 

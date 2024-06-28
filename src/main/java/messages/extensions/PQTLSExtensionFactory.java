@@ -1,6 +1,7 @@
 package messages.extensions;
 
 import messages.extensions.implementations.KeyShareExtension;
+import messages.extensions.implementations.SignatureAlgorithmsExtension;
 
 import static misc.Constants.*;
 

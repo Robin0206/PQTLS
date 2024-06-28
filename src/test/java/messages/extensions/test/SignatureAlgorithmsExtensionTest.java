@@ -1,8 +1,7 @@
 package messages.extensions.test;
 
 import messages.extensions.PQTLSExtensionFactory;
-import messages.extensions.SignatureAlgorithmsExtension;
-import messages.extensions.implementations.KeyShareExtension;
+import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

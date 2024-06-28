@@ -1,4 +1,6 @@
-package messages.extensions;
+package messages.extensions.implementations;
+
+import messages.extensions.PQTLSExtension;
 
 import java.util.Arrays;
 
@@ -6,12 +8,12 @@ import static misc.Constants.*;
 //Signature Algorithms extension
 //Byte structure modified since there are now only 2 signature algorithms to choose from
 //||....{0x00, 0x0d}=identifier....||....numOfFollowingBytes....||....SignatureAlgIdentifierBytes....||
-//||----------2 bytes--------------||---------1 byte--------||
+//||----------2 bytes--------------||---------2 bytes-----------||
 //Signature Algorithm Byte values:
 // 0x00 = supports Sphincs
 // 0x01 = supports Dilithium
 // 0x02 = supports Falcon
-public class SignatureAlgorithmsExtension implements PQTLSExtension{
+public class SignatureAlgorithmsExtension implements PQTLSExtension {
     byte[] supportedSignatureAlgorithms;
     byte[] byteRepresentation;
     public SignatureAlgorithmsExtension(byte[] supportedSignatureAlgorithms){
@@ -23,13 +25,14 @@ public class SignatureAlgorithmsExtension implements PQTLSExtension{
         byteRepresentation = new byte[EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTED_ALGORITHMS_OFFSET + supportedSignatureAlgorithms.length];
         byteRepresentation[0] = 0x00;
         byteRepresentation[1] = 0x0d;
+        byteRepresentation[2] = 0;
         byteRepresentation[3] = (byte)supportedSignatureAlgorithms.length;
         System.arraycopy(
                 supportedSignatureAlgorithms,
                 0,
                 byteRepresentation,
                 EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTED_ALGORITHMS_OFFSET,
-                byteRepresentation.length - EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTED_ALGORITHMS_OFFSET
+                supportedSignatureAlgorithms.length
         );
     }
 
