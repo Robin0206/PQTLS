@@ -1,6 +1,9 @@
 import crypto.CipherSuite;
 import messages.extensions.PQTLSExtension;
+import messages.extensions.SignatureAlgorithmsExtension;
+import messages.extensions.implementations.KeyShareExtension;
 import messages.implementations.ClientHelloMessage;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
@@ -14,36 +17,46 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
+import java.security.spec.ECGenParameterSpec;
 import java.util.Hashtable;
 import java.util.Vector;
 
 public class Main {
-    public static void main(String[]args){
+    public static void main(String[]args) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        Security.addProvider(new BouncyCastlePQCProvider());
+        Security.addProvider(new BouncyCastleJsseProvider());
+        Security.addProvider(new BouncyCastleProvider());
         //testProviderImports();
+
+
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC", "BC");
+        ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("curve25519");
+        kpg.initialize(ecGenParameterSpec);
+        ECPublicKey key = (ECPublicKey) kpg.generateKeyPair().getPublic();
+        byte[]frodoKey = new byte[168];
+        new SecureRandom().nextBytes(frodoKey);
+        byte[] ecKey = key.getEncoded();
         byte[] sessionID = new byte[32];
+        KeyShareExtension keyShare = new KeyShareExtension(
+                new byte[][]{ecKey, frodoKey},
+                new byte[]{0x00, 0x1d}
+        );
+        SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{0x00, 0x01});
         new SecureRandom().nextBytes(sessionID);
         ClientHelloMessage message1 = new ClientHelloMessage.ClientHelloBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                        CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
                 })
-                .extensions(new PQTLSExtension[]{})
+                .extensions(new PQTLSExtension[]{keyShare, sig})
                 .protocolVersion((short)0x0301)
                 .sessionID(sessionID)
                 .build();
-        byte[]message1Bytes = message1.getBytes();
-        ClientHelloMessage message2 = new ClientHelloMessage.ClientHelloBuilder()
-                .fromBytes(message1.getBytes())
-                .build();
-        System.out.println("_________________________________________________________");
         message1.printVerbose();
+        ClientHelloMessage message2 = new ClientHelloMessage.ClientHelloBuilder().fromBytes(message1.getBytes()).build();
         message2.printVerbose();
     }
-
     private static void testProviderImports() {
-        Security.addProvider(new BouncyCastlePQCProvider());
-        Security.addProvider(new BouncyCastleJsseProvider());
-        Security.addProvider(new BouncyCastleProvider());
         testStaticImportPQProvider();
         testStaticImportJCSSEProvider();
         testStaticImportCoreProvider();

@@ -2,12 +2,12 @@ package messages.implementations;
 
 import crypto.CipherSuite;
 import messages.Message;
+import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
-import org.bouncycastle.tls.SessionID;
 import org.bouncycastle.util.Arrays;
 
 import java.security.SecureRandom;
-import java.security.cert.Extension;
+import java.util.ArrayList;
 
 //Builder Pattern
 public class ClientHelloMessage implements Message {
@@ -81,7 +81,7 @@ public class ClientHelloMessage implements Message {
     //TODO
     @Override
     public void printVerbose() {
-        System.out.println("==================Client Hello==================");
+        System.out.println("====================================Client Hello====================================");
         System.out.println("RecordType:      " + recordType);
         System.out.println("ProtocolVersion: " + protocolVersion);
         System.out.println("LengthAfterRecordHeader: " + lengthAfterRecordHeader);
@@ -92,18 +92,23 @@ public class ClientHelloMessage implements Message {
         System.out.println("SessionIDLength: " + sessionIDLength);
         System.out.println("SessionID: " + java.util.Arrays.toString(sessionID));
         System.out.println("CipherSuiteLength: " + cipherSuitesLength);
-        System.out.println("______CipherSuites______");
+        System.out.println();
+        System.out.println("_____________CipherSuites_____________");
         for (int i = 0; i < cipherSuitesLength; i++) {
             System.out.println("\t" + cipherSuites[i].name());
         }
+        System.out.println();
         System.out.println("CompressionMethodsLength: " + compressionMethodsLength);
         System.out.println("CompressionMethods: " + compressionMethods);
         System.out.println("ExtensionsLength: " + extensionsLength);
-        System.out.println("_______Extensions_______");
-        for (int i = 0; i < extensionsLength; i++) {
-            System.out.println(extensions[i].toString());
+        System.out.println();
+        System.out.println("______________Extensions______________");
+        for (int i = 0; i < extensions.length; i++) {
+            extensions[i].printVerbose();
         }
-        System.out.println("MessageBytes: " + java.util.Arrays.toString(messageBytes));
+        System.out.println();
+        System.out.println("______________Raw Bytes______________");
+        System.out.println(java.util.Arrays.toString(messageBytes));
     }
     @Override
     public byte[] getBytes() {
@@ -177,7 +182,7 @@ public class ClientHelloMessage implements Message {
             this.extensions = extensions;
             this.extensionBytes = new byte[]{};
             for(PQTLSExtension extension : extensions){
-                this.extensionBytes = Arrays.concatenate(this.extensionBytes, extension.getBytes());
+                this.extensionBytes = Arrays.concatenate(this.extensionBytes, extension.getByteRepresentation());
             }
             this.extensionsLength = (short) this.extensionBytes.length;
             this.extensionsSet = true;
@@ -284,12 +289,49 @@ public class ClientHelloMessage implements Message {
         }
 
         private void fillExtensionsFromBytes() {
-            extensions = new PQTLSExtension[0];
-            byte[][] extensionsSplit = splitExtensions(extensionBytes);
+            byte[][] extensionsSplit = splitExtensionBytes(extensionBytes);
+            extensions = new PQTLSExtension[extensionsSplit.length];
+            for (int i = 0; i < extensions.length; i++) {
+                extensions[i] = PQTLSExtensionFactory.generateFromBytes(extensionsSplit[i]);
+            }
         }
-        //TODO
-        private byte[][] splitExtensions(byte[] extensionBytes) {
-            return new byte[][]{{}};
+        private byte[][] splitExtensionBytes(byte[] extensionBytes) {
+            int index = 0;
+            ArrayList<ArrayList<Byte>> splitExtensionBytesBuffer = new ArrayList<>();
+            ArrayList<Byte> currentExtensionBuffer = new ArrayList<>();
+
+            //split the extensions and put them into the splitExtensionBytesBuffer
+            int currentExtensionsLength = 0;
+            while(index < extensionBytes.length){
+                //add the identifier and the length
+                currentExtensionBuffer.add(extensionBytes[index]);
+                currentExtensionBuffer.add(extensionBytes[index + 1]);
+                currentExtensionBuffer.add(extensionBytes[index + 2]);
+                currentExtensionBuffer.add(extensionBytes[index + 3]);
+                //convert the length
+
+                currentExtensionsLength = (extensionBytes[index + 2] << 8) + extensionBytes[index + 3];
+                //update the index
+                index += 4;
+                //add the bytes
+                for (int i = 0; i < currentExtensionsLength && index < extensionBytes.length; i++) {
+                    currentExtensionBuffer.add(extensionBytes[index]);
+                    index++;
+                }
+                splitExtensionBytesBuffer.add(new ArrayList<>(currentExtensionBuffer));
+                currentExtensionBuffer.clear();
+            }
+            byte[][] result = new byte[splitExtensionBytesBuffer.size()][];
+
+            //convert to byte arrays and add to result
+            for (int i = 0; i < splitExtensionBytesBuffer.size(); i++) {
+                byte[] currentExtension = new byte[splitExtensionBytesBuffer.get(i).size()];
+                for (int j = 0; j < currentExtension.length; j++) {
+                    currentExtension[j] = splitExtensionBytesBuffer.get(i).get(j);
+                }
+                result[i] = currentExtension.clone();
+            }
+            return result;
         }
 
         private void fillCipherSuitesFromBytes() {
