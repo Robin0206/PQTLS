@@ -2,7 +2,8 @@ import crypto.CipherSuite;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.KeyShareExtension;
-import messages.implementations.ClientHelloMessage;
+import messages.implementations.HelloMessage;
+import misc.Constants;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
@@ -41,19 +42,23 @@ public class Main {
                 new byte[][]{ecKey, frodoKey},
                 new byte[]{0x00, 0x1d}
         );
+        byte[] random = new byte[32];
+        new SecureRandom().nextBytes(random);
         SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{0x00, 0x01});
         new SecureRandom().nextBytes(sessionID);
-        ClientHelloMessage message1 = new ClientHelloMessage.ClientHelloBuilder()
+        HelloMessage message1 = new HelloMessage.HelloBuilder()
+                .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
                         CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
                 })
+                .random(random)
                 .extensions(new PQTLSExtension[]{keyShare, sig})
                 .protocolVersion((short)0x0301)
                 .sessionID(sessionID)
                 .build();
         message1.printVerbose();
-        ClientHelloMessage message2 = new ClientHelloMessage.ClientHelloBuilder().fromBytes(message1.getBytes()).build();
+        HelloMessage message2 = new HelloMessage.HelloBuilder().fromBytes(message1.getBytes()).build();
         message2.printVerbose();
     }
     private static void testProviderImports() {

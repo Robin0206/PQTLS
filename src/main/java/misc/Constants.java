@@ -1,6 +1,10 @@
 package misc;
 
 public class Constants {
+
+    public static final byte HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO = 0x01;
+    public static final byte HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO = 0x02;
+
     public static final int EC_PARAMETER_LENGTH = 2;
     public static final byte[] CURVE_25519_IDENTIFIER = {0x00, 0x1d};
 

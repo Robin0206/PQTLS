@@ -6,18 +6,20 @@ import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
 import org.bouncycastle.util.Arrays;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 
+import static misc.Constants.*;
+
 //Builder Pattern
-public class ClientHelloMessage implements Message {
+public class HelloMessage implements Message {
 
     //Constructor gets only used in the builder
-    private ClientHelloMessage(ClientHelloBuilder builder){
+    private HelloMessage(HelloBuilder builder){
+        this.handShakeMessageType = builder.handShakeMessageType;
         this.protocolVersion = builder.protocolVersion;
         this.lengthAfterRecordHeader = builder.lengthAfterRecordHeader;
         this.lengthAfterHandshakeHeader = builder.lengthAfterHandshakeHeader;
-        this.clientRandom = builder.clientRandom;
+        this.random = builder.random;
         this.sessionIDLength = builder.sessionIDLength;
         this.sessionID = builder.sessionID;
         this.cipherSuitesLength = builder.cipherSuitesLength;
@@ -28,11 +30,13 @@ public class ClientHelloMessage implements Message {
         this.messageBytes = builder.messageBytes;
     }
 
-    public boolean equals(ClientHelloMessage message){
+    //Used for testing
+    public boolean equals(HelloMessage message){
         return (this.protocolVersion == message.protocolVersion &&
             this.lengthAfterRecordHeader == message.lengthAfterRecordHeader &&
+            this.handShakeMessageType == message.handShakeMessageType &&
             this.lengthAfterHandshakeHeader == message.lengthAfterHandshakeHeader &&
-            this.clientRandom == message.clientRandom &&
+            this.random == message.random &&
             this.sessionIDLength == message.sessionIDLength &&
             this.sessionID == message.sessionID &&
             this.cipherSuitesLength == message.cipherSuitesLength &&
@@ -49,14 +53,14 @@ public class ClientHelloMessage implements Message {
     private final short lengthAfterRecordHeader;
 
     //handshake header
-    private final byte handShakeMessageType = 0x01;
+    private int handShakeMessageType = 0x01;
     private final int lengthAfterHandshakeHeader;
 
     //client version
     private final byte[] legacyVersion = {0x03,0x03}; // https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 [S. 29, Z. 1-8]
 
     //client random
-    private final byte[] clientRandom;// 32 bytes
+    private final byte[] random;// 32 bytes
 
     //sessionID
     private final byte sessionIDLength;
@@ -77,18 +81,20 @@ public class ClientHelloMessage implements Message {
 
     private final byte[] messageBytes;
 
-
-    //TODO
     @Override
     public void printVerbose() {
-        System.out.println("====================================Client Hello====================================");
+        if(this.handShakeMessageType == HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO){
+            System.out.println("====================================Client Hello====================================");
+        }else{
+            System.out.println("====================================Server Hello====================================");
+        }
         System.out.println("RecordType:      " + recordType);
         System.out.println("ProtocolVersion: " + protocolVersion);
         System.out.println("LengthAfterRecordHeader: " + lengthAfterRecordHeader);
         System.out.println("HandShakeMessageType: " + handShakeMessageType);
         System.out.println("lengthAfterHandshakeHeader: " + lengthAfterHandshakeHeader);
         System.out.println("LegacyVersion: " + java.util.Arrays.toString(legacyVersion));
-        System.out.println("Client Random: " + java.util.Arrays.toString(clientRandom));
+        System.out.println("Client Random: " + java.util.Arrays.toString(random));
         System.out.println("SessionIDLength: " + sessionIDLength);
         System.out.println("SessionID: " + java.util.Arrays.toString(sessionID));
         System.out.println("CipherSuiteLength: " + cipherSuitesLength);
@@ -103,8 +109,8 @@ public class ClientHelloMessage implements Message {
         System.out.println("ExtensionsLength: " + extensionsLength);
         System.out.println();
         System.out.println("______________Extensions______________");
-        for (int i = 0; i < extensions.length; i++) {
-            extensions[i].printVerbose();
+        for (PQTLSExtension extension : extensions) {
+            extension.printVerbose();
         }
         System.out.println();
         System.out.println("______________Raw Bytes______________");
@@ -118,20 +124,21 @@ public class ClientHelloMessage implements Message {
         return this.protocolVersion;
     }
 
-    public byte[] getClientRandom() {
-        return clientRandom;
+    public byte[] getRandom() {
+        return random;
     }
 
-    public static class ClientHelloBuilder{
+    public static class HelloBuilder {
         //record header
         private short protocolVersion;
         private short lengthAfterRecordHeader;
 
         //handshake header
+        private int handShakeMessageType;
         private int lengthAfterHandshakeHeader;
 
         //client random
-        private byte[] clientRandom;// 32 bytes
+        private byte[] random;// 32 bytes
 
         //sessionID
         private byte sessionIDLength;
@@ -152,20 +159,33 @@ public class ClientHelloMessage implements Message {
         private boolean sessionIDSet = false;
         private boolean cipherSuitesSet = false;
         private boolean extensionsSet = false;
-        private boolean clientRandomSet = false;
+        private boolean randomSet = false;
+        private boolean messageTypeSet = false;
 
-        public ClientHelloBuilder protocolVersion(short protocolVersion){
+        //===================================Methods for setting variables===================================
+        public HelloBuilder handShakeType(byte handShakeType){
+            this.handShakeMessageType = handShakeType;
+            this.messageTypeSet = true;
+            return this;
+        }
+        public HelloBuilder random(byte[] random){
+            this.random = random;
+            this.randomSet = true;
+            return this;
+        }
+
+        public HelloBuilder protocolVersion(short protocolVersion){
             this.protocolVersion = protocolVersion;
             this.protocolVersionSet = true;
             return this;
         }
-        public ClientHelloBuilder sessionID(byte[] sessionID){
+        public HelloBuilder sessionID(byte[] sessionID){
             this.sessionID = sessionID;
             this.sessionIDLength = (byte) sessionID.length;
             this.sessionIDSet = true;
             return this;
         }
-        public ClientHelloBuilder cipherSuites(CipherSuite[] cipherSuites){
+        public HelloBuilder cipherSuites(CipherSuite[] cipherSuites){
             if(cipherSuites.length == 0){
                 throw new IllegalArgumentException("There must be at least one cipher-suite");
             }
@@ -178,7 +198,7 @@ public class ClientHelloMessage implements Message {
             cipherSuitesSet = true;
             return this;
         }
-        public ClientHelloBuilder extensions(PQTLSExtension[] extensions){
+        public HelloBuilder extensions(PQTLSExtension[] extensions){
             this.extensions = extensions;
             this.extensionBytes = new byte[]{};
             for(PQTLSExtension extension : extensions){
@@ -188,7 +208,76 @@ public class ClientHelloMessage implements Message {
             this.extensionsSet = true;
             return this;
         }
-        public ClientHelloMessage build(){
+
+        /*
+        Sets all variables from the raw message bytes.
+        Cant be called with any other variable setting method.
+         */
+        public HelloBuilder fromBytes(byte[] messageBytes){
+            if(extensionsSet){
+                throw new IllegalArgumentException("Extensions already set");
+            }else if(cipherSuitesSet){
+                throw new IllegalArgumentException("CipherSuites already set");
+            }else if(sessionIDSet){
+                throw new IllegalArgumentException("SessionID already set");
+            }else if(protocolVersionSet){
+                throw new IllegalArgumentException("ProtocolVersion already set");
+            }
+            protocolVersion = (short)((messageBytes[1] << 8) + messageBytes[2]);
+            lengthAfterRecordHeader = (short)((messageBytes[4] << 8) + messageBytes[5]);
+            handShakeMessageType = messageBytes[5];
+            lengthAfterHandshakeHeader = (int) messageBytes[6] << 16 + messageBytes[6] << 8 + messageBytes[7];
+            random = new byte[32];
+            System.arraycopy(
+                    messageBytes,
+                    11,
+                    random,
+                    0,
+                    random.length
+            );
+            randomSet = true;
+            sessionIDLength = messageBytes[11 + random.length];
+            sessionID = new byte[sessionIDLength];
+            System.arraycopy(
+                    messageBytes,
+                    12 + random.length,
+                    sessionID,
+                    0,
+                    sessionIDLength);
+            cipherSuitesLength = messageBytes[12 + random.length + sessionID.length];
+            cipherSuiteBytes = new byte[cipherSuitesLength];
+            System.arraycopy(
+                    messageBytes,
+                    13 + random.length + sessionID.length, cipherSuiteBytes,
+                    0,
+                    cipherSuitesLength
+            );
+            fillCipherSuitesFromBytes();
+            extensionsLength =
+                    (short) ((messageBytes[15 + random.length + sessionIDLength + cipherSuitesLength ] << 8)
+                            + ((messageBytes[16 + random.length + sessionIDLength + cipherSuitesLength ])));
+            extensionBytes = new byte[extensionsLength];
+            System.arraycopy(
+                    messageBytes,
+                    17 + random.length + sessionIDLength + cipherSuitesLength,
+                    extensionBytes,
+                    0,
+                    extensionsLength
+            );
+            fillExtensionsFromBytes();
+            this.messageBytes = messageBytes.clone();
+            protocolVersionSet = true;
+            cipherSuitesSet = true;
+            sessionIDSet = true;
+            extensionsSet = true;
+            randomSet = true;
+            messageTypeSet = true;
+            return this;
+        }
+
+        //========================================Final build method=========================================
+
+        public HelloMessage build(){
             if(!extensionsSet){
                 throw new IllegalArgumentException("Extensions not set");
             }else if(!cipherSuitesSet){
@@ -197,20 +286,19 @@ public class ClientHelloMessage implements Message {
                 throw new IllegalArgumentException("SessionID not set");
             }else if(!protocolVersionSet){
                 throw new IllegalArgumentException("ProtocolVersion not set");
-            }
-            if(!clientRandomSet){
-                this.clientRandom = new byte[32];
-                SecureRandom rand = new SecureRandom();
-                rand.nextBytes(clientRandom);
+            }else if(!randomSet){
+                throw new IllegalArgumentException("Random not set");
+            }else if(!messageTypeSet){
+                throw new IllegalArgumentException("MessageType not set");
             }
             //fill messageBytes
             this.messageBytes = Arrays.concatenate(new byte[][]{
                     {0x16, (byte) (this.protocolVersion >> 8), (byte) (this.protocolVersion)},// record header
                     {0x00, 0x00}, // number of following bytes
-                    {0x01}, // stands for client hello
+                    {(byte)this.handShakeMessageType},
                     {0x00, 0x00, 0x00},// number of following bytes
                     {0x03, 0x03},// client version
-                    clientRandom,
+                    random,
                     {sessionIDLength},
                     sessionID,
                     {cipherSuitesLength},
@@ -227,66 +315,14 @@ public class ClientHelloMessage implements Message {
             messageBytes[6] = (byte)(lengthAfterHandshakeHeader >> 16);
             messageBytes[7] = (byte)(lengthAfterHandshakeHeader >> 8);
             messageBytes[8] = (byte)(lengthAfterHandshakeHeader);
-            return new ClientHelloMessage(this);
+            return new HelloMessage(this);
         }
-        public ClientHelloBuilder fromBytes(byte[] messageBytes){
-            if(extensionsSet){
-                throw new IllegalArgumentException("Extensions already set");
-            }else if(cipherSuitesSet){
-                throw new IllegalArgumentException("CipherSuites already set");
-            }else if(sessionIDSet){
-                throw new IllegalArgumentException("SessionID already set");
-            }else if(protocolVersionSet){
-                throw new IllegalArgumentException("ProtocolVersion already set");
-            }
-            protocolVersion = (short)((messageBytes[1] << 8) + messageBytes[2]);
-            lengthAfterRecordHeader = (short)((messageBytes[4] << 8) + messageBytes[5]);
-            lengthAfterHandshakeHeader = (int) messageBytes[6] << 16 + messageBytes[6] << 8 + messageBytes[7];
-            clientRandom = new byte[32];
-            System.arraycopy(
-                    messageBytes, 
-                    11, 
-                    clientRandom,
-                    0, 
-                    clientRandom.length
-            );
-            clientRandomSet = true;
-            sessionIDLength = messageBytes[11 + clientRandom.length];
-            sessionID = new byte[sessionIDLength];
-            System.arraycopy(
-                    messageBytes, 
-                    12 + clientRandom.length, 
-                    sessionID,
-                    0, 
-                    sessionIDLength);
-            cipherSuitesLength = messageBytes[12 + clientRandom.length + sessionID.length];
-            cipherSuiteBytes = new byte[cipherSuitesLength];
-            System.arraycopy(
-                    messageBytes, 
-                    13 + clientRandom.length + sessionID.length, cipherSuiteBytes, 
-                    0, 
-                    cipherSuitesLength
-            );
-            fillCipherSuitesFromBytes();
-            extensionsLength =
-                    (short) ((messageBytes[15 + clientRandom.length + sessionIDLength + cipherSuitesLength ] << 8)
-                                        + ((messageBytes[16 + clientRandom.length + sessionIDLength + cipherSuitesLength ])));
-            extensionBytes = new byte[extensionsLength];
-            System.arraycopy(
-                    messageBytes,
-                    17 + clientRandom.length + sessionIDLength + cipherSuitesLength,
-                    extensionBytes,
-                    0,
-                    extensionsLength
-            );
-            fillExtensionsFromBytes();
-            this.messageBytes = messageBytes.clone();
-            protocolVersionSet = true;
-            cipherSuitesSet = true;
-            sessionIDSet = true;
-            extensionsSet = true;
-            return this;
-        }
+
+
+
+        /*
+        Uses the Bytes to call the PQTLSExtensionFactory, which converts them to PQTLSExtension objects
+         */
 
         private void fillExtensionsFromBytes() {
             byte[][] extensionsSplit = splitExtensionBytes(extensionBytes);
@@ -295,6 +331,11 @@ public class ClientHelloMessage implements Message {
                 extensions[i] = PQTLSExtensionFactory.generateFromBytes(extensionsSplit[i]);
             }
         }
+
+        /*
+        Splits the bytes of the extensions by reading their length fields
+         */
+
         private byte[][] splitExtensionBytes(byte[] extensionBytes) {
             int index = 0;
             ArrayList<ArrayList<Byte>> splitExtensionBytesBuffer = new ArrayList<>();
@@ -334,6 +375,9 @@ public class ClientHelloMessage implements Message {
             return result;
         }
 
+        /*
+        Fills the CipherSuite Array by using the bytes as ordinals
+         */
         private void fillCipherSuitesFromBytes() {
             cipherSuites = new CipherSuite[cipherSuitesLength];
             for(int i = 0; i < cipherSuitesLength; i++){
