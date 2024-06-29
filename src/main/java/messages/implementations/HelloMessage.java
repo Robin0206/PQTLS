@@ -125,6 +125,10 @@ public class HelloMessage implements Message {
         return random;
     }
 
+    public int getExtensionsLength() {
+        return extensionsLength;
+    }
+
     public static class HelloBuilder {
         //record header
         private byte[] legacyVersion;
@@ -217,12 +221,22 @@ public class HelloMessage implements Message {
         }
         public HelloBuilder extensions(PQTLSExtension[] extensions){
             this.extensions = extensions;
-            this.extensionBytes = new byte[]{};
-            for(PQTLSExtension extension : extensions){
-                this.extensionBytes = Arrays.concatenate(this.extensionBytes, extension.getByteRepresentation());
+            ArrayList<byte[]> arrBuffer = new ArrayList<>();
+            for (PQTLSExtension extension : extensions){
+                arrBuffer.add(extension.getByteRepresentation());
             }
-            this.extensionsLength = (short) this.extensionBytes.length;
-            this.extensionsSet = true;
+            ArrayList<Byte> resultBuffer = new ArrayList<>();
+            for (byte[] extensionBytes : arrBuffer){
+                for(byte b : extensionBytes){
+                    resultBuffer.add(b);
+                }
+            }
+            extensionBytes = new byte[resultBuffer.size()];
+            for (int i = 0; i < resultBuffer.size(); i++) {
+                extensionBytes[i] = resultBuffer.get(i);
+            }
+            extensionsLength = (short) extensionBytes.length;
+            extensionsSet = true;
             return this;
         }
 
@@ -271,9 +285,10 @@ public class HelloMessage implements Message {
                     cipherSuitesLength
             );
             fillCipherSuitesFromBytes();
+
             extensionsLength =
-                    (short) ((messageBytes[15 + random.length + sessionIDLength + cipherSuitesLength ] << 8)
-                            + ((messageBytes[16 + random.length + sessionIDLength + cipherSuitesLength ])));
+                    (short) ((messageBytes[15 + random.length + sessionIDLength + cipherSuitesLength ] *128) +
+                            ((messageBytes[16 + random.length + sessionIDLength + cipherSuitesLength ])));
             extensionBytes = new byte[extensionsLength];
             System.arraycopy(
                     messageBytes,
@@ -319,17 +334,17 @@ public class HelloMessage implements Message {
                     {cipherSuitesLength},
                     cipherSuiteBytes,
                     {0x01, 0x00}, // compression methods
-                    {(byte)(extensionsLength >> 8), (byte)extensionsLength}, // extensions length
+                    {(byte)(extensionsLength /128), (byte) (extensionsLength%128)}, // extensions length
                     extensionBytes
             });
             //calculate lengths of bytes after record header and bytes after handshake header
             lengthAfterRecordHeader = (short)(messageBytes.length - 5);
-            messageBytes[3] = (byte)(lengthAfterRecordHeader >> 8);
-            messageBytes[4] = (byte)lengthAfterRecordHeader;
+            messageBytes[3] = (byte)(lengthAfterRecordHeader /128);
+            messageBytes[4] = (byte) (lengthAfterRecordHeader%128);
             lengthAfterHandshakeHeader = messageBytes.length - 9;
             messageBytes[6] = (byte)(lengthAfterHandshakeHeader >> 16);
-            messageBytes[7] = (byte)(lengthAfterHandshakeHeader >> 8);
-            messageBytes[8] = (byte)(lengthAfterHandshakeHeader);
+            messageBytes[7] = (byte)(lengthAfterHandshakeHeader /128);
+            messageBytes[8] = (byte)(lengthAfterHandshakeHeader%128);
             return new HelloMessage(this);
         }
 
@@ -357,7 +372,7 @@ public class HelloMessage implements Message {
             ArrayList<Byte> currentExtensionBuffer = new ArrayList<>();
 
             //split the extensions and put them into the splitExtensionBytesBuffer
-            int currentExtensionsLength;
+            int followingBytes;
             while(index < extensionBytes.length){
                 //add the identifier and the length
                 currentExtensionBuffer.add(extensionBytes[index]);
@@ -366,11 +381,12 @@ public class HelloMessage implements Message {
                 currentExtensionBuffer.add(extensionBytes[index + 3]);
                 //convert the length
 
-                currentExtensionsLength = (extensionBytes[index + 2] << 8) + extensionBytes[index + 3];
+                followingBytes = (extensionBytes[index + 2] * 128) + extensionBytes[index + 3];
+
                 //update the index
                 index += 4;
                 //add the bytes
-                for (int i = 0; i < currentExtensionsLength; i++) {
+                for (int i = 0; i < followingBytes; i++) {
                     currentExtensionBuffer.add(extensionBytes[index]);
                     index++;
                 }

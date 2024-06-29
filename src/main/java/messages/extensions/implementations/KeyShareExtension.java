@@ -34,9 +34,9 @@ public class KeyShareExtension implements PQTLSExtension {
             byteRepresentation[i] = buffer.get(i);
         }
         //calculate the num of following bytes
-        short numOfFollowingBytes = (short) (byteRepresentationLength - 4);
-        byteRepresentation[2] = (byte) (numOfFollowingBytes >> 8);
-        byteRepresentation[3] = (byte) numOfFollowingBytes;
+        int numOfFollowingBytes = byteRepresentationLength - 4;
+        byteRepresentation[2] = (byte) (numOfFollowingBytes /128);
+        byteRepresentation[3] = (byte) (numOfFollowingBytes%128);
     }
 
     private ArrayList<Byte> fillByteBuffer() {
@@ -79,8 +79,11 @@ public class KeyShareExtension implements PQTLSExtension {
 
         keyLengths = new byte[keys.length][EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH];
         for (int i = 0; i < keys.length; i++) {
-            this.keyLengths[i][0] = (byte)(keys[i].length >> 8);
-            this.keyLengths[i][1] = (byte)(keys[i].length);
+            if(keys[i].length != 1088 && keys[i].length != 168 && keys[i].length != 93){
+                throw new IllegalArgumentException(String.valueOf(keys[i].length));
+            }
+            this.keyLengths[i][0] = (byte)(keys[i].length/128);
+            this.keyLengths[i][1] = (byte)(keys[i].length%128);
         }
     }
 
@@ -96,8 +99,9 @@ public class KeyShareExtension implements PQTLSExtension {
         System.out.println("Keys:");
         for (int i = 0; i < keys.length; i++) {
             System.out.println("\tKey " + i + ": " + Arrays.toString(keys[i]));
+            System.out.println("\tKeyLength: " + Arrays.toString(keyLengths[i]) + " = " + keys[i].length);
         }
-        System.out.println("Bytes:");
+        System.out.println("Bytes: " + byteRepresentation.length);
         System.out.println(Arrays.toString(byteRepresentation));
     }
 
@@ -126,7 +130,7 @@ public class KeyShareExtension implements PQTLSExtension {
         int firstKeyStartIndex = secondKeyLengthFieldStartIndex + 2;
 
         int firstKeyLength =
-                (input[firstKeyLengthFieldStartIndex] << 8 )+
+                (input[firstKeyLengthFieldStartIndex] * 128 )+
                         input[firstKeyLengthFieldStartIndex + 1];
 
         int secondKeyLength =
@@ -149,7 +153,6 @@ public class KeyShareExtension implements PQTLSExtension {
 
         byte[] secondKey = new byte[secondKeyLength];
         System.arraycopy(input, secondKeyStartIndex, secondKey, 0, secondKeyLength);
-
         return new KeyShareExtension(
                 new byte[][]{firstKey, secondKey},
                 curveParameter
@@ -169,13 +172,13 @@ public class KeyShareExtension implements PQTLSExtension {
                         EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
 
         int thirdKeyLengthFieldStartIndex =
-                EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH +
-                        2 * EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
+                2 * EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH +
+                        EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
 
         int firstKeyStartIndex = secondKeyLengthFieldStartIndex + 2;
 
         int firstKeyLength =
-                input[firstKeyLengthFieldStartIndex] << 8 +
+                input[firstKeyLengthFieldStartIndex] * 128 +
                         input[firstKeyLengthFieldStartIndex + 1];
 
         int secondKeyStartIndex =
@@ -183,15 +186,14 @@ public class KeyShareExtension implements PQTLSExtension {
                         firstKeyLength;
 
         int secondKeyLength =
-                input[secondKeyLengthFieldStartIndex] << 8 +
+                input[secondKeyLengthFieldStartIndex] * 128 +
                         input[secondKeyLengthFieldStartIndex + 1];
 
         int thirdKeyStartIndex =
                 secondKeyStartIndex +
                         secondKeyLength;
-
         int thirdKeyLength=
-                input[thirdKeyLengthFieldStartIndex] << 8 +
+                input[thirdKeyLengthFieldStartIndex] * 128 +
                         input[thirdKeyLengthFieldStartIndex + 1];
 
         //extract the values

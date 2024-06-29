@@ -19,10 +19,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
 public class Main {
+    /*
+    Main shouldnt throw any exception and print 2 ClientHello-Messages
+     */
     public static void main(String[]args) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
@@ -34,9 +38,9 @@ public class Main {
         ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("curve25519");
         kpg.initialize(ecGenParameterSpec);
         ECPublicKey key = (ECPublicKey) kpg.generateKeyPair().getPublic();
+        byte[] ecKey = key.getEncoded();
         byte[]frodoKey = new byte[168];
         new SecureRandom().nextBytes(frodoKey);
-        byte[] ecKey = key.getEncoded();
         byte[] sessionID = new byte[32];
 
         //generate Extensions
@@ -72,6 +76,11 @@ public class Main {
         //print the messages
         message1.printVerbose();
         message2.printVerbose();
+        System.out.println();
+        System.out.println("_______________________________________MessageBytes from both messages_______________________________________");
+
+        System.out.println(Arrays.toString(message1.getBytes()));
+        System.out.println(Arrays.toString(message2.getBytes()));
     }
     private static void testProviderImports() {
         testStaticImportPQProvider();
