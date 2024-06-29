@@ -27,9 +27,9 @@ public class Main {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
-        //testProviderImports();
+        testProviderImports();
 
-
+        //generate keys
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC", "BC");
         ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("curve25519");
         kpg.initialize(ecGenParameterSpec);
@@ -38,14 +38,21 @@ public class Main {
         new SecureRandom().nextBytes(frodoKey);
         byte[] ecKey = key.getEncoded();
         byte[] sessionID = new byte[32];
+
+        //generate Extensions
         KeyShareExtension keyShare = new KeyShareExtension(
                 new byte[][]{ecKey, frodoKey},
                 new byte[]{0x00, 0x1d}
         );
         byte[] random = new byte[32];
         new SecureRandom().nextBytes(random);
-        SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{0x00, 0x01});
+        SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{
+                Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
+                Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
+        });
         new SecureRandom().nextBytes(sessionID);
+
+        //generate messages
         HelloMessage message1 = new HelloMessage.HelloBuilder()
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
                 .cipherSuites(new CipherSuite[]{
@@ -54,11 +61,16 @@ public class Main {
                 })
                 .random(random)
                 .extensions(new PQTLSExtension[]{keyShare, sig})
-                .protocolVersion((short)0x0301)
+                .LegacyVersion(new byte[]{0x03, 0x03})
                 .sessionID(sessionID)
                 .build();
+
+        HelloMessage message2 = new HelloMessage.HelloBuilder()
+                .fromBytes(message1.getBytes())
+                .build();
+
+        //print the messages
         message1.printVerbose();
-        HelloMessage message2 = new HelloMessage.HelloBuilder().fromBytes(message1.getBytes()).build();
         message2.printVerbose();
     }
     private static void testProviderImports() {

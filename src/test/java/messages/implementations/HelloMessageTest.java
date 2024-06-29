@@ -31,7 +31,7 @@ class HelloMessageTest {
                 })
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
                 .random(random)
-                .protocolVersion((short)0x0301)
+                .LegacyVersion(new byte []{0x03, 0x03})
                 .sessionID(new byte[32])
                 .build();
     }
@@ -57,7 +57,7 @@ class HelloMessageTest {
                     ()->{
                         message2 = new HelloMessage.HelloBuilder()
                                 .extensions(new PQTLSExtension[]{})
-                                .protocolVersion((short)0x0301)
+                                .LegacyVersion(new byte[]{0x03, 0x03})
                                 .sessionID(new byte[32])
                                 .build();
                     }
@@ -82,7 +82,7 @@ class HelloMessageTest {
                                         CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 })
                                 .extensions(new PQTLSExtension[]{})
-                                .protocolVersion((short)0x0301)
+                                .LegacyVersion(new byte[]{0x03, 0x03})
                                 .build();
                     }
             );
@@ -93,7 +93,7 @@ class HelloMessageTest {
                                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
                                         CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 })
-                                .protocolVersion((short)0x0301)
+                                .LegacyVersion(new byte[]{0x03, 0x03})
                                 .sessionID(new byte[32])
                                 .build();
                     }
@@ -112,5 +112,42 @@ class HelloMessageTest {
                     .fromBytes(message1.getBytes())
                     .build();
         });
+    }
+
+    @Test
+    void testInvalidCipherSuiteShouldThrowException(){
+        assertAll(()->{
+            assertThrows(Exception.class, ()->{
+                message2 = new HelloMessage.HelloBuilder()
+                        .cipherSuites(
+                                new CipherSuite[]{
+                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                }
+                        )
+                        .random(new byte[32])
+                        .LegacyVersion(new byte[]{0x03, 0x03})
+                        .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)
+                        .extensions(new PQTLSExtension[0])
+                        .sessionID(new byte[32])
+                        .build();
+            });
+            assertThrows(Exception.class, ()->{
+                message2 = new HelloMessage.HelloBuilder()
+                        .random(new byte[32])
+                        .LegacyVersion(new byte[]{0x03, 0x03})
+                        .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)
+                        .cipherSuites(
+                                new CipherSuite[]{
+                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                }
+                        )
+                        .extensions(new PQTLSExtension[0])
+                        .sessionID(new byte[32])
+                        .build();
+            });
+        });
+
     }
 }

@@ -4,6 +4,7 @@ import crypto.CipherSuite;
 import messages.Message;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
+import org.bouncycastle.tls.ServerHello;
 import org.bouncycastle.util.Arrays;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class HelloMessage implements Message {
     //Constructor gets only used in the builder
     private HelloMessage(HelloBuilder builder){
         this.handShakeMessageType = builder.handShakeMessageType;
-        this.protocolVersion = builder.protocolVersion;
+        this.legacyVersion = builder.legacyVersion;
         this.lengthAfterRecordHeader = builder.lengthAfterRecordHeader;
         this.lengthAfterHandshakeHeader = builder.lengthAfterHandshakeHeader;
         this.random = builder.random;
@@ -32,7 +33,7 @@ public class HelloMessage implements Message {
 
     //Used for testing
     public boolean equals(HelloMessage message){
-        return (this.protocolVersion == message.protocolVersion &&
+        return (this.legacyVersion == message.legacyVersion &&
             this.lengthAfterRecordHeader == message.lengthAfterRecordHeader &&
             this.handShakeMessageType == message.handShakeMessageType &&
             this.lengthAfterHandshakeHeader == message.lengthAfterHandshakeHeader &&
@@ -43,13 +44,12 @@ public class HelloMessage implements Message {
             this.cipherSuites == message.cipherSuites &&
             this.extensionsLength == message.extensionsLength &&
             java.util.Arrays.equals(this.extensions, message.extensions) || (message.extensions.length == 0 && this.extensions.length == 0) &&
-                java.util.Arrays.equals(this.extensionBytes, message.extensionBytes) || (message.extensionBytes.length == 0 && this.extensionBytes.length == 0)&&
+            java.util.Arrays.equals(this.extensionBytes, message.extensionBytes) || (message.extensionBytes.length == 0 && this.extensionBytes.length == 0)&&
             java.util.Arrays.equals(this.messageBytes, message.messageBytes)
         );
     }
     //record header
     private final byte recordType = 0x16;
-    private final short protocolVersion;
     private final short lengthAfterRecordHeader;
 
     //handshake header
@@ -57,7 +57,7 @@ public class HelloMessage implements Message {
     private final int lengthAfterHandshakeHeader;
 
     //client version
-    private final byte[] legacyVersion = {0x03,0x03}; // https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 [S. 29, Z. 1-8]
+    private byte[] legacyVersion = {0x03,0x03}; // https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 [S. 29, Z. 1-8]
 
     //client random
     private final byte[] random;// 32 bytes
@@ -89,7 +89,7 @@ public class HelloMessage implements Message {
             System.out.println("====================================Server Hello====================================");
         }
         System.out.println("RecordType:      " + recordType);
-        System.out.println("ProtocolVersion: " + protocolVersion);
+        System.out.println("LegacyVersion: " + java.util.Arrays.toString(legacyVersion));
         System.out.println("LengthAfterRecordHeader: " + lengthAfterRecordHeader);
         System.out.println("HandShakeMessageType: " + handShakeMessageType);
         System.out.println("lengthAfterHandshakeHeader: " + lengthAfterHandshakeHeader);
@@ -120,9 +120,6 @@ public class HelloMessage implements Message {
     public byte[] getBytes() {
         return messageBytes;
     }
-    public double getProtocolVersion() {
-        return this.protocolVersion;
-    }
 
     public byte[] getRandom() {
         return random;
@@ -130,7 +127,7 @@ public class HelloMessage implements Message {
 
     public static class HelloBuilder {
         //record header
-        private short protocolVersion;
+        private byte[] legacyVersion;
         private short lengthAfterRecordHeader;
 
         //handshake header
@@ -155,7 +152,7 @@ public class HelloMessage implements Message {
         private byte[] extensionBytes;
 
         private byte[] messageBytes;
-        private boolean protocolVersionSet = false;
+        private boolean legacyVersionSet = false;
         private boolean sessionIDSet = false;
         private boolean cipherSuitesSet = false;
         private boolean extensionsSet = false;
@@ -164,19 +161,32 @@ public class HelloMessage implements Message {
 
         //===================================Methods for setting variables===================================
         public HelloBuilder handShakeType(byte handShakeType){
+            if(
+                    (handShakeType != HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO &&
+                    handShakeType != HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO) ||
+                    (cipherSuitesSet &&
+                    handShakeType == HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO &&
+                    cipherSuites.length != 1)
+            ){
+                throw new IllegalArgumentException("Invalid handshakeType because of either wrong argument or \n" +
+                        "using serverHello and cipherSuites length is bigger than 1");
+            }
             this.handShakeMessageType = handShakeType;
             this.messageTypeSet = true;
             return this;
         }
         public HelloBuilder random(byte[] random){
+            if(random.length != HELLO_MESSAGE_RANDOM_LENGTH){
+                throw new IllegalArgumentException("Random byte Array should have a length of 32");
+            }
             this.random = random;
             this.randomSet = true;
             return this;
         }
 
-        public HelloBuilder protocolVersion(short protocolVersion){
-            this.protocolVersion = protocolVersion;
-            this.protocolVersionSet = true;
+        public HelloBuilder LegacyVersion(byte[] legacyVersion){
+            this.legacyVersion = legacyVersion;
+            this.legacyVersionSet = true;
             return this;
         }
         public HelloBuilder sessionID(byte[] sessionID){
@@ -188,6 +198,13 @@ public class HelloMessage implements Message {
         public HelloBuilder cipherSuites(CipherSuite[] cipherSuites){
             if(cipherSuites.length == 0){
                 throw new IllegalArgumentException("There must be at least one cipher-suite");
+            }
+            if(
+                    messageTypeSet &&
+                    handShakeMessageType == HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO &&
+                    cipherSuites.length != 1
+            ){
+                throw new IllegalArgumentException("A server-hello-message should have only one cipherSuite");
             }
             this.cipherSuitesLength = (byte) cipherSuites.length;
             this.cipherSuites = cipherSuites;
@@ -211,19 +228,20 @@ public class HelloMessage implements Message {
 
         /*
         Sets all variables from the raw message bytes.
-        Cant be called with any other variable setting method.
+        Cant be called with any other builder-method except build().
          */
         public HelloBuilder fromBytes(byte[] messageBytes){
-            if(extensionsSet){
-                throw new IllegalArgumentException("Extensions already set");
-            }else if(cipherSuitesSet){
-                throw new IllegalArgumentException("CipherSuites already set");
-            }else if(sessionIDSet){
-                throw new IllegalArgumentException("SessionID already set");
-            }else if(protocolVersionSet){
-                throw new IllegalArgumentException("ProtocolVersion already set");
+            if(
+                    extensionsSet ||
+                    cipherSuitesSet ||
+                    sessionIDSet ||
+                    legacyVersionSet ||
+                    messageTypeSet ||
+                    randomSet
+            ){
+                throw new IllegalArgumentException("From bytes cannot be used with any other builder-method except build()");
             }
-            protocolVersion = (short)((messageBytes[1] << 8) + messageBytes[2]);
+            legacyVersion = new byte[]{messageBytes[1],messageBytes[2]};
             lengthAfterRecordHeader = (short)((messageBytes[4] << 8) + messageBytes[5]);
             handShakeMessageType = messageBytes[5];
             lengthAfterHandshakeHeader = (int) messageBytes[6] << 16 + messageBytes[6] << 8 + messageBytes[7];
@@ -266,7 +284,7 @@ public class HelloMessage implements Message {
             );
             fillExtensionsFromBytes();
             this.messageBytes = messageBytes.clone();
-            protocolVersionSet = true;
+            legacyVersionSet = true;
             cipherSuitesSet = true;
             sessionIDSet = true;
             extensionsSet = true;
@@ -278,22 +296,19 @@ public class HelloMessage implements Message {
         //========================================Final build method=========================================
 
         public HelloMessage build(){
-            if(!extensionsSet){
-                throw new IllegalArgumentException("Extensions not set");
-            }else if(!cipherSuitesSet){
-                throw new IllegalArgumentException("CipherSuites not set");
-            }else if(!sessionIDSet){
-                throw new IllegalArgumentException("SessionID not set");
-            }else if(!protocolVersionSet){
-                throw new IllegalArgumentException("ProtocolVersion not set");
-            }else if(!randomSet){
-                throw new IllegalArgumentException("Random not set");
-            }else if(!messageTypeSet){
-                throw new IllegalArgumentException("MessageType not set");
+            if(
+                    !extensionsSet ||
+                    !cipherSuitesSet ||
+                    !sessionIDSet ||
+                    !legacyVersionSet ||
+                    !messageTypeSet ||
+                    !randomSet
+            ){
+                throw new IllegalArgumentException("Not all necessary builder-methods are called before build.");
             }
             //fill messageBytes
             this.messageBytes = Arrays.concatenate(new byte[][]{
-                    {0x16, (byte) (this.protocolVersion >> 8), (byte) (this.protocolVersion)},// record header
+                    {0x16, this.legacyVersion[0], this.legacyVersion[1]},// record header
                     {0x00, 0x00}, // number of following bytes
                     {(byte)this.handShakeMessageType},
                     {0x00, 0x00, 0x00},// number of following bytes
