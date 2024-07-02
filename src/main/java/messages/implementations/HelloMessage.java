@@ -4,6 +4,7 @@ import crypto.CipherSuite;
 import messages.Message;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
+import misc.ByteUtils;
 import org.bouncycastle.tls.ServerHello;
 import org.bouncycastle.util.Arrays;
 
@@ -285,10 +286,10 @@ public class HelloMessage implements Message {
                     cipherSuitesLength
             );
             fillCipherSuitesFromBytes();
-
-            extensionsLength =
-                    (short) ((messageBytes[15 + random.length + sessionIDLength + cipherSuitesLength ] *128) +
-                            ((messageBytes[16 + random.length + sessionIDLength + cipherSuitesLength ])));
+            extensionsLength = ByteUtils.byteArrToShort(new byte[]{
+                    messageBytes[15 + random.length + sessionIDLength + cipherSuitesLength],
+                    messageBytes[16 + random.length + sessionIDLength + cipherSuitesLength]
+            });
             extensionBytes = new byte[extensionsLength];
             System.arraycopy(
                     messageBytes,
@@ -334,13 +335,14 @@ public class HelloMessage implements Message {
                     {cipherSuitesLength},
                     cipherSuiteBytes,
                     {0x01, 0x00}, // compression methods
-                    {(byte)(extensionsLength /128), (byte) (extensionsLength%128)}, // extensions length
+                    ByteUtils.shortToByteArr(extensionsLength), // extensions length
                     extensionBytes
             });
             //calculate lengths of bytes after record header and bytes after handshake header
             lengthAfterRecordHeader = (short)(messageBytes.length - 5);
-            messageBytes[3] = (byte)(lengthAfterRecordHeader /128);
-            messageBytes[4] = (byte) (lengthAfterRecordHeader%128);
+            byte[] lengthAfterRecordHeaderAsBytes = ByteUtils.shortToByteArr(lengthAfterRecordHeader);
+            messageBytes[3] = lengthAfterRecordHeaderAsBytes[0];
+            messageBytes[4] = lengthAfterRecordHeaderAsBytes[1];
             lengthAfterHandshakeHeader = messageBytes.length - 9;
             messageBytes[6] = (byte)(lengthAfterHandshakeHeader >> 16);
             messageBytes[7] = (byte)(lengthAfterHandshakeHeader /128);
@@ -380,8 +382,10 @@ public class HelloMessage implements Message {
                 currentExtensionBuffer.add(extensionBytes[index + 2]);
                 currentExtensionBuffer.add(extensionBytes[index + 3]);
                 //convert the length
-
-                followingBytes = (extensionBytes[index + 2] * 128) + extensionBytes[index + 3];
+                followingBytes = ByteUtils.byteArrToShort(new byte[]{
+                        extensionBytes[index + 2],
+                        extensionBytes[index + 3]
+                });
 
                 //update the index
                 index += 4;

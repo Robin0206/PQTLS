@@ -1,6 +1,7 @@
 package messages.extensions.implementations;
 
 import messages.extensions.PQTLSExtension;
+import misc.ByteUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,9 +35,9 @@ public class KeyShareExtension implements PQTLSExtension {
             byteRepresentation[i] = buffer.get(i);
         }
         //calculate the num of following bytes
-        int numOfFollowingBytes = byteRepresentationLength - 4;
-        byteRepresentation[2] = (byte) (numOfFollowingBytes /128);
-        byteRepresentation[3] = (byte) (numOfFollowingBytes%128);
+        byte[] numOfFollowingBytes = ByteUtils.shortToByteArr((short)(byteRepresentationLength - 4));
+        byteRepresentation[2] = numOfFollowingBytes[0];
+        byteRepresentation[3] = numOfFollowingBytes[1];
     }
 
     private ArrayList<Byte> fillByteBuffer() {
@@ -82,8 +83,7 @@ public class KeyShareExtension implements PQTLSExtension {
             if(keys[i].length != 1088 && keys[i].length != 168 && keys[i].length != 93){
                 throw new IllegalArgumentException(String.valueOf(keys[i].length));
             }
-            this.keyLengths[i][0] = (byte)(keys[i].length/128);
-            this.keyLengths[i][1] = (byte)(keys[i].length%128);
+            this.keyLengths[i] = ByteUtils.shortToByteArr((short)keys[i].length);
         }
     }
 
@@ -91,7 +91,6 @@ public class KeyShareExtension implements PQTLSExtension {
     public byte[] getByteRepresentation() {
         return byteRepresentation;
     }
-
 
     @Override
     public void printVerbose() {
@@ -129,9 +128,10 @@ public class KeyShareExtension implements PQTLSExtension {
 
         int firstKeyStartIndex = secondKeyLengthFieldStartIndex + 2;
 
-        int firstKeyLength =
-                (input[firstKeyLengthFieldStartIndex] * 128 )+
-                        input[firstKeyLengthFieldStartIndex + 1];
+        int firstKeyLength = ByteUtils.byteArrToShort(new byte[]{
+                input[firstKeyLengthFieldStartIndex],
+                input[firstKeyLengthFieldStartIndex+1]
+        });
 
         int secondKeyLength =
                 input.length -
@@ -177,24 +177,28 @@ public class KeyShareExtension implements PQTLSExtension {
 
         int firstKeyStartIndex = secondKeyLengthFieldStartIndex + 2;
 
-        int firstKeyLength =
-                input[firstKeyLengthFieldStartIndex] * 128 +
-                        input[firstKeyLengthFieldStartIndex + 1];
+        int firstKeyLength = ByteUtils.byteArrToShort(new byte[]{
+                input[firstKeyLengthFieldStartIndex],
+                input[firstKeyLengthFieldStartIndex+1]
+        });
 
         int secondKeyStartIndex =
                 firstKeyStartIndex +
                         firstKeyLength;
 
-        int secondKeyLength =
-                input[secondKeyLengthFieldStartIndex] * 128 +
-                        input[secondKeyLengthFieldStartIndex + 1];
+        int secondKeyLength = ByteUtils.byteArrToShort(new byte[]{
+                input[secondKeyLengthFieldStartIndex],
+                input[secondKeyLengthFieldStartIndex+1]
+        });
 
         int thirdKeyStartIndex =
                 secondKeyStartIndex +
                         secondKeyLength;
-        int thirdKeyLength=
-                input[thirdKeyLengthFieldStartIndex] * 128 +
-                        input[thirdKeyLengthFieldStartIndex + 1];
+
+        int thirdKeyLength = ByteUtils.byteArrToShort(new byte[]{
+                input[thirdKeyLengthFieldStartIndex],
+                input[thirdKeyLengthFieldStartIndex+1]
+        });
 
         //extract the values
         byte[] curveParameter = new byte[]{
