@@ -50,21 +50,18 @@ class HelloMessageTest {
         });
 
     }
-    /*
+
     @Test
     void testBuildFromBytes(){
         assertAll(()->{
             for (int i = 0; i < 1000; i++) {
                 message1 = buildRandomClientHelloMessage();
                 message2 = new HelloMessage.HelloBuilder().fromBytes(message1.getBytes()).build();
-                System.out.println("m1: " + Arrays.toString(message1.getBytes()));
-                System.out.println("m2: " + Arrays.toString(message2.getBytes()));
                 assertTrue(message1.equals(message2));
             }
         });
-
     }
-    */
+
     @Test
     void testClientRandomIsNotNull(){
         message2 = new HelloMessage.HelloBuilder().fromBytes(message1.getBytes()).build();
@@ -204,12 +201,12 @@ class HelloMessageTest {
         PQTLSExtension[] extensions;
         if(usesKeyShareExtension && usesSignatureExtension){
             extensions = new PQTLSExtension[]{
-                    keyShare
+                    keyShare, sig
             };
         }else if(usesKeyShareExtension){
             extensions = new PQTLSExtension[]{keyShare};
         }else{
-            extensions = new PQTLSExtension[]{keyShare};
+            extensions = new PQTLSExtension[]{sig};
         }
         return new HelloMessage.HelloBuilder()
                 .random(random)

@@ -1,0 +1,104 @@
+package messages.extensions.implementations;
+
+import crypto.enums.CurveIdentifier;
+import messages.extensions.PQTLSExtension;
+import misc.ByteUtils;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+
+import static crypto.enums.CurveIdentifier.*;
+import static misc.Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS;
+
+/*
+||...Identifier...||...numOfFollowingBytes...||...curveIdentifiers...||
+||----2-bytes-----||--------2-bytes----------||
+ */
+
+public class SupportedGroupsExtension implements PQTLSExtension {
+
+    private static Hashtable<CurveIdentifier, byte[]> curveIdentifierToByteArr;
+    private static Hashtable<Short, CurveIdentifier> shortToCurveIdentifier;// Uses short because you cant use byte arrays as keys
+    private final CurveIdentifier[] supportedGroups;
+    public byte[] byteRepresentation;
+
+
+    public SupportedGroupsExtension(CurveIdentifier[] supportedGroups) {
+        this.supportedGroups = supportedGroups;
+        this.fillDictionaries();
+        this.fillByteRepresentation();
+    }
+
+    private void fillByteRepresentation() {
+        ArrayList<Byte> buffer = new ArrayList<>();
+        buffer.add((byte) 0x00);
+        buffer.add(EXTENSION_IDENTIFIER_SUPPORTED_GROUPS);
+        byte[] numOfFollowingBytes = ByteUtils.shortToByteArr((short) (supportedGroups.length * 2));
+        buffer.add(numOfFollowingBytes[0]);
+        buffer.add(numOfFollowingBytes[1]);
+        for(CurveIdentifier curveIdentifier : supportedGroups){
+            buffer.add(curveIdentifierToByteArr.get(curveIdentifier)[0]);
+            buffer.add(curveIdentifierToByteArr.get(curveIdentifier)[1]);
+        }
+        byteRepresentation = new byte[buffer.size()];
+        for (int i = 0; i < byteRepresentation.length; i++) {
+            byteRepresentation[i] = buffer.get(i);
+        }
+    }
+
+    private void fillDictionaries() {
+        curveIdentifierToByteArr = new Hashtable<>();
+        shortToCurveIdentifier = new Hashtable<>();
+
+        curveIdentifierToByteArr.put(x25519, new byte[]{0x00, 0x1d});
+        curveIdentifierToByteArr.put(secp256r1, new byte[]{0x00, 0x17});
+        curveIdentifierToByteArr.put(x448, new byte[]{0x00, 0x1e});
+        curveIdentifierToByteArr.put(secp521r1, new byte[]{0x00, 0x19});
+        curveIdentifierToByteArr.put(secp384r1, new byte[]{0x00, 0x18});
+        curveIdentifierToByteArr.put(ffdhe2048, new byte[]{0x01, 0x00});
+        curveIdentifierToByteArr.put(ffdhe3072, new byte[]{0x01, 0x01});
+        curveIdentifierToByteArr.put(ffdhe4096, new byte[]{0x01, 0x02});
+        curveIdentifierToByteArr.put(ffdhe6144, new byte[]{0x01, 0x03});
+        curveIdentifierToByteArr.put(ffdhe8192, new byte[]{0x01, 0x04});
+
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x1d}), x25519 );
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x17}), secp256r1);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x1e}), x448);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x19}), secp521r1);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x18}), secp384r1);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x00}), ffdhe2048);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x01}), ffdhe3072);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x02}), ffdhe4096);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x03}), ffdhe6144);
+        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x04}), ffdhe8192);
+    }
+
+    @Override
+    public byte[] getByteRepresentation() {
+        return this.byteRepresentation;
+    }
+
+    @Override
+    public void printVerbose() {
+        System.out.println("=====Extension: Supported Groups");
+        for (CurveIdentifier supportedGroup : supportedGroups) {
+            System.out.println("\t"+supportedGroup.toString());
+        }
+    }
+
+    @Override
+    public byte getIdentifier() {
+        return EXTENSION_IDENTIFIER_SUPPORTED_GROUPS;
+    }
+    public static PQTLSExtension fromBytes(byte[] input) {
+        ArrayList<CurveIdentifier> buffer = new ArrayList<>();
+        for (int i = 4; i < input.length; i+=2) {
+            buffer.add(shortToCurveIdentifier.get(ByteUtils.byteArrToShort(new byte[]{input[i], input[i+1]})));
+        }
+        CurveIdentifier[] supportedGroups = new CurveIdentifier[buffer.size()];
+        for (int i = 0; i < supportedGroups.length; i++) {
+            supportedGroups[i] = buffer.get(i);
+        }
+        return new SupportedGroupsExtension(supportedGroups);
+    }
+}

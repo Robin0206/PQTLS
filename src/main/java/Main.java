@@ -1,9 +1,11 @@
 import crypto.enums.CipherSuite;
+import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.ECPointFormatsExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.KeyShareExtension;
+import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
 import misc.Constants;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
@@ -60,6 +62,12 @@ public class Main {
                 ECPointFormat.ansiX962_compressed_char2,
                 ECPointFormat.uncompressed
         });
+        SupportedGroupsExtension sup = new SupportedGroupsExtension(new CurveIdentifier[]{
+                CurveIdentifier.ffdhe3072,
+                CurveIdentifier.secp384r1,
+                CurveIdentifier.ffdhe6144,
+                CurveIdentifier.ffdhe4096
+        });
         new SecureRandom().nextBytes(sessionID);
 
         //generate messages
@@ -70,7 +78,7 @@ public class Main {
                         CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
                 })
                 .random(random)
-                .extensions(new PQTLSExtension[]{keyShare, sig, ecp})
+                .extensions(new PQTLSExtension[]{keyShare, sig, ecp, sup})
                 .LegacyVersion(new byte[]{0x03, 0x03})
                 .sessionID(sessionID)
                 .build();
@@ -87,6 +95,7 @@ public class Main {
 
         System.out.println(Arrays.toString(message1.getBytes()));
         System.out.println(Arrays.toString(message2.getBytes()));
+        System.out.println(message1.equals(message2));
     }
     private static void testProviderImports() {
         testStaticImportPQProvider();

@@ -15,7 +15,7 @@ import static misc.Constants.*;
 public class HelloMessage implements Message {
 
     //Constructor gets only used in the builder
-    private HelloMessage(HelloBuilder builder){
+    private HelloMessage(HelloBuilder builder) {
         this.handShakeMessageType = builder.handShakeMessageType;
         this.legacyVersion = builder.legacyVersion;
         this.lengthAfterRecordHeader = builder.lengthAfterRecordHeader;
@@ -32,22 +32,22 @@ public class HelloMessage implements Message {
     }
 
     //Used for testing
-    public boolean equals(HelloMessage message){
-        return (this.legacyVersion == message.legacyVersion &&
-            this.lengthAfterRecordHeader == message.lengthAfterRecordHeader &&
-            this.handShakeMessageType == message.handShakeMessageType &&
-            this.lengthAfterHandshakeHeader == message.lengthAfterHandshakeHeader &&
-            this.random == message.random &&
-            this.sessionIDLength == message.sessionIDLength &&
-            this.sessionID == message.sessionID &&
-            this.cipherSuitesLength == message.cipherSuitesLength &&
-            this.cipherSuites == message.cipherSuites &&
-            this.extensionsLength == message.extensionsLength &&
-            java.util.Arrays.equals(this.extensions, message.extensions) || (message.extensions.length == 0 && this.extensions.length == 0) &&
-            java.util.Arrays.equals(this.extensionBytes, message.extensionBytes) || (message.extensionBytes.length == 0 && this.extensionBytes.length == 0)&&
-            java.util.Arrays.equals(this.messageBytes, message.messageBytes)
+    public boolean equals(HelloMessage message) {
+        return (java.util.Arrays.equals(this.legacyVersion, message.legacyVersion) &&
+                this.lengthAfterRecordHeader == message.lengthAfterRecordHeader &&
+                this.handShakeMessageType == message.handShakeMessageType &&
+                this.lengthAfterHandshakeHeader == message.lengthAfterHandshakeHeader &&
+                java.util.Arrays.equals(this.random, message.random) &&
+                this.sessionIDLength == message.sessionIDLength &&
+                java.util.Arrays.equals(this.sessionID,message.sessionID)&&
+                this.cipherSuitesLength == message.cipherSuitesLength &&
+                java.util.Arrays.equals(this.cipherSuites, message.cipherSuites) &&
+                this.extensionsLength == message.extensionsLength &&
+                java.util.Arrays.equals(this.extensionBytes, message.extensionBytes) &&
+                java.util.Arrays.equals(this.messageBytes, message.messageBytes)
         );
     }
+
     //record header
     private final byte recordType = 0x16;
     private final short lengthAfterRecordHeader;
@@ -57,7 +57,7 @@ public class HelloMessage implements Message {
     private final int lengthAfterHandshakeHeader;
 
     //client version
-    private byte[] legacyVersion = {0x03,0x03}; // https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 [S. 29, Z. 1-8]
+    private byte[] legacyVersion = {0x03, 0x03}; // https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 [S. 29, Z. 1-8]
 
     //client random
     private final byte[] random;// 32 bytes
@@ -83,9 +83,9 @@ public class HelloMessage implements Message {
 
     @Override
     public void printVerbose() {
-        if(this.handShakeMessageType == HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO){
+        if (this.handShakeMessageType == HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO) {
             System.out.println("====================================Client Hello====================================");
-        }else{
+        } else {
             System.out.println("====================================Server Hello====================================");
         }
         System.out.println("RecordType:      " + recordType);
@@ -116,6 +116,7 @@ public class HelloMessage implements Message {
         System.out.println("______________Raw Bytes______________");
         System.out.println(java.util.Arrays.toString(messageBytes));
     }
+
     @Override
     public byte[] getBytes() {
         return messageBytes;
@@ -164,14 +165,14 @@ public class HelloMessage implements Message {
         private boolean messageTypeSet = false;
 
         //===================================Methods for setting variables===================================
-        public HelloBuilder handShakeType(byte handShakeType){
-            if(
+        public HelloBuilder handShakeType(byte handShakeType) {
+            if (
                     (handShakeType != HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO &&
-                    handShakeType != HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO) ||
-                    (cipherSuitesSet &&
-                    handShakeType == HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO &&
-                    cipherSuites.length != 1)
-            ){
+                            handShakeType != HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO) ||
+                            (cipherSuitesSet &&
+                                    handShakeType == HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO &&
+                                    cipherSuites.length != 1)
+            ) {
                 throw new IllegalArgumentException("Invalid handshakeType because of either wrong argument or \n" +
                         "using serverHello and cipherSuites length is bigger than 1");
             }
@@ -179,8 +180,9 @@ public class HelloMessage implements Message {
             this.messageTypeSet = true;
             return this;
         }
-        public HelloBuilder random(byte[] random){
-            if(random.length != HELLO_MESSAGE_RANDOM_LENGTH){
+
+        public HelloBuilder random(byte[] random) {
+            if (random.length != HELLO_MESSAGE_RANDOM_LENGTH) {
                 throw new IllegalArgumentException("Random byte Array should have a length of 32");
             }
             this.random = random;
@@ -188,26 +190,28 @@ public class HelloMessage implements Message {
             return this;
         }
 
-        public HelloBuilder LegacyVersion(byte[] legacyVersion){
+        public HelloBuilder LegacyVersion(byte[] legacyVersion) {
             this.legacyVersion = legacyVersion;
             this.legacyVersionSet = true;
             return this;
         }
-        public HelloBuilder sessionID(byte[] sessionID){
+
+        public HelloBuilder sessionID(byte[] sessionID) {
             this.sessionID = sessionID;
             this.sessionIDLength = (byte) sessionID.length;
             this.sessionIDSet = true;
             return this;
         }
-        public HelloBuilder cipherSuites(CipherSuite[] cipherSuites){
-            if(cipherSuites.length == 0){
+
+        public HelloBuilder cipherSuites(CipherSuite[] cipherSuites) {
+            if (cipherSuites.length == 0) {
                 throw new IllegalArgumentException("There must be at least one cipher-suite");
             }
-            if(
+            if (
                     messageTypeSet &&
-                    handShakeMessageType == HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO &&
-                    cipherSuites.length != 1
-            ){
+                            handShakeMessageType == HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO &&
+                            cipherSuites.length != 1
+            ) {
                 throw new IllegalArgumentException("A server-hello-message should have only one cipherSuite");
             }
             this.cipherSuitesLength = (byte) cipherSuites.length;
@@ -219,15 +223,16 @@ public class HelloMessage implements Message {
             cipherSuitesSet = true;
             return this;
         }
-        public HelloBuilder extensions(PQTLSExtension[] extensions){
+
+        public HelloBuilder extensions(PQTLSExtension[] extensions) {
             this.extensions = extensions;
             ArrayList<byte[]> arrBuffer = new ArrayList<>();
-            for (PQTLSExtension extension : extensions){
+            for (PQTLSExtension extension : extensions) {
                 arrBuffer.add(extension.getByteRepresentation());
             }
             ArrayList<Byte> resultBuffer = new ArrayList<>();
-            for (byte[] extensionBytes : arrBuffer){
-                for(byte b : extensionBytes){
+            for (byte[] extensionBytes : arrBuffer) {
+                for (byte b : extensionBytes) {
                     resultBuffer.add(b);
                 }
             }
@@ -244,19 +249,19 @@ public class HelloMessage implements Message {
         Sets all variables from the raw message bytes.
         Cant be called with any other builder-method except build().
          */
-        public HelloBuilder fromBytes(byte[] messageBytes){
-            if(
+        public HelloBuilder fromBytes(byte[] messageBytes) {
+            if (
                     extensionsSet ||
-                    cipherSuitesSet ||
-                    sessionIDSet ||
-                    legacyVersionSet ||
-                    messageTypeSet ||
-                    randomSet
-            ){
+                            cipherSuitesSet ||
+                            sessionIDSet ||
+                            legacyVersionSet ||
+                            messageTypeSet ||
+                            randomSet
+            ) {
                 throw new IllegalArgumentException("From bytes cannot be used with any other builder-method except build()");
             }
-            legacyVersion = new byte[]{messageBytes[1],messageBytes[2]};
-            lengthAfterRecordHeader = (short)((messageBytes[4] << 8) + messageBytes[5]);
+            legacyVersion = new byte[]{messageBytes[1], messageBytes[2]};
+            lengthAfterRecordHeader = (short) ((messageBytes[4] << 8) + messageBytes[5]);
             handShakeMessageType = messageBytes[5];
             lengthAfterHandshakeHeader = (int) messageBytes[6] << 16 + messageBytes[6] << 8 + messageBytes[7];
             random = new byte[32];
@@ -310,22 +315,22 @@ public class HelloMessage implements Message {
 
         //========================================Final build method=========================================
 
-        public HelloMessage build(){
-            if(
+        public HelloMessage build() {
+            if (
                     !extensionsSet ||
-                    !cipherSuitesSet ||
-                    !sessionIDSet ||
-                    !legacyVersionSet ||
-                    !messageTypeSet ||
-                    !randomSet
-            ){
+                            !cipherSuitesSet ||
+                            !sessionIDSet ||
+                            !legacyVersionSet ||
+                            !messageTypeSet ||
+                            !randomSet
+            ) {
                 throw new IllegalArgumentException("Not all necessary builder-methods are called before build.");
             }
             //fill messageBytes
             this.messageBytes = Arrays.concatenate(new byte[][]{
                     {0x16, this.legacyVersion[0], this.legacyVersion[1]},// record header
                     {0x00, 0x00}, // number of following bytes
-                    {(byte)this.handShakeMessageType},
+                    {(byte) this.handShakeMessageType},
                     {0x00, 0x00, 0x00},// number of following bytes
                     {0x03, 0x03},// client version
                     random,
@@ -338,14 +343,14 @@ public class HelloMessage implements Message {
                     extensionBytes
             });
             //calculate lengths of bytes after record header and bytes after handshake header
-            lengthAfterRecordHeader = (short)(messageBytes.length - 5);
+            lengthAfterRecordHeader = (short) (messageBytes.length - 5);
             byte[] lengthAfterRecordHeaderAsBytes = ByteUtils.shortToByteArr(lengthAfterRecordHeader);
             messageBytes[3] = lengthAfterRecordHeaderAsBytes[0];
             messageBytes[4] = lengthAfterRecordHeaderAsBytes[1];
             lengthAfterHandshakeHeader = messageBytes.length - 9;
-            messageBytes[6] = (byte)(lengthAfterHandshakeHeader >> 16);
-            messageBytes[7] = (byte)(lengthAfterHandshakeHeader /128);
-            messageBytes[8] = (byte)(lengthAfterHandshakeHeader%128);
+            messageBytes[6] = (byte) (lengthAfterHandshakeHeader >> 16);
+            messageBytes[7] = (byte) (lengthAfterHandshakeHeader / 128);
+            messageBytes[8] = (byte) (lengthAfterHandshakeHeader % 128);
             return new HelloMessage(this);
         }
 
@@ -374,7 +379,7 @@ public class HelloMessage implements Message {
 
             //split the extensions and put them into the splitExtensionBytesBuffer
             int followingBytes;
-            while(index < extensionBytes.length){
+            while (index < extensionBytes.length) {
                 //add the identifier and the length
                 currentExtensionBuffer.add(extensionBytes[index]);
                 currentExtensionBuffer.add(extensionBytes[index + 1]);
@@ -414,7 +419,7 @@ public class HelloMessage implements Message {
          */
         private void fillCipherSuitesFromBytes() {
             cipherSuites = new CipherSuite[cipherSuitesLength];
-            for(int i = 0; i < cipherSuitesLength; i++){
+            for (int i = 0; i < cipherSuitesLength; i++) {
                 cipherSuites[i] = CipherSuite.values()[cipherSuiteBytes[i]];
             }
         }

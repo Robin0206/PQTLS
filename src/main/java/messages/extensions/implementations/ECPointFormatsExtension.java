@@ -40,7 +40,7 @@ public class ECPointFormatsExtension implements PQTLSExtension {
 
     @Override
     public void printVerbose() {
-        System.out.println("=====Extension: Key Share");
+        System.out.println("=====Extension: EC Point Formats");
         for (ECPointFormat ecPointFormat : ecPointFormats) {
             System.out.println("\t" + ecPointFormat.toString());
         }
