@@ -1,5 +1,6 @@
 package messages.extensions;
 
+import messages.extensions.implementations.ECPointFormatsExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 
@@ -10,6 +11,7 @@ public class PQTLSExtensionFactory {
         return switch (input[1]) {// only the second byte gets used because the first is always 0x00
             case EXTENSION_IDENTIFIER_KEY_SHARE -> KeyShareExtension.fromBytes(input);
             case EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS -> SignatureAlgorithmsExtension.fromBytes(input);
+            case EXTENSION_IDENTIFIER_EC_POINT_FORMATS -> ECPointFormatsExtension.fromBytes(input);
             default -> throw new IllegalArgumentException("Invalid Identifier");
         };
     }

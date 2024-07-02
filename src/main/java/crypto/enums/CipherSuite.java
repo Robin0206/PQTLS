@@ -1,4 +1,4 @@
-package crypto;
+package crypto.enums;
 
 public enum CipherSuite {
     TLS_NULL_ENCRYPTION,

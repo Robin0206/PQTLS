@@ -1,11 +1,10 @@
 package messages.implementations;
 
-import crypto.CipherSuite;
+import crypto.enums.CipherSuite;
 import messages.Message;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
-import org.bouncycastle.tls.ServerHello;
 import org.bouncycastle.util.Arrays;
 
 import java.util.ArrayList;

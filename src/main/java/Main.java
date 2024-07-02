@@ -1,5 +1,7 @@
-import crypto.CipherSuite;
+import crypto.enums.CipherSuite;
+import crypto.enums.ECPointFormat;
 import messages.extensions.PQTLSExtension;
+import messages.extensions.implementations.ECPointFormatsExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.implementations.HelloMessage;
@@ -54,6 +56,10 @@ public class Main {
                 Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
                 Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
         });
+        ECPointFormatsExtension ecp = new ECPointFormatsExtension(new ECPointFormat[]{
+                ECPointFormat.ansiX962_compressed_char2,
+                ECPointFormat.uncompressed
+        });
         new SecureRandom().nextBytes(sessionID);
 
         //generate messages
@@ -64,7 +70,7 @@ public class Main {
                         CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
                 })
                 .random(random)
-                .extensions(new PQTLSExtension[]{keyShare, sig})
+                .extensions(new PQTLSExtension[]{keyShare, sig, ecp})
                 .LegacyVersion(new byte[]{0x03, 0x03})
                 .sessionID(sessionID)
                 .build();
