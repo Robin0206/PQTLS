@@ -27,7 +27,6 @@ class ClientStateMachineTest {
                 assertDoesNotThrow(this::buildRandomClientStateMachine);
             }
         });
-
     }
 
     private void buildRandomClientStateMachine() {
@@ -75,7 +74,7 @@ class ClientStateMachineTest {
             }
         }
         if(buffer.isEmpty()){
-            buffer.add(CurveIdentifier.ffdhe4096);
+            buffer.add(CurveIdentifier.secp256r1);
         }
         CurveIdentifier[] result = new CurveIdentifier[buffer.size()];
         for (int i = 0; i < result.length; i++) {

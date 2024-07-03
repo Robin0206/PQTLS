@@ -64,6 +64,7 @@ public class Main {
                         Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS
                 })
+                .numberOfCurvesSendByClientHello(2)
                 .build();
         HelloMessage message1 =
                 (HelloMessage) clientStateMachine.step();

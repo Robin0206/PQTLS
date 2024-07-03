@@ -6,7 +6,4 @@ public enum CurveIdentifier {
     x448,
     secp521r1,
     secp384r1,
-    ffdhe2048,
-    ffdhe4096,
-    ffdhe8192
 }
