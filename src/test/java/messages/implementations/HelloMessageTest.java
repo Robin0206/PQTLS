@@ -191,8 +191,7 @@ class HelloMessageTest {
         }
         //generate Extensions
         KeyShareExtension keyShare = new KeyShareExtension(
-                keys,
-                new byte[]{0x00, 0x1d}
+                keys
         );
         SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{
                 Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,

@@ -10,18 +10,18 @@ import static misc.Constants.*;
 
 //Key Share extension
 //Byte structure modified to allow for multiple keys
-//{0x00, 0x33}=Identifier||..numOfFollowingBytes..||..EC parameter..||..number of keys..||..up to three keyLength Fields..||..Keys..||
-//-------2 bytes---------||-------2 bytes---------||----2 bytes-----||-------1 byte-----||-------2 bytes per field--------||
+//{0x00, 0x33}=Identifier||..numOfFollowingBytes..||..number of keys..||..keyLength Fields..||..Keys..||
+//-------2 bytes---------||-------2 bytes---------||-------1 byte-----||-2 bytes per field--||
+//the first keys are ec keys like in the standard case. Depending on the cipher suite, the last keys are the hybrid keys in
+//the order there are in the cipher suite
 public class KeyShareExtension implements PQTLSExtension {
 
     byte[][] keys;
     byte[][] keyLengths;
     byte[] byteRepresentation;
-    byte[] ecParameter;
-    public KeyShareExtension(byte[][] keys, byte[] ecParameter){
-        throwExceptionIfNecessary(keys, ecParameter);
+    public KeyShareExtension(byte[][] keys){
+        throwExceptionIfNecessary(keys);
         this.keys = keys;
-        this.ecParameter = ecParameter;
         fillKeyLengths();
         fillBytes();
     }
@@ -48,9 +48,6 @@ public class KeyShareExtension implements PQTLSExtension {
         //add numOfFollowingBytes as {0x0, 0x0}
         buffer.add((byte) 0x00);
         buffer.add((byte) 0x00);
-        //add ec parameter
-        buffer.add(ecParameter[0]);
-        buffer.add(ecParameter[1]);
         //add number of keys
         buffer.add((byte)keys.length);
         //add keyLength fields
@@ -68,21 +65,15 @@ public class KeyShareExtension implements PQTLSExtension {
         return buffer;
     }
 
-    private static void throwExceptionIfNecessary(byte[][] keys, byte[] ecParameter) {
-        if(ecParameter.length != EC_PARAMETER_LENGTH){
-            throw new IllegalArgumentException("EC parameters length is always 2 bytes");
-        }else if(keys.length == 0 || keys.length > EXTENSION_KEY_SHARE_MAX_KEY_ARR_LENGTH){
+    private static void throwExceptionIfNecessary(byte[][] keys) {
+        if(keys.length < EXTENSION_KEY_SHARE_MIN_KEY_ARR_LENGTH){
             throw new IllegalArgumentException("Invalid number of keys");
         }
     }
 
     private void fillKeyLengths() {
-
         keyLengths = new byte[keys.length][EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH];
         for (int i = 0; i < keys.length; i++) {
-            if(keys[i].length != 1088 && keys[i].length != 168 && keys[i].length != 93){
-                throw new IllegalArgumentException(String.valueOf(keys[i].length));
-            }
             this.keyLengths[i] = ByteUtils.shortToByteArr((short)keys[i].length);
         }
     }
@@ -109,122 +100,54 @@ public class KeyShareExtension implements PQTLSExtension {
         return EXTENSION_IDENTIFIER_KEY_SHARE;
     }
     public static KeyShareExtension fromBytes(byte[] input) {
-        if(input[EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET-1] == 2){
-            return buildKeyShareExtensionWithTwoKeys(input);
-        }else{
-            return buildKeyShareExtensionWithThreeKeys(input);
+        return buildKeyShareExtensionWithNKeys(input);
+    }
+
+    public static KeyShareExtension buildKeyShareExtensionWithNKeys(byte[] input){
+
+        //extract the keyLengths
+        int[] keyLengthIndices = getKeyLengthIndices(input);
+        short[] keyLengths = new short[input[EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET-1]];
+        int keyLengthIndex = 0;
+        for (int i = keyLengthIndices[0]; i < keyLengthIndices[1]; i+=2, keyLengthIndex++) {
+            keyLengths[keyLengthIndex] = ByteUtils.byteArrToShort(new byte[]{input[i], input[i+1]});
         }
+
+        //extract the keys
+        int inputIndex = keyLengthIndices[1];
+        int keyIndex = 0;
+        ArrayList<ArrayList<Byte>> buffer = new ArrayList<>();
+        while(inputIndex < input.length && keyIndex < keyLengths.length){
+            buffer.add(new ArrayList<Byte>());
+            for (int i = 0; i < keyLengths[keyIndex]; inputIndex++, i++) {
+                buffer.get(keyIndex).add(input[inputIndex]);
+            }
+            keyIndex++;
+        }
+        byte[][] keys = new byte[buffer.size()][];
+        for (int i = 0; i < buffer.size(); i++) {
+            keys[i] = new byte[buffer.get(i).size()];
+            for (int j = 0; j < buffer.get(i).size(); j++) {
+                keys[i][j] = buffer.get(i).get(j);
+            }
+        }
+        return new KeyShareExtension(keys);
     }
-    private static KeyShareExtension buildKeyShareExtensionWithTwoKeys(byte[] input) {
 
-        //calculate indices
-        int curveParameterStartIndex = EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET - 3;
-
-        int firstKeyLengthFieldStartIndex = EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
-
-        int secondKeyLengthFieldStartIndex =
-                EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH +
-                        EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
-
-        int firstKeyStartIndex = secondKeyLengthFieldStartIndex + 2;
-
-        int firstKeyLength = ByteUtils.byteArrToShort(new byte[]{
-                input[firstKeyLengthFieldStartIndex],
-                input[firstKeyLengthFieldStartIndex+1]
-        });
-
-        int secondKeyLength =
-                input.length -
-                        firstKeyStartIndex -
-                        firstKeyLength;
-
-        int secondKeyStartIndex =
-                firstKeyStartIndex +
-                        firstKeyLength;
-
-        //extract the values
-        byte[] curveParameter = new byte[]{
-                input[curveParameterStartIndex],
-                input[curveParameterStartIndex + 1]
+    /*
+    returns the start and end index of the keyLength fields in the format int[]{start, end}
+     */
+    private static int[] getKeyLengthIndices(byte[] input) {
+        return new int[]{
+                EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET,
+                EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET + input[EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET - 1]*2
         };
-
-        byte[] firstKey = new byte[firstKeyLength];
-        System.arraycopy(input, firstKeyStartIndex, firstKey, 0, firstKeyLength);
-
-        byte[] secondKey = new byte[secondKeyLength];
-        System.arraycopy(input, secondKeyStartIndex, secondKey, 0, secondKeyLength);
-        return new KeyShareExtension(
-                new byte[][]{firstKey, secondKey},
-                curveParameter
-        );
-
     }
 
-    private static KeyShareExtension buildKeyShareExtensionWithThreeKeys(byte[] input) {
-
-        //calculate indices
-        int curveParameterStartIndex = EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET - 3;
-
-        int firstKeyLengthFieldStartIndex = EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
-
-        int secondKeyLengthFieldStartIndex =
-                EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH +
-                        EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
-
-        int thirdKeyLengthFieldStartIndex =
-                2 * EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH +
-                        EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET;
-
-        int firstKeyStartIndex = secondKeyLengthFieldStartIndex + 2;
-
-        int firstKeyLength = ByteUtils.byteArrToShort(new byte[]{
-                input[firstKeyLengthFieldStartIndex],
-                input[firstKeyLengthFieldStartIndex+1]
-        });
-
-        int secondKeyStartIndex =
-                firstKeyStartIndex +
-                        firstKeyLength;
-
-        int secondKeyLength = ByteUtils.byteArrToShort(new byte[]{
-                input[secondKeyLengthFieldStartIndex],
-                input[secondKeyLengthFieldStartIndex+1]
-        });
-
-        int thirdKeyStartIndex =
-                secondKeyStartIndex +
-                        secondKeyLength;
-
-        int thirdKeyLength = ByteUtils.byteArrToShort(new byte[]{
-                input[thirdKeyLengthFieldStartIndex],
-                input[thirdKeyLengthFieldStartIndex+1]
-        });
-
-        //extract the values
-        byte[] curveParameter = new byte[]{
-                input[curveParameterStartIndex],
-                input[curveParameterStartIndex + 1]
-        };
-
-        byte[] firstKey = new byte[firstKeyLength];
-        System.arraycopy(input, firstKeyStartIndex, firstKey, 0, firstKeyLength);
-
-        byte[] secondKey = new byte[secondKeyLength];
-        System.arraycopy(input, secondKeyStartIndex, secondKey, 0, secondKeyLength);
-
-        byte[] thirdKey = new byte[thirdKeyLength];
-        System.arraycopy(input, thirdKeyStartIndex, thirdKey, 0, thirdKeyLength);
-        return new KeyShareExtension(
-                new byte[][]{firstKey, secondKey, thirdKey},
-                curveParameter
-        );
-
-    }
     public boolean equals(KeyShareExtension keyShareExtension){
         return
                 java.util.Arrays.deepEquals(this.keys, keyShareExtension.keys) &&
                 java.util.Arrays.deepEquals(this.keyLengths, keyShareExtension.keyLengths) &&
-                java.util.Arrays.equals(this.ecParameter, keyShareExtension.ecParameter) &&
                 java.util.Arrays.equals(this.byteRepresentation, keyShareExtension.byteRepresentation);
 
     }

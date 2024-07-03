@@ -1,7 +1,7 @@
 package messages.implementations;
 
 import crypto.enums.CipherSuite;
-import messages.Message;
+import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import static misc.Constants.*;
 
 //Builder Pattern
-public class HelloMessage implements Message {
+public class HelloMessage implements PQTLSMessage {
 
     //Constructor gets only used in the builder
     private HelloMessage(HelloBuilder builder) {
@@ -380,6 +380,7 @@ public class HelloMessage implements Message {
             //split the extensions and put them into the splitExtensionBytesBuffer
             int followingBytes;
             while (index < extensionBytes.length) {
+
                 //add the identifier and the length
                 currentExtensionBuffer.add(extensionBytes[index]);
                 currentExtensionBuffer.add(extensionBytes[index + 1]);
@@ -390,11 +391,14 @@ public class HelloMessage implements Message {
                         extensionBytes[index + 2],
                         extensionBytes[index + 3]
                 });
-
+                if(extensionBytes.length < index + followingBytes){
+                    System.out.println();
+                }
                 //update the index
                 index += 4;
                 //add the bytes
                 for (int i = 0; i < followingBytes; i++) {
+
                     currentExtensionBuffer.add(extensionBytes[index]);
                     index++;
                 }

@@ -1,5 +1,6 @@
 package messages.extensions.test;
 
+import messages.extensions.PQTLSExtension;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.implementations.KeyShareExtension;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
@@ -32,8 +33,7 @@ class KeyShareExtensionTest {
         byte[] ecKey = key.getEncoded();
         byte[] sessionID = new byte[32];
         keyShareExtension1 = new KeyShareExtension(
-                new byte[][]{ecKey, frodoKey},
-                new byte[]{0x00, 0x1d}
+                new byte[][]{ecKey, frodoKey}
         );
     }
 
@@ -41,5 +41,27 @@ class KeyShareExtensionTest {
     void testGenerationFromByteRepresentation(){
         keyShareExtension2 = (KeyShareExtension) PQTLSExtensionFactory.generateFromBytes(keyShareExtension1.getByteRepresentation());
         assertTrue(keyShareExtension1.equals(keyShareExtension2));
+    }
+    @Test
+    void testRandomGenerationFromBytes(){
+        assertAll(()->{
+            SecureRandom rand = new SecureRandom();
+            for(int i = 0; i < 1000; i++){
+                byte[][] keys = generateRandomKeys(rand);
+                keyShareExtension1 = new KeyShareExtension(keys);
+                keyShareExtension2 = (KeyShareExtension) PQTLSExtensionFactory.generateFromBytes(keyShareExtension1.getByteRepresentation());
+                assertTrue(keyShareExtension1.equals(keyShareExtension2));
+            }
+        });
+    }
+
+    private static byte[][] generateRandomKeys(SecureRandom rand) {
+        int numberOfKeys = 1 + Math.abs(rand.nextInt())%10;
+        byte[][]keys = new byte[numberOfKeys][];
+        for (int j = 0; j < keys.length; j++) {
+            keys[j] = new byte[Math.abs(rand.nextInt())%10000];
+            rand.nextBytes(keys[j]);
+        }
+        return keys;
     }
 }

@@ -15,6 +15,7 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.tls.*;
 import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
+import statemachines.client.ClientStateMachine;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -37,65 +38,38 @@ public class Main {
         Security.addProvider(new BouncyCastleProvider());
         testProviderImports();
 
-        //generate keys
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC", "BC");
-        ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("curve25519");
-        kpg.initialize(ecGenParameterSpec);
-        ECPublicKey key = (ECPublicKey) kpg.generateKeyPair().getPublic();
-        byte[] ecKey = key.getEncoded();
-        byte[]frodoKey = new byte[168];
-        new SecureRandom().nextBytes(frodoKey);
-        byte[] sessionID = new byte[32];
 
-        //generate Extensions
-        KeyShareExtension keyShare = new KeyShareExtension(
-                new byte[][]{ecKey, frodoKey},
-                new byte[]{0x00, 0x1d}
-        );
-        byte[] random = new byte[32];
-        new SecureRandom().nextBytes(random);
-        SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{
-                Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
-                Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
-        });
-        ECPointFormatsExtension ecp = new ECPointFormatsExtension(new ECPointFormat[]{
-                ECPointFormat.ansiX962_compressed_char2,
-                ECPointFormat.uncompressed
-        });
-        SupportedGroupsExtension sup = new SupportedGroupsExtension(new CurveIdentifier[]{
-                CurveIdentifier.ffdhe3072,
-                CurveIdentifier.secp384r1,
-                CurveIdentifier.ffdhe6144,
-                CurveIdentifier.ffdhe4096
-        });
-        new SecureRandom().nextBytes(sessionID);
 
-        //generate messages
-        HelloMessage message1 = new HelloMessage.HelloBuilder()
-                .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
+
+        ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
-                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
+                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
                 })
-                .random(random)
-                .extensions(new PQTLSExtension[]{keyShare, sig, ecp, sup})
-                .LegacyVersion(new byte[]{0x03, 0x03})
-                .sessionID(sessionID)
+                .curveIdentifiers(new CurveIdentifier[]{
+                        CurveIdentifier.secp384r1,
+                        CurveIdentifier.secp256r1
+                })
+                .ecPointFormats(new ECPointFormat[]{
+                        ECPointFormat.ansiX962_compressed_char2,
+                        ECPointFormat.uncompressed
+                })
+                .supportedSignatureAlgorithms(new byte[]{
+                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
+                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
+                })
+                .extensionIdentifiers(new byte[]{
+                        Constants.EXTENSION_IDENTIFIER_EC_POINT_FORMATS,
+                        Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS,
+                        Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
+                        Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS
+                })
                 .build();
-
-        HelloMessage message2 = new HelloMessage.HelloBuilder()
-                .fromBytes(message1.getBytes())
-                .build();
+        HelloMessage message1 =
+                (HelloMessage) clientStateMachine.step();
 
         //print the messages
         message1.printVerbose();
-        message2.printVerbose();
-        System.out.println();
-        System.out.println("_______________________________________MessageBytes from both messages_______________________________________");
-
-        System.out.println(Arrays.toString(message1.getBytes()));
-        System.out.println(Arrays.toString(message2.getBytes()));
-        System.out.println(message1.equals(message2));
     }
     private static void testProviderImports() {
         testStaticImportPQProvider();

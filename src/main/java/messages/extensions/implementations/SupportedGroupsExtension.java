@@ -56,9 +56,7 @@ public class SupportedGroupsExtension implements PQTLSExtension {
         curveIdentifierToByteArr.put(secp521r1, new byte[]{0x00, 0x19});
         curveIdentifierToByteArr.put(secp384r1, new byte[]{0x00, 0x18});
         curveIdentifierToByteArr.put(ffdhe2048, new byte[]{0x01, 0x00});
-        curveIdentifierToByteArr.put(ffdhe3072, new byte[]{0x01, 0x01});
         curveIdentifierToByteArr.put(ffdhe4096, new byte[]{0x01, 0x02});
-        curveIdentifierToByteArr.put(ffdhe6144, new byte[]{0x01, 0x03});
         curveIdentifierToByteArr.put(ffdhe8192, new byte[]{0x01, 0x04});
 
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x1d}), x25519 );
@@ -67,9 +65,7 @@ public class SupportedGroupsExtension implements PQTLSExtension {
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x19}), secp521r1);
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x18}), secp384r1);
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x00}), ffdhe2048);
-        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x01}), ffdhe3072);
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x02}), ffdhe4096);
-        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x03}), ffdhe6144);
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x01, 0x04}), ffdhe8192);
     }
 

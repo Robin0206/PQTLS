@@ -1,6 +1,6 @@
 package messages;
 
-public interface Message {
+public interface PQTLSMessage {
     public byte[] getBytes();
     public void printVerbose();
 }
