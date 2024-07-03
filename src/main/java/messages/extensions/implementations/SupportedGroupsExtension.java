@@ -50,15 +50,11 @@ public class SupportedGroupsExtension implements PQTLSExtension {
         curveIdentifierToByteArr = new Hashtable<>();
         shortToCurveIdentifier = new Hashtable<>();
 
-        curveIdentifierToByteArr.put(x25519, new byte[]{0x00, 0x1d});
         curveIdentifierToByteArr.put(secp256r1, new byte[]{0x00, 0x17});
-        curveIdentifierToByteArr.put(x448, new byte[]{0x00, 0x1e});
         curveIdentifierToByteArr.put(secp521r1, new byte[]{0x00, 0x19});
         curveIdentifierToByteArr.put(secp384r1, new byte[]{0x00, 0x18});
 
-        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x1d}), x25519 );
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x17}), secp256r1);
-        shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x1e}), x448);
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x19}), secp521r1);
         shortToCurveIdentifier.put(ByteUtils.byteArrToShort(new byte[]{0x00, 0x18}), secp384r1);
     }
