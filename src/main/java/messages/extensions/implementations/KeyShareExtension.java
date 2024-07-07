@@ -1,5 +1,6 @@
 package messages.extensions.implementations;
 
+import crypto.enums.CurveIdentifier;
 import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
 
@@ -10,8 +11,8 @@ import static misc.Constants.*;
 
 //Key Share extension
 //Byte structure modified to allow for multiple keys
-//{0x00, 0x33}=Identifier||..numOfFollowingBytes..||..number of keys..||..keyLength Fields..||..Keys..||
-//-------2 bytes---------||-------2 bytes---------||-------1 byte-----||-2 bytes per field--||
+//{0x00, 0x33}=Identifier||..numOfFollowingBytes..||..curve identifier..||..number of keys..||..keyLength Fields..||..Keys..||
+//-------2 bytes---------||-------2 bytes---------||-------1 byte-------||-------1 byte-----||-2 bytes per field--||
 //the first keys are ec keys like in the standard case. Depending on the cipher suite, the last keys are the hybrid keys in
 //the order there are in the cipher suite
 public class KeyShareExtension implements PQTLSExtension {
@@ -19,9 +20,18 @@ public class KeyShareExtension implements PQTLSExtension {
     byte[][] keys;
     byte[][] keyLengths;
     byte[] byteRepresentation;
+    byte curveIdentifier;//Only one byte because of the use with enums
     public KeyShareExtension(byte[][] keys){
         throwExceptionIfNecessary(keys);
         this.keys = keys;
+        this.curveIdentifier = EXTENSION_KEY_SHARE_CURVE_IDENTIFIER_NOT_SET;
+        fillKeyLengths();
+        fillBytes();
+    }
+    public KeyShareExtension(byte[][] keys, CurveIdentifier curveIdentifier){
+        throwExceptionIfNecessary(keys);
+        this.keys = keys;
+        this.curveIdentifier = (byte) curveIdentifier.ordinal();
         fillKeyLengths();
         fillBytes();
     }
@@ -48,6 +58,8 @@ public class KeyShareExtension implements PQTLSExtension {
         //add numOfFollowingBytes as {0x0, 0x0}
         buffer.add((byte) 0x00);
         buffer.add((byte) 0x00);
+        //add curve Identifier
+        buffer.add(curveIdentifier);
         //add number of keys
         buffer.add((byte)keys.length);
         //add keyLength fields
@@ -148,7 +160,12 @@ public class KeyShareExtension implements PQTLSExtension {
         return
                 java.util.Arrays.deepEquals(this.keys, keyShareExtension.keys) &&
                 java.util.Arrays.deepEquals(this.keyLengths, keyShareExtension.keyLengths) &&
-                java.util.Arrays.equals(this.byteRepresentation, keyShareExtension.byteRepresentation);
+                java.util.Arrays.equals(this.byteRepresentation, keyShareExtension.byteRepresentation) &&
+                        this.curveIdentifier == keyShareExtension.curveIdentifier;
 
+    }
+
+    public byte[][] getKeys() {
+        return keys;
     }
 }

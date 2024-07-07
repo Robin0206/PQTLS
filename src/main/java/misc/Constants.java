@@ -14,9 +14,11 @@ public class Constants {
 
     public static final int EXTENSION_KEY_SHARE_MIN_KEY_ARR_LENGTH = 1;
     public static final int EXTENSION_KEY_SHARE_KEY_LENGTH_FIELD_LENGTH = 2;
-    public static final int EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET = 5;
+    public static final int EXTENSION_KEY_SHARE_KEY_LENGTH_FIELDS_OFFSET = 6;
+    public static final byte EXTENSION_KEY_SHARE_CURVE_IDENTIFIER_NOT_SET = (byte) 0xff;
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS = 0x00;
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM = 0x01;
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON = 0x02;
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTED_ALGORITHMS_OFFSET = 4;
+    
 }

@@ -130,6 +130,18 @@ public class HelloMessage implements PQTLSMessage {
         return extensionsLength;
     }
 
+    public CipherSuite[] getCipherSuites() {
+        return cipherSuites;
+    }
+
+    public byte[] getSessionID() {
+        return sessionID;
+    }
+
+    public PQTLSExtension[] getExtensions() {
+        return extensions;
+    }
+
     public static class HelloBuilder {
         //record header
         private byte[] legacyVersion;

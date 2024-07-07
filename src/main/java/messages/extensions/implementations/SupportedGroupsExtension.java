@@ -87,4 +87,8 @@ public class SupportedGroupsExtension implements PQTLSExtension {
         }
         return new SupportedGroupsExtension(supportedGroups);
     }
+
+    public CurveIdentifier[] getSupportedGroups() {
+        return supportedGroups;
+    }
 }

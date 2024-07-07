@@ -1,8 +1,7 @@
 package statemachines.client.states;
 
-import crypto.KeyGenerator;
+import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
-import crypto.enums.ECPointFormat;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.ECPointFormatsExtension;
@@ -16,11 +15,9 @@ import statemachines.client.ClientStateMachine;
 
 import java.security.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ClientHelloState extends State {
-    private PQTLSMessage clientHelloMessage;
-    private ClientStateMachine clientStateMachine;
+    private final ClientStateMachine clientStateMachine;
     private KeyPair[] ecKeyPairs;
     private KeyPair frodoKey;
     private KeyPair kyberKey;
@@ -96,14 +93,14 @@ public class ClientHelloState extends State {
 
         return new KeyShareExtension(keys);
     }
-
-    //always generates frodo and kyber keyPairs to give the server the opportunity to renegotiate
+    //TODO
+    //  Will later use a keystore
     //sets them in this class and the clientHelloStateMachine
     private void calculateAndSetKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //calculate Keys
-        this.ecKeyPairs = KeyGenerator.generateECKeyPairs(clientStateMachine.getSupportedGroups());
-        this.frodoKey = KeyGenerator.generateFrodoKeyPair();
-        this.kyberKey = KeyGenerator.generateKyberKeyPair();
+        this.ecKeyPairs = CryptographyModule.generateECKeyPairs(clientStateMachine.getSupportedGroups());
+        this.frodoKey = CryptographyModule.generateFrodoKeyPair();
+        this.kyberKey = CryptographyModule.generateKyberKeyPair();
         clientStateMachine.setEcKeyPairs(ecKeyPairs);
         if(cipherSuitesContainOneWithFrodoKEM()){
             clientStateMachine.setFrodoKey(frodoKey);
@@ -153,7 +150,10 @@ public class ClientHelloState extends State {
     }
 
     @Override
-    public State next(PQTLSMessage message) {
+    public State next() {
         return null;
     }
+
+    @Override
+    public void setPreviousMessage(PQTLSMessage message) {}
 }

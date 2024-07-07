@@ -16,6 +16,7 @@ import org.bouncycastle.tls.*;
 import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 import statemachines.client.ClientStateMachine;
+import statemachines.server.ServerStateMachine;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -30,9 +31,9 @@ import java.util.Vector;
 
 public class Main {
     /*
-    Main shouldnt throw any exception and print 2 ClientHello-Messages
+    Main shouldnt throw any exception and print a Client-Hello-Message with the corresponding Server-Hello-Message
      */
-    public static void main(String[]args) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    public static void main(String[]args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
@@ -44,7 +45,8 @@ public class Main {
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_256_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
                 .curveIdentifiers(new CurveIdentifier[]{
                         CurveIdentifier.secp384r1,
@@ -67,10 +69,25 @@ public class Main {
                 .numberOfCurvesSendByClientHello(2)
                 .build();
         HelloMessage message1 =
-                (HelloMessage) clientStateMachine.step();
+                (HelloMessage) clientStateMachine.step(null);
 
         //print the messages
         message1.printVerbose();
+
+        ServerStateMachine serverStateMachine = new ServerStateMachine.ServerStateMachineBuilder()
+                .supportedCurves(new CurveIdentifier[]{
+                        CurveIdentifier.secp384r1,
+                        CurveIdentifier.secp256r1
+                })
+                .cipherSuites(new CipherSuite[]{
+                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_256_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
+                })
+                .build();
+        HelloMessage message2 =
+                (HelloMessage) serverStateMachine.step(message1);
+        message2.printVerbose();
     }
     private static void testProviderImports() {
         testStaticImportPQProvider();

@@ -1,20 +1,19 @@
 package crypto;
 
 
-import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
+import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
+import org.bouncycastle.jcajce.spec.KEMExtractSpec;
+import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
 import org.bouncycastle.pqc.jcajce.spec.FrodoParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 
+import javax.crypto.KeyGenerator;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
-import java.util.ArrayList;
 
-public class KeyGenerator {
+public class CryptographyModule {
 
-    /*
-    assumes that the CipherSuite is not TLS_NULL_ENCRYPTION
-    */
     public static KeyPair[] generateECKeyPairs(CurveIdentifier[] identifiers) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         KeyPair[] result = new KeyPair[identifiers.length];
         for (int i = 0; i < identifiers.length; i++) {
@@ -40,5 +39,17 @@ public class KeyGenerator {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("Frodo", "BCPQC");
         generator.initialize(FrodoParameterSpec.frodokem976shake);
         return generator.generateKeyPair();
+    }
+
+    public static SecretKeyWithEncapsulation generateEncapsulatedSecret(PublicKey clientPublicKey, String algName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        KeyGenerator generator = KeyGenerator.getInstance(algName, "BCPQC");
+        generator.init(new KEMGenerateSpec(clientPublicKey, "AES"), new SecureRandom());
+        return (SecretKeyWithEncapsulation)generator.generateKey();
+    }
+
+    public static SecretKeyWithEncapsulation generateClient(PrivateKey privKeyClient, byte[] secret, String algName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException{
+        KeyGenerator generator = KeyGenerator.getInstance("Kyber", "BCPQC");
+        generator.init(new KEMExtractSpec(privKeyClient, secret, "AES"));
+        return (SecretKeyWithEncapsulation)generator.generateKey();
     }
 }

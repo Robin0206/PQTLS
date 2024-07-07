@@ -11,6 +11,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
+
 /*
 Uses fluent builder pattern
 The first state is always the ClientHelloState
@@ -38,13 +40,12 @@ public class ClientStateMachine{
         currentState = new ClientHelloState(this);
     }
 
-    public PQTLSMessage step() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+        currentState.setPreviousMessage(previousMessage);
         currentState.calculate();
-        return currentState.getMessage();
-    }
-
-    public void nextState(PQTLSMessage message){
-        currentState = currentState.next(message);
+        PQTLSMessage result = currentState.getMessage();
+        currentState = currentState.next();
+        return result;
     }
 
     public CurveIdentifier[] getSupportedGroups() {
@@ -99,10 +100,25 @@ public class ClientStateMachine{
         private boolean extensionIdentifiersSet = false;
 
         public ClientStateMachineBuilder cipherSuites(CipherSuite[] cipherSuites){
-            this.cipherSuites = cipherSuites;
-            cipherSuitesSet = true;
-            return this;
+            if(cipherSuitesContainMandatoryCipherSuite(cipherSuites)){
+                this.cipherSuites = cipherSuites;
+                cipherSuitesSet = true;
+                return this;
+            }else{
+                throw new RuntimeException("Doesnt contain the mandatory Cipher-Suite: TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384");
+            }
+            
         }
+
+        private boolean cipherSuitesContainMandatoryCipherSuite(CipherSuite[] cipherSuites) {
+            for(CipherSuite cipherSuite : cipherSuites){
+                if(cipherSuite == CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384){
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public ClientStateMachineBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers){
             if(curveIdentifiers.length < 1){
                 throw new IllegalArgumentException("curveIdentifiers.length must be bigger than 0");
