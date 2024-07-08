@@ -30,7 +30,7 @@ class HelloMessageTest {
                 .extensions(new PQTLSExtension[]{})
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_256_POLY1305_SHA384
+                        CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_POLY1305_SHA384
                 })
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
                 .random(random)

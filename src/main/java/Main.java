@@ -1,16 +1,9 @@
-import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
-import messages.extensions.PQTLSExtension;
-import messages.extensions.implementations.ECPointFormatsExtension;
-import messages.extensions.implementations.SignatureAlgorithmsExtension;
-import messages.extensions.implementations.KeyShareExtension;
-import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
-import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
@@ -26,7 +19,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
-import java.security.spec.ECGenParameterSpec;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -45,7 +37,7 @@ public class Main {
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_256_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_POLY1305_SHA384,
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
                 .curveIdentifiers(new CurveIdentifier[]{
@@ -81,7 +73,7 @@ public class Main {
                 })
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_256_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_POLY1305_SHA384,
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
                 .build();

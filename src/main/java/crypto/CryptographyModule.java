@@ -8,12 +8,13 @@ import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
 import org.bouncycastle.pqc.jcajce.spec.FrodoParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 
-import javax.crypto.KeyAgreement;
-import javax.crypto.KeyGenerator;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import misc.ByteUtils;
 
 public class CryptographyModule {
 
@@ -69,5 +70,28 @@ public class CryptographyModule {
                         )
                 )
         ;
+    }
+
+    public static byte[] encryptAES(byte[] input, long iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("AES/GCM/PKCS5Padding", "BC");
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(iv)));
+        return cipher.doFinal(input);
+    }
+
+    public static byte[] encryptChaCha(byte[] input, long nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(nonce)));
+        return cipher.doFinal(input);
+    }
+    public static byte[] decryptAES(byte[] input, long iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("AES/GCM/PKCS5Padding", "BC");
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(iv)));
+        return cipher.doFinal(input);
+    }
+
+    public static byte[] decryptChaCha(byte[] input, long nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(nonce)));
+        return cipher.doFinal(input);
     }
 }
