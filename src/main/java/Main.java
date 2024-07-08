@@ -34,14 +34,13 @@ import java.util.Vector;
 public class Main {
     /*
     Main shouldnt throw any exception and print a Client-Hello-Message with the corresponding Server-Hello-Message
+    as well as the shared secrets from the client and server state machine
      */
     public static void main(String[]args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
         testProviderImports();
-
-
 
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
@@ -90,6 +89,7 @@ public class Main {
                 (HelloMessage) serverStateMachine.step(message1);
         message2.printVerbose();
         clientStateMachine.step(message2);
+        System.out.println("Shared Secrets:");
         System.out.println(Arrays.toString(clientStateMachine.getSharedSecret()));
         System.out.println(Arrays.toString(serverStateMachine.getSharedSecret()));
     }
