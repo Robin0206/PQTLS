@@ -168,4 +168,8 @@ public class KeyShareExtension implements PQTLSExtension {
     public byte[][] getKeys() {
         return keys;
     }
+
+    public CurveIdentifier getCurveIdentifier() {
+        return CurveIdentifier.values()[curveIdentifier];
+    }
 }

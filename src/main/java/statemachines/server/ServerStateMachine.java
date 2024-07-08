@@ -7,11 +7,9 @@ import messages.extensions.PQTLSExtension;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
 import statemachines.State;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 
 
 public class ServerStateMachine {
@@ -27,18 +25,27 @@ public class ServerStateMachine {
     protected byte[] sessionID;
     protected byte[] random;
     protected PQTLSExtension[] extensions;
+    protected byte[] sharedSecret;
+    protected ArrayList<PQTLSMessage> incomingMessages;
 
     private ServerStateMachine(ServerStateMachineBuilder builder){
+        incomingMessages = new ArrayList<>();
         this.supportedCurves = builder.supportedCurves;
         this.supportedCipherSuites = builder.supportedCipherSuites;
-        this.currentState = new ServerHelloState(this);
+        this.currentState = new ServerHelloState();
     }
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
+        currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
+        incomingMessages.add(previousMessage);
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
         currentState = currentState.next();
         return result;
+    }
+
+    public byte[] getSharedSecret(){
+        return sharedSecret;
     }
 
     public static class ServerStateMachineBuilder{

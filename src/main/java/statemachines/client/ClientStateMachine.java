@@ -4,14 +4,12 @@ import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
 import messages.PQTLSMessage;
+import messages.extensions.PQTLSExtension;
 import statemachines.State;
-import statemachines.client.states.ClientHelloState;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 
 /*
 Uses fluent builder pattern
@@ -19,29 +17,38 @@ The first state is always the ClientHelloState
  */
 public class ClientStateMachine{
 
-    private KeyPair[] ecKeyPairs;
-    private KeyPair frodoKey;
-    private KeyPair kyberKey;
-    private State currentState;
-    private CipherSuite[] cipherSuites;
-    private CurveIdentifier[] curveIdentifiers;
-    private ECPointFormat[] ecPointFormats;
-    private byte[] supportedSignatureAlgorithms;
-    private int numberOfCurvesToSendByClientHello;
-    private byte[] extensionIdentifiers;
+    public ArrayList<PQTLSExtension> extensions;
+    public int chosenCurveKeyIndex;
+    protected CipherSuite chosenCipherSuite;
+    protected KeyPair[] ecKeyPairs;
+    protected KeyPair frodoKey;
+    protected KeyPair kyberKey;
+    protected State currentState;
+    protected CipherSuite[] cipherSuites;
+    protected CurveIdentifier[] curveIdentifiers;
+    protected CurveIdentifier chosenCurve;
+    protected ECPointFormat[] ecPointFormats;
+    protected byte[] supportedSignatureAlgorithms;
+    protected int numberOfCurvesToSendByClientHello;
+    protected byte[] extensionIdentifiers;
+    protected byte[] sharedSecret;
+    protected ArrayList<PQTLSMessage> incomingMessages;
 
     private ClientStateMachine(ClientStateMachineBuilder builder){
+        incomingMessages = new ArrayList<>();
         this.cipherSuites = builder.cipherSuites;
         this.curveIdentifiers = builder.curveIdentifiers;
         this.ecPointFormats = builder.ecPointFormats;
         this.supportedSignatureAlgorithms = builder.supportedSignatureAlgorithms;
         this.numberOfCurvesToSendByClientHello = builder.numberOfCurvesSendByClientHello;
         this.extensionIdentifiers = builder.extensionIdentifiers;
-        currentState = new ClientHelloState(this);
+        currentState = new ClientHelloState();
     }
 
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
+        currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
+        incomingMessages.add(previousMessage);
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
         currentState = currentState.next();
@@ -55,35 +62,9 @@ public class ClientStateMachine{
     public void setEcKeyPairs(KeyPair[] ecKeyPairs) {
         this.ecKeyPairs = ecKeyPairs;
     }
-
-    public void setFrodoKey(KeyPair frodoKey) {
-        this.frodoKey = frodoKey;
+    public byte[] getSharedSecret(){
+        return sharedSecret;
     }
-
-    public void setKyberKey(KeyPair kyberKey) {
-        this.kyberKey = kyberKey;
-    }
-
-    public byte[] getExtensionIdentifiers() {
-        return extensionIdentifiers;
-    }
-
-    public ECPointFormat[] getECPointFormats() {
-        return ecPointFormats;
-    }
-
-    public byte[] getSignatureAlgorithms() {
-        return supportedSignatureAlgorithms;
-    }
-
-    public CipherSuite[] getCipherSuites() {
-        return cipherSuites;
-    }
-
-    public int getNumberOfECKeysToSend() {
-        return this.numberOfCurvesToSendByClientHello;
-    }
-
     public static class ClientStateMachineBuilder{
         private CipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
@@ -94,7 +75,6 @@ public class ClientStateMachine{
 
         private boolean cipherSuitesSet = false;
         private boolean curveIdentifiersSet = false;
-        private boolean ecPointFormatsSet = false;
         private boolean supportedSignatureAlgorithmsSet = false;
         private boolean numberOfCurvesSendByClientHelloSet = false;
         private boolean extensionIdentifiersSet = false;
@@ -129,7 +109,6 @@ public class ClientStateMachine{
         }
         public ClientStateMachineBuilder ecPointFormats(ECPointFormat[] ecPointFormats){
             this.ecPointFormats = ecPointFormats;
-            ecPointFormatsSet = true;
             return this;
         }
         public ClientStateMachineBuilder supportedSignatureAlgorithms(byte[] supportedSignatureAlgorithms){

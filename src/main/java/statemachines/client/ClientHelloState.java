@@ -1,4 +1,4 @@
-package statemachines.client.states;
+package statemachines.client;
 
 import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
@@ -11,22 +11,13 @@ import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
 import misc.Constants;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
+import statemachines.server.ServerStateMachine;
 
 import java.security.*;
 import java.util.ArrayList;
 
 public class ClientHelloState extends State {
-    private final ClientStateMachine clientStateMachine;
-    private KeyPair[] ecKeyPairs;
-    private KeyPair frodoKey;
-    private KeyPair kyberKey;
-    private ArrayList<PQTLSExtension> extensions;
-
-    public ClientHelloState(ClientStateMachine clientStateMachine){
-        this.clientStateMachine = clientStateMachine;
-    }
-
+    private ClientStateMachine stateMachine;
 
     @Override
     public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -35,10 +26,10 @@ public class ClientHelloState extends State {
     }
 
     private void calculateExtensions() {
-        extensions = new ArrayList<>();
-        byte [] extensionIdentifiers = clientStateMachine.getExtensionIdentifiers();
+        stateMachine.extensions = new ArrayList<>();
+        byte [] extensionIdentifiers = stateMachine.extensionIdentifiers;
         for (byte extensionIdentifier : extensionIdentifiers) {
-            extensions.add(generateExtension(extensionIdentifier));
+            stateMachine.extensions.add(generateExtension(extensionIdentifier));
         }
     }
 
@@ -53,19 +44,19 @@ public class ClientHelloState extends State {
     }
 
     private PQTLSExtension generateECPointFormatsExtension() {
-        return new ECPointFormatsExtension(clientStateMachine.getECPointFormats());
+        return new ECPointFormatsExtension(stateMachine.ecPointFormats);
     }
 
     private PQTLSExtension generateSignatureAlgorithmsExtension() {
-        return new SignatureAlgorithmsExtension(clientStateMachine.getSignatureAlgorithms());
+        return new SignatureAlgorithmsExtension(stateMachine.supportedSignatureAlgorithms);
     }
 
     private PQTLSExtension generateSupportedGroupsExtension() {
-        return new SupportedGroupsExtension(clientStateMachine.getSupportedGroups());
+        return new SupportedGroupsExtension(stateMachine.curveIdentifiers);
     }
 
     private PQTLSExtension generateKeyShareExtension() {
-        int keysArrSize = clientStateMachine.getNumberOfECKeysToSend();
+        int keysArrSize = stateMachine.numberOfCurvesToSendByClientHello;
         if(cipherSuitesContainOneWithFrodoKEM()){
             keysArrSize++;
         }
@@ -74,19 +65,19 @@ public class ClientHelloState extends State {
         }
 
         byte[][] keys = new byte[keysArrSize][];
-        for (int i = 0; i < clientStateMachine.getNumberOfECKeysToSend(); i++) {
-            keys[i] = ecKeyPairs[i].getPublic().getEncoded();
+        for (int i = 0; i < stateMachine.numberOfCurvesToSendByClientHello; i++) {
+            keys[i] = stateMachine.ecKeyPairs[i].getPublic().getEncoded();
         }
         //if it uses frodoKem and kyber
-        if(keysArrSize == clientStateMachine.getNumberOfECKeysToSend() + 2){
-            keys[keys.length-2] = frodoKey.getPublic().getEncoded();
-            keys[keys.length-1] = kyberKey.getPublic().getEncoded();
+        if(keysArrSize == stateMachine.numberOfCurvesToSendByClientHello + 2){
+            keys[keys.length-2] = stateMachine.frodoKey.getPublic().getEncoded();
+            keys[keys.length-1] = stateMachine.kyberKey.getPublic().getEncoded();
         }//if it uses frodoKem or kyber
-        else if(keysArrSize == clientStateMachine.getNumberOfECKeysToSend() + 1){
+        else if(keysArrSize == stateMachine.numberOfCurvesToSendByClientHello + 1){
             if(cipherSuitesContainOneWithFrodoKEM()){
-                keys[keys.length-1] = frodoKey.getPublic().getEncoded();
+                keys[keys.length-1] = stateMachine.frodoKey.getPublic().getEncoded();
             }else{
-                keys[keys.length-1] = kyberKey.getPublic().getEncoded();
+                keys[keys.length-1] = stateMachine.kyberKey.getPublic().getEncoded();
             }
         }
 
@@ -98,20 +89,14 @@ public class ClientHelloState extends State {
     //sets them in this class and the clientHelloStateMachine
     private void calculateAndSetKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //calculate Keys
-        this.ecKeyPairs = CryptographyModule.generateECKeyPairs(clientStateMachine.getSupportedGroups());
-        this.frodoKey = CryptographyModule.generateFrodoKeyPair();
-        this.kyberKey = CryptographyModule.generateKyberKeyPair();
-        clientStateMachine.setEcKeyPairs(ecKeyPairs);
-        if(cipherSuitesContainOneWithFrodoKEM()){
-            clientStateMachine.setFrodoKey(frodoKey);
-        }
-        if(cipherSuitesContainOneWithKyberKEM()){
-            clientStateMachine.setKyberKey(kyberKey);
-        }
+        this.stateMachine.ecKeyPairs = CryptographyModule.generateECKeyPairs(stateMachine.getSupportedGroups());
+        this.stateMachine.frodoKey = CryptographyModule.generateFrodoKeyPair();
+        this.stateMachine.kyberKey = CryptographyModule.generateKyberKeyPair();
+        stateMachine.setEcKeyPairs(stateMachine.ecKeyPairs);
     }
 
     private boolean cipherSuitesContainOneWithKyberKEM() {
-        for(CipherSuite cipherSuite : clientStateMachine.getCipherSuites()){
+        for(CipherSuite cipherSuite : stateMachine.cipherSuites){
             if(cipherSuite.ordinal() >= 7 && cipherSuite.ordinal() <= 12){
                 return true;
             }
@@ -120,7 +105,7 @@ public class ClientHelloState extends State {
     }
 
     private boolean cipherSuitesContainOneWithFrodoKEM() {
-        for(CipherSuite cipherSuite : clientStateMachine.getCipherSuites()){
+        for(CipherSuite cipherSuite : stateMachine.cipherSuites){
             if(cipherSuite.ordinal() < 7 || cipherSuite.ordinal() > 12){
                 return true;
             }
@@ -131,9 +116,9 @@ public class ClientHelloState extends State {
     @Override
     public PQTLSMessage getMessage() {
         SecureRandom random = new SecureRandom();
-        PQTLSExtension[] extensionsArray = new PQTLSExtension[extensions.size()];
+        PQTLSExtension[] extensionsArray = new PQTLSExtension[stateMachine.extensions.size()];
         for (int i = 0; i < extensionsArray.length; i++) {
-            extensionsArray[i] = extensions.get(i);
+            extensionsArray[i] = stateMachine.extensions.get(i);
         }
         byte[] sessionID = new byte[Constants.HELLO_MESSAGE_RANDOM_LENGTH];
         byte[] rand = new byte[Constants.HELLO_MESSAGE_RANDOM_LENGTH];
@@ -141,7 +126,7 @@ public class ClientHelloState extends State {
         random.nextBytes(rand);
         return new HelloMessage.HelloBuilder()
                 .extensions(extensionsArray)
-                .cipherSuites(clientStateMachine.getCipherSuites())
+                .cipherSuites(stateMachine.cipherSuites)
                 .sessionID(sessionID)
                 .LegacyVersion(new byte[]{0x03, 0x03})
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
@@ -151,9 +136,19 @@ public class ClientHelloState extends State {
 
     @Override
     public State next() {
-        return null;
+        return new ClientCalcSharedSecretState();
     }
 
     @Override
     public void setPreviousMessage(PQTLSMessage message) {}
+
+    @Override
+    public void setStateMachine(ClientStateMachine stateMachine) {
+        this.stateMachine = stateMachine;
+    }
+
+    @Override
+    public void setStateMachine(ServerStateMachine stateMachine) {
+
+    }
 }

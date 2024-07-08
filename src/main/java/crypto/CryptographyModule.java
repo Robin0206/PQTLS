@@ -8,9 +8,12 @@ import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
 import org.bouncycastle.pqc.jcajce.spec.FrodoParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 
+import javax.crypto.KeyAgreement;
 import javax.crypto.KeyGenerator;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 
 public class CryptographyModule {
 
@@ -28,6 +31,12 @@ public class CryptographyModule {
         generator.initialize(ecGenParameterSpec);
         return generator.generateKeyPair();
     }
+    public static byte[] generateECSharedSecret(PrivateKey privateKey, PublicKey publicKey, String algName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
+        KeyAgreement agreement = KeyAgreement.getInstance("ECDH", "BC");
+        agreement.init(privateKey);
+        agreement.doPhase(publicKey, true);
+        return agreement.generateSecret(algName).getEncoded();
+    }
 
     public static KeyPair generateKyberKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("Kyber", "BCPQC");
@@ -41,15 +50,24 @@ public class CryptographyModule {
         return generator.generateKeyPair();
     }
 
-    public static SecretKeyWithEncapsulation generateEncapsulatedSecret(PublicKey clientPublicKey, String algName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-        KeyGenerator generator = KeyGenerator.getInstance(algName, "BCPQC");
-        generator.init(new KEMGenerateSpec(clientPublicKey, "AES"), new SecureRandom());
+    public static SecretKeyWithEncapsulation generateEncapsulatedSecret(PublicKey clientPublicKey, String encapsAlgName, String keyAlgName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        KeyGenerator generator = KeyGenerator.getInstance(encapsAlgName, "BCPQC");
+        generator.init(new KEMGenerateSpec(clientPublicKey, keyAlgName), new SecureRandom());
         return (SecretKeyWithEncapsulation)generator.generateKey();
     }
 
-    public static SecretKeyWithEncapsulation generateClient(PrivateKey privKeyClient, byte[] secret, String algName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException{
-        KeyGenerator generator = KeyGenerator.getInstance("Kyber", "BCPQC");
-        generator.init(new KEMExtractSpec(privKeyClient, secret, "AES"));
+    public static SecretKeyWithEncapsulation decapsulateSecret(PrivateKey privKeyClient, byte[] secret, String decapsAlgName, String keyAlgName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException{
+        KeyGenerator generator = KeyGenerator.getInstance(decapsAlgName, "BCPQC");
+        generator.init(new KEMExtractSpec(privKeyClient, secret, keyAlgName));
         return (SecretKeyWithEncapsulation)generator.generateKey();
+    }
+    public static PublicKey byteArrToPublicKey(byte[] input, String algName, String provider) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+        return KeyFactory.getInstance(algName, provider)
+                .generatePublic(
+                        new X509EncodedKeySpec(
+                                input
+                        )
+                )
+        ;
     }
 }

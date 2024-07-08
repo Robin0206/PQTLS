@@ -1,10 +1,11 @@
-package statemachines.client;
+package statemachines;
 
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import statemachines.client.ClientStateMachine;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ class ClientStateMachineTest {
         for (int i = 0; i < curveIdentifierGetsUsed.length; i++) {
             curveIdentifierGetsUsed[i] = random.nextBoolean();
         }
+        curveIdentifierGetsUsed[0] = true;
         ArrayList<CurveIdentifier> buffer = new ArrayList<>();
         for (int i = 0; i < curveIdentifierGetsUsed.length; i++) {
             if(curveIdentifierGetsUsed[i]){
@@ -94,9 +96,6 @@ class ClientStateMachineTest {
             if(cipherSuiteGetsUsed[i]){
                 buffer.add(CipherSuite.values()[i]);
             }
-        }
-        if(buffer.isEmpty()){
-            buffer.add(CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384);
         }
         CipherSuite[] result = new CipherSuite[buffer.size()];
         for (int i = 0; i < result.length; i++) {

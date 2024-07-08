@@ -1,3 +1,4 @@
+import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
@@ -7,6 +8,7 @@ import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
+import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -41,7 +43,6 @@ public class Main {
 
 
 
-
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
@@ -69,7 +70,7 @@ public class Main {
                 .numberOfCurvesSendByClientHello(2)
                 .build();
         HelloMessage message1 =
-                (HelloMessage) clientStateMachine.step(null);
+                (HelloMessage) clientStateMachine.step(new NullMessage());
 
         //print the messages
         message1.printVerbose();
@@ -88,6 +89,9 @@ public class Main {
         HelloMessage message2 =
                 (HelloMessage) serverStateMachine.step(message1);
         message2.printVerbose();
+        clientStateMachine.step(message2);
+        System.out.println(Arrays.toString(clientStateMachine.getSharedSecret()));
+        System.out.println(Arrays.toString(serverStateMachine.getSharedSecret()));
     }
     private static void testProviderImports() {
         testStaticImportPQProvider();
