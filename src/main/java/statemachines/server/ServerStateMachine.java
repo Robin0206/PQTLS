@@ -27,6 +27,7 @@ public class ServerStateMachine {
     protected PQTLSExtension[] extensions;
     protected byte[] sharedSecret;
     protected ArrayList<PQTLSMessage> incomingMessages;
+    private boolean stepWithoutWaiting;
 
     private ServerStateMachine(ServerStateMachineBuilder builder){
         incomingMessages = new ArrayList<>();
@@ -40,6 +41,7 @@ public class ServerStateMachine {
         incomingMessages.add(previousMessage);
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
+        stepWithoutWaiting = currentState.stepWithoutWaiting();
         currentState = currentState.next();
         return result;
     }

@@ -155,6 +155,12 @@ public class ClientCalcSharedSecretState extends State {
     @Override
     public void setStateMachine(ServerStateMachine stateMachine) {
     }
+
+    @Override
+    public boolean stepWithoutWaiting() {
+        return false;
+    }
+
     private boolean cipherSuiteUsesKyberKEM() {
         return stateMachine.chosenCipherSuite.ordinal() != 0 && !cipherSuiteUsesFrodoKEM();
     }

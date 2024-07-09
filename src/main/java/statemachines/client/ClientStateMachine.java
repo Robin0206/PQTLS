@@ -33,6 +33,7 @@ public class ClientStateMachine{
     protected byte[] extensionIdentifiers;
     protected byte[] sharedSecret;
     protected ArrayList<PQTLSMessage> incomingMessages;
+    private boolean stepWithoutWaiting;
 
     private ClientStateMachine(ClientStateMachineBuilder builder){
         incomingMessages = new ArrayList<>();
@@ -51,6 +52,7 @@ public class ClientStateMachine{
         incomingMessages.add(previousMessage);
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
+        stepWithoutWaiting = currentState.stepWithoutWaiting();
         currentState = currentState.next();
         return result;
     }

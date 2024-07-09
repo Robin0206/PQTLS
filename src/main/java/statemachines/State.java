@@ -17,4 +17,5 @@ public abstract class State {
     public abstract void setPreviousMessage(PQTLSMessage message);
     public abstract void setStateMachine(ClientStateMachine stateMachine);
     public abstract void setStateMachine(ServerStateMachine stateMachine);
+    public abstract boolean stepWithoutWaiting();
 }

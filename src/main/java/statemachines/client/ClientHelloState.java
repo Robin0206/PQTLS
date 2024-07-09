@@ -149,4 +149,9 @@ public class ClientHelloState extends State {
     public void setStateMachine(ServerStateMachine stateMachine) {
 
     }
+
+    @Override
+    public boolean stepWithoutWaiting() {
+        return false;
+    }
 }

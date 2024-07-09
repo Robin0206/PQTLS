@@ -280,4 +280,9 @@ public class ServerHelloState extends State {
     public void setStateMachine(ServerStateMachine stateMachine) {
         this.stateMachine = stateMachine;
     }
+
+    @Override
+    public boolean stepWithoutWaiting() {
+        return true;
+    }
 }
