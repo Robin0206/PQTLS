@@ -80,8 +80,6 @@ public class ClientHelloState extends State {
                 keys[keys.length-1] = stateMachine.kyberKey.getPublic().getEncoded();
             }
         }
-
-
         return new KeyShareExtension(keys);
     }
     //TODO

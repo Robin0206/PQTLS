@@ -12,11 +12,8 @@ import misc.Constants;
 import org.bouncycastle.util.Strings;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
-
-import javax.crypto.KeyAgreement;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Objects;
 

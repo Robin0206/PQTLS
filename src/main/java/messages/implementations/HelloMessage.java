@@ -314,7 +314,7 @@ public class HelloMessage implements PQTLSMessage {
                     0,
                     extensionsLength
             );
-            fillExtensionsFromBytes();
+            extensions = PQTLSExtensionFactory.generateMultipleFromBytes(extensionBytes);
             this.messageBytes = messageBytes.clone();
             legacyVersionSet = true;
             cipherSuitesSet = true;
@@ -365,71 +365,6 @@ public class HelloMessage implements PQTLSMessage {
             messageBytes[8] = (byte) (lengthAfterHandshakeHeader % 128);
             return new HelloMessage(this);
         }
-
-
-
-        /*
-        Uses the Bytes to call the PQTLSExtensionFactory, which converts them to PQTLSExtension objects
-         */
-
-        private void fillExtensionsFromBytes() {
-            byte[][] extensionsSplit = splitExtensionBytes(extensionBytes);
-            extensions = new PQTLSExtension[extensionsSplit.length];
-            for (int i = 0; i < extensions.length; i++) {
-                extensions[i] = PQTLSExtensionFactory.generateFromBytes(extensionsSplit[i]);
-            }
-        }
-
-        /*
-        Splits the bytes of the extensions by reading their length fields
-         */
-
-        private byte[][] splitExtensionBytes(byte[] extensionBytes) {
-            int index = 0;
-            ArrayList<ArrayList<Byte>> splitExtensionBytesBuffer = new ArrayList<>();
-            ArrayList<Byte> currentExtensionBuffer = new ArrayList<>();
-
-            //split the extensions and put them into the splitExtensionBytesBuffer
-            int followingBytes;
-            while (index < extensionBytes.length) {
-
-                //add the identifier and the length
-                currentExtensionBuffer.add(extensionBytes[index]);
-                currentExtensionBuffer.add(extensionBytes[index + 1]);
-                currentExtensionBuffer.add(extensionBytes[index + 2]);
-                currentExtensionBuffer.add(extensionBytes[index + 3]);
-                //convert the length
-                followingBytes = ByteUtils.byteArrToShort(new byte[]{
-                        extensionBytes[index + 2],
-                        extensionBytes[index + 3]
-                });
-                if(extensionBytes.length < index + followingBytes){
-                    System.out.println();
-                }
-                //update the index
-                index += 4;
-                //add the bytes
-                for (int i = 0; i < followingBytes; i++) {
-
-                    currentExtensionBuffer.add(extensionBytes[index]);
-                    index++;
-                }
-                splitExtensionBytesBuffer.add(new ArrayList<>(currentExtensionBuffer));
-                currentExtensionBuffer.clear();
-            }
-            byte[][] result = new byte[splitExtensionBytesBuffer.size()][];
-
-            //convert to byte arrays and add to result
-            for (int i = 0; i < splitExtensionBytesBuffer.size(); i++) {
-                byte[] currentExtension = new byte[splitExtensionBytesBuffer.get(i).size()];
-                for (int j = 0; j < currentExtension.length; j++) {
-                    currentExtension[j] = splitExtensionBytesBuffer.get(i).get(j);
-                }
-                result[i] = currentExtension.clone();
-            }
-            return result;
-        }
-
         /*
         Fills the CipherSuite Array by using the bytes as ordinals
          */

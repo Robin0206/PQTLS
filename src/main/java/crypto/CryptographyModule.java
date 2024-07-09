@@ -47,7 +47,7 @@ public class CryptographyModule {
 
     public static KeyPair generateFrodoKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("Frodo", "BCPQC");
-        generator.initialize(FrodoParameterSpec.frodokem976shake);
+        generator.initialize(FrodoParameterSpec.frodokem640shake);
         return generator.generateKeyPair();
     }
 
