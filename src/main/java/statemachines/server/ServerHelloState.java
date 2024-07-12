@@ -1,6 +1,7 @@
 package statemachines.server;
 
 import crypto.CryptographyModule;
+import crypto.SharedSecret;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
@@ -8,7 +9,9 @@ import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
+import misc.ByteUtils;
 import misc.Constants;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
@@ -41,7 +44,7 @@ public class ServerHelloState extends State {
     private void extractECPublicKeyFromClientHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
         KeyShareExtension clientKeyShare = getKeyShareExtensionFromClientHello();
         int index = getPreferredCurveIndexInKeyShareExtension();
-        clientPublicKeyEC = CryptographyModule.byteArrToPublicKey(
+        clientPublicKeyEC = CryptographyModule.keys.byteArrToPublicKey(
                 clientKeyShare.getKeys()[index],
                 "ECDH",
                 "BC"
@@ -61,7 +64,7 @@ public class ServerHelloState extends State {
 
     private void setStateMachineSharedSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
         ArrayList<Byte> sharedSecretBuffer = new ArrayList<>();
-        byte[] ecSharedSecret = CryptographyModule.generateECSharedSecret(
+        byte[] ecSharedSecret = CryptographyModule.keys.generateECSharedSecret(
                 stateMachine.ecKeyPair.getPrivate(),
                 clientPublicKeyEC,
                 getSymmetricCipherNameFromCipherSuite()
@@ -81,10 +84,12 @@ public class ServerHelloState extends State {
                 sharedSecretBuffer.add(b);
             }
         }
-        stateMachine.sharedSecret = new byte[sharedSecretBuffer.size()];
-        for (int i = 0; i < stateMachine.sharedSecret.length; i++) {
-            stateMachine.sharedSecret[i] = sharedSecretBuffer.get(i);
-        }
+        byte[] concatenatedMessages = Arrays.concatenate(new byte[][]{
+                stateMachine.messages.getFirst().getBytes(),
+                this.getMessage().getBytes()
+        });
+        byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
+        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.getFirst().getBytes());
     }
 
     private String getSymmetricCipherNameFromCipherSuite() {
@@ -117,24 +122,24 @@ public class ServerHelloState extends State {
         KeyShareExtension keyShare = getKeyShareExtensionFromClientHello();
         byte[][] keys = keyShare.getKeys();
         if(clientHelloCipherSuitesContainOneWithFrodoKEM() && clientHelloCipherSuitesContainOneWithKyberKEM()){
-            clientPublicKeyFrodo = CryptographyModule.byteArrToPublicKey(
+            clientPublicKeyFrodo = CryptographyModule.keys.byteArrToPublicKey(
                     keys[keys.length-2],
                     "Frodo",
                     "BCPQC"
             );
-            clientPublicKeyKyber = CryptographyModule.byteArrToPublicKey(
+            clientPublicKeyKyber = CryptographyModule.keys.byteArrToPublicKey(
                     keys[keys.length-1],
                     "Kyber",
                     "BCPQC"
             );
         }else if(clientHelloCipherSuitesContainOneWithFrodoKEM()){
-            clientPublicKeyFrodo = CryptographyModule.byteArrToPublicKey(
+            clientPublicKeyFrodo = CryptographyModule.keys.byteArrToPublicKey(
                     keys[keys.length-1],
                     "Frodo",
                     "BCPQC"
             );
         }else if(clientHelloCipherSuitesContainOneWithKyberKEM()){
-            clientPublicKeyKyber = CryptographyModule.byteArrToPublicKey(
+            clientPublicKeyKyber = CryptographyModule.keys.byteArrToPublicKey(
                     keys[keys.length-1],
                     "Kyber",
                     "BCPQC"
@@ -157,16 +162,16 @@ public class ServerHelloState extends State {
     //TODO
     // will be rewritten with the use of a keystore
     private void setStateMachineKeyPairs() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        stateMachine.ecKeyPair = CryptographyModule.generateECKeyPair(stateMachine.preferredCurveIdentifier);
+        stateMachine.ecKeyPair = CryptographyModule.keys.generateECKeyPair(stateMachine.preferredCurveIdentifier);
         if(cipherSuiteUsesFrodoKEM()){
-            stateMachine.frodoEncapsulatedSecret = CryptographyModule.generateEncapsulatedSecret(
+            stateMachine.frodoEncapsulatedSecret = CryptographyModule.keys.generateEncapsulatedSecret(
                     clientPublicKeyFrodo,
                     "Frodo",
                     getSymmetricCipherNameFromCipherSuite()
             );
         }
         if(cipherSuiteUsesKyberKEM()){
-            stateMachine.kyberEncapsulatedSecret = CryptographyModule.generateEncapsulatedSecret(
+            stateMachine.kyberEncapsulatedSecret = CryptographyModule.keys.generateEncapsulatedSecret(
                     clientPublicKeyKyber,
                     "Kyber",
                     getSymmetricCipherNameFromCipherSuite()
@@ -175,16 +180,16 @@ public class ServerHelloState extends State {
     }
 
     private boolean cipherSuiteUsesKyberKEM() {
-        return stateMachine.preferredCipherSuite.ordinal() >= 7 && stateMachine.preferredCipherSuite.ordinal() <= 12;
+        return stateMachine.preferredCipherSuite.ordinal() >= 5 && stateMachine.preferredCipherSuite.ordinal() <= 8;
     }
 
     private boolean cipherSuiteUsesFrodoKEM() {
-        return stateMachine.preferredCipherSuite.ordinal() < 7 || stateMachine.preferredCipherSuite.ordinal() > 12;
+        return stateMachine.preferredCipherSuite.ordinal() < 5 || stateMachine.preferredCipherSuite.ordinal() > 8;
     }
 
     private boolean clientHelloCipherSuitesContainOneWithFrodoKEM(){
         for(CipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
-            if(cipherSuite.ordinal() < 7 || cipherSuite.ordinal() > 12){
+            if(cipherSuite.ordinal() < 5 || cipherSuite.ordinal() > 8){
                 return true;
             }
         }
@@ -192,7 +197,7 @@ public class ServerHelloState extends State {
     }
     private boolean clientHelloCipherSuitesContainOneWithKyberKEM(){
         for(CipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
-            if(cipherSuite.ordinal() >= 7 && cipherSuite.ordinal() <= 12){
+            if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
                 return true;
             }
         }
@@ -263,7 +268,7 @@ public class ServerHelloState extends State {
 
     @Override
     public State next() {
-        return null;
+        return new SendEncryptedExtensionsState();
     }
 
     @Override

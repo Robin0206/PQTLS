@@ -87,15 +87,15 @@ public class ClientHelloState extends State {
     //sets them in this class and the clientHelloStateMachine
     private void calculateAndSetKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //calculate Keys
-        this.stateMachine.ecKeyPairs = CryptographyModule.generateECKeyPairs(stateMachine.getSupportedGroups());
-        this.stateMachine.frodoKey = CryptographyModule.generateFrodoKeyPair();
-        this.stateMachine.kyberKey = CryptographyModule.generateKyberKeyPair();
+        this.stateMachine.ecKeyPairs = CryptographyModule.keys.generateECKeyPairs(stateMachine.getSupportedGroups());
+        this.stateMachine.frodoKey = CryptographyModule.keys.generateFrodoKeyPair();
+        this.stateMachine.kyberKey = CryptographyModule.keys.generateKyberKeyPair();
         stateMachine.setEcKeyPairs(stateMachine.ecKeyPairs);
     }
 
     private boolean cipherSuitesContainOneWithKyberKEM() {
         for(CipherSuite cipherSuite : stateMachine.cipherSuites){
-            if(cipherSuite.ordinal() >= 7 && cipherSuite.ordinal() <= 12){
+            if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
                 return true;
             }
         }
@@ -104,7 +104,7 @@ public class ClientHelloState extends State {
 
     private boolean cipherSuitesContainOneWithFrodoKEM() {
         for(CipherSuite cipherSuite : stateMachine.cipherSuites){
-            if(cipherSuite.ordinal() < 7 || cipherSuite.ordinal() > 12){
+            if(cipherSuite.ordinal() < 5 || cipherSuite.ordinal() > 8){
                 return true;
             }
         }

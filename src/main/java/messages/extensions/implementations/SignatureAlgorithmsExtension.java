@@ -12,7 +12,6 @@ import static misc.Constants.*;
 //Signature Algorithm Byte values:
 // 0x00 = supports Sphincs
 // 0x01 = supports Dilithium
-// 0x02 = supports Falcon
 public class SignatureAlgorithmsExtension implements PQTLSExtension {
     byte[] supportedSignatureAlgorithms;
     byte[] byteRepresentation;
@@ -64,9 +63,6 @@ public class SignatureAlgorithmsExtension implements PQTLSExtension {
                 case EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM:
                     System.out.println("\t supports dilithium");
                     break;
-                case EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON:
-                    System.out.println("\t supports falcon");
-                    break;
             }
         }
     }
@@ -78,5 +74,9 @@ public class SignatureAlgorithmsExtension implements PQTLSExtension {
 
     public boolean equals(SignatureAlgorithmsExtension signatureAlgorithmsExtension){
         return Arrays.equals(this.byteRepresentation, signatureAlgorithmsExtension.byteRepresentation);
+    }
+
+    public byte[] getSupportedSignatureAlgorithms() {
+        return supportedSignatureAlgorithms;
     }
 }

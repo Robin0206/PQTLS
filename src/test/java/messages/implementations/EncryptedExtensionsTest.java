@@ -12,7 +12,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,9 +21,9 @@ class EncryptedExtensionsTest {
 
     @Test
     void testGenerationFromBytesAndEqualsFromBytes() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        KeyPair ecKeyPair = CryptographyModule.generateECKeyPair(CurveIdentifier.secp256r1);
-        KeyPair frodoKeyPair = CryptographyModule.generateFrodoKeyPair();
-        KeyPair kyberKeyPair = CryptographyModule.generateKyberKeyPair();
+        KeyPair ecKeyPair = CryptographyModule.keys.generateECKeyPair(CurveIdentifier.secp256r1);
+        KeyPair frodoKeyPair = CryptographyModule.keys.generateFrodoKeyPair();
+        KeyPair kyberKeyPair = CryptographyModule.keys.generateKyberKeyPair();
         KeyShareExtension keyShareExtension = new KeyShareExtension(
                 new byte[][]{
                         ecKeyPair.getPublic().getEncoded(),
@@ -35,7 +34,6 @@ class EncryptedExtensionsTest {
         SignatureAlgorithmsExtension signatureAlgorithmsExtension = new SignatureAlgorithmsExtension(
                 new byte[]{
                         Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS,
-                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
                         Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM
                 }
         );
@@ -50,9 +48,9 @@ class EncryptedExtensionsTest {
     }
     @Test
     void testGenerationFromBytesMessageBytes() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        KeyPair ecKeyPair = CryptographyModule.generateECKeyPair(CurveIdentifier.secp256r1);
-        KeyPair frodoKeyPair = CryptographyModule.generateFrodoKeyPair();
-        KeyPair kyberKeyPair = CryptographyModule.generateKyberKeyPair();
+        KeyPair ecKeyPair = CryptographyModule.keys.generateECKeyPair(CurveIdentifier.secp256r1);
+        KeyPair frodoKeyPair = CryptographyModule.keys.generateFrodoKeyPair();
+        KeyPair kyberKeyPair = CryptographyModule.keys.generateKyberKeyPair();
         KeyShareExtension keyShareExtension = new KeyShareExtension(
                 new byte[][]{
                         ecKeyPair.getPublic().getEncoded(),
@@ -63,7 +61,6 @@ class EncryptedExtensionsTest {
         SignatureAlgorithmsExtension signatureAlgorithmsExtension = new SignatureAlgorithmsExtension(
                 new byte[]{
                         Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS,
-                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
                         Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM
                 }
         );

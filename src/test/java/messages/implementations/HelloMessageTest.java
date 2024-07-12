@@ -30,7 +30,7 @@ class HelloMessageTest {
                 .extensions(new PQTLSExtension[]{})
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_FALCON_WITH_CHACHA20_POLY1305_SHA384
+                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384
                 })
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
                 .random(random)
@@ -194,7 +194,7 @@ class HelloMessageTest {
                 keys
         );
         SignatureAlgorithmsExtension sig = new SignatureAlgorithmsExtension(new byte[]{
-                Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
+                Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM,
                 Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
         });
         PQTLSExtension[] extensions;

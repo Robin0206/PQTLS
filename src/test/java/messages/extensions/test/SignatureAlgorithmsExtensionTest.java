@@ -15,7 +15,7 @@ class SignatureAlgorithmsExtensionTest {
     public static void initialize(){
         signatureAlgorithmsExtension1 = new SignatureAlgorithmsExtension(new byte[]{
                 EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS,
-                EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON
+                EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM
         });
     }
     @Test

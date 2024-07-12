@@ -1,5 +1,6 @@
 package statemachines.client;
 
+import crypto.SharedSecret;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
@@ -7,6 +8,10 @@ import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import statemachines.State;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -17,8 +22,10 @@ The first state is always the ClientHelloState
  */
 public class ClientStateMachine{
 
-    public ArrayList<PQTLSExtension> extensions;
-    public int chosenCurveKeyIndex;
+    protected ArrayList<PQTLSExtension> extensions;
+    protected int chosenCurveKeyIndex;
+    protected SharedSecret sharedSecret;
+    protected PQTLSMessage serverEncryptedExtensions;
     protected CipherSuite chosenCipherSuite;
     protected KeyPair[] ecKeyPairs;
     protected KeyPair frodoKey;
@@ -31,12 +38,12 @@ public class ClientStateMachine{
     protected byte[] supportedSignatureAlgorithms;
     protected int numberOfCurvesToSendByClientHello;
     protected byte[] extensionIdentifiers;
-    protected byte[] sharedSecret;
-    protected ArrayList<PQTLSMessage> incomingMessages;
+    protected ArrayList<PQTLSMessage> messages;
+
     private boolean stepWithoutWaiting;
 
     private ClientStateMachine(ClientStateMachineBuilder builder){
-        incomingMessages = new ArrayList<>();
+        messages = new ArrayList<>();
         this.cipherSuites = builder.cipherSuites;
         this.curveIdentifiers = builder.curveIdentifiers;
         this.ecPointFormats = builder.ecPointFormats;
@@ -46,15 +53,24 @@ public class ClientStateMachine{
         currentState = new ClientHelloState();
     }
 
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
         currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
-        incomingMessages.add(previousMessage);
+        if(isNotNullMessage(previousMessage)){
+            messages.add(previousMessage);
+        }
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
+        if(isNotNullMessage(result)){
+            messages.add(result);
+        }
         stepWithoutWaiting = currentState.stepWithoutWaiting();
         currentState = currentState.next();
         return result;
+    }
+
+    private boolean isNotNullMessage(PQTLSMessage message) {
+        return message.getBytes()[1] != (byte)0xff;
     }
 
     public CurveIdentifier[] getSupportedGroups() {
@@ -64,7 +80,7 @@ public class ClientStateMachine{
     public void setEcKeyPairs(KeyPair[] ecKeyPairs) {
         this.ecKeyPairs = ecKeyPairs;
     }
-    public byte[] getSharedSecret(){
+    public SharedSecret getSharedSecret(){
         return sharedSecret;
     }
     public static class ClientStateMachineBuilder{

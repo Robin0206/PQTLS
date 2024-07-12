@@ -1,9 +1,13 @@
+
+import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
+import messages.PQTLSMessage;
 import messages.implementations.HelloMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
@@ -19,7 +23,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -33,11 +37,10 @@ public class Main {
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
         testProviderImports();
-
+        
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_POLY1305_SHA384,
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
                 .curveIdentifiers(new CurveIdentifier[]{
@@ -49,7 +52,7 @@ public class Main {
                         ECPointFormat.uncompressed
                 })
                 .supportedSignatureAlgorithms(new byte[]{
-                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON,
+                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM,
                         Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
                 })
                 .extensionIdentifiers(new byte[]{
@@ -63,9 +66,10 @@ public class Main {
         HelloMessage message1 =
                 (HelloMessage) clientStateMachine.step(new NullMessage());
 
-        //print the messages
+        System.out.println("Client Sends Client Hello:");
         message1.printVerbose();
-
+        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
         ServerStateMachine serverStateMachine = new ServerStateMachine.ServerStateMachineBuilder()
                 .supportedCurves(new CurveIdentifier[]{
                         CurveIdentifier.secp384r1,
@@ -73,17 +77,39 @@ public class Main {
                 })
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_FALCON_WITH_CHACHA20_POLY1305_SHA384,
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
+                .certificateChains(certificateChains)
                 .build();
         HelloMessage message2 =
                 (HelloMessage) serverStateMachine.step(message1);
+        System.out.println();
+        System.out.println("Server sends Server Hello");
         message2.printVerbose();
         clientStateMachine.step(message2);
-        System.out.println("Shared Secrets:");
-        System.out.println(Arrays.toString(clientStateMachine.getSharedSecret()));
-        System.out.println(Arrays.toString(serverStateMachine.getSharedSecret()));
+        PQTLSMessage message3 = serverStateMachine.step(new NullMessage());
+        System.out.println();
+        System.out.println("Server sends Encrypted Extensions");
+        message3.printVerbose();
+        clientStateMachine.step(message3);
+
+        PQTLSMessage message4 = serverStateMachine.step(new NullMessage());
+        System.out.println();
+        System.out.println("Server sends Server Certificate");
+        message4.printVerbose();
+        /*
+        clientStateMachine.step(message4);
+        PQTLSMessage message5 = serverStateMachine.step(new NullMessage());
+        System.out.println();
+        System.out.println("Server sends Server Certificate Verify");
+        message5.printVerbose();
+        clientStateMachine.step(message5);
+        PQTLSMessage message6 = serverStateMachine.step(new NullMessage());
+        System.out.println();
+        System.out.println("Server sends Handshake finished");
+        message6.printVerbose();
+        clientStateMachine.step(message6);
+        */
     }
     private static void testProviderImports() {
         testStaticImportPQProvider();

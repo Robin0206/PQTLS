@@ -48,9 +48,6 @@ class ClientStateMachineTest {
             buffer.add((byte) Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM);
         }
         if(random.nextBoolean()){
-            buffer.add((byte) Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON);
-        }
-        if(random.nextBoolean()){
             buffer.add((byte) Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS);
         }
         if(buffer.isEmpty()){

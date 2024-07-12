@@ -1,10 +1,12 @@
 package statemachines;
 
+import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import statemachines.client.ClientStateMachine;
@@ -46,7 +48,7 @@ public class StatemachineInteractionTest {
                 PQTLSMessage clientHelloMessage = clientStateMachine.step(new NullMessage());
                 PQTLSMessage serverHelloMessage = serverStateMachine.step(clientHelloMessage);
                 clientStateMachine.step(serverHelloMessage);
-                assertArrayEquals(clientStateMachine.getSharedSecret(), serverStateMachine.getSharedSecret());
+                assertTrue(clientStateMachine.getSharedSecret().equals(serverStateMachine.getSharedSecret()));
             }
         });
     }
@@ -67,9 +69,7 @@ public class StatemachineInteractionTest {
         if(random.nextBoolean()){
             buffer.add((byte) Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM);
         }
-        if(random.nextBoolean()){
-            buffer.add((byte) Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_FALCON);
-        }
+
         if(random.nextBoolean()){
             buffer.add((byte) Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS);
         }
@@ -129,9 +129,12 @@ public class StatemachineInteractionTest {
     }
 
     private ServerStateMachine buildRandomServerStateMachine() throws Exception {
+        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
         return new ServerStateMachine.ServerStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .supportedCurves(generateRandomCurveIdentifiers())
+                .certificateChains(certificateChains)
                 .build();
     }
 }

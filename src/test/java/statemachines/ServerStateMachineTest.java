@@ -1,7 +1,9 @@
 package statemachines;
 
+import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import statemachines.server.ServerStateMachine;
@@ -30,9 +32,12 @@ class ServerStateMachineTest {
     }
 
     private ServerStateMachine buildRandomServerStateMachine() throws Exception {
+        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
        return new ServerStateMachine.ServerStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .supportedCurves(generateRandomCurveIdentifiers())
+               .certificateChains(certificateChains)
                 .build();
     }
 

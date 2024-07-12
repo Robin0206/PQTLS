@@ -9,6 +9,7 @@ import org.bouncycastle.util.Strings;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.io.IOException;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,16 +27,16 @@ public class WrappedRecord implements PQTLSMessage {
             PQTLSMessage messageToWrap,
             byte actualRecordType,
             Key key,
-            long iv_nonce,
+            byte [] iv_nonce,
             CipherSuite cipherSuite
     ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         this.messageToWrap = messageToWrap;
         this.actualRecordType = actualRecordType;
         this.key = key;
         if(Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")){
-            encryptedMessage = CryptographyModule.encryptAES(messageToWrap.getBytes(), iv_nonce, key);
+            encryptedMessage = CryptographyModule.symmetric.encryptAES(messageToWrap.getBytes(), iv_nonce, key);
         }else{
-            encryptedMessage = CryptographyModule.encryptChaCha(messageToWrap.getBytes(), iv_nonce, key);
+            encryptedMessage = CryptographyModule.symmetric.encryptChaCha(messageToWrap.getBytes(), iv_nonce, key);
         }
         fillMessageBytes();
     }
@@ -44,9 +45,9 @@ public class WrappedRecord implements PQTLSMessage {
     public WrappedRecord(
             byte[] messageBytes,
             Key key,
-            long iv_nonce,
+            byte[] iv_nonce,
             CipherSuite cipherSuite
-    ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
+    ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         this.messageBytes = messageBytes;
         actualRecordType = messageBytes[messageBytes.length-1];
         this.key = key;
@@ -54,12 +55,12 @@ public class WrappedRecord implements PQTLSMessage {
         setDecryptedMessage(cipherSuite, iv_nonce);
     }
 
-    private void setDecryptedMessage(CipherSuite cipherSuite, long iv_nonce) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
+    private void setDecryptedMessage(CipherSuite cipherSuite, byte[] iv_nonce) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         byte[] decryptedMessageBytes;
         if(Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")){
-            decryptedMessageBytes = CryptographyModule.decryptAES(encryptedMessage, iv_nonce, key);
+            decryptedMessageBytes = CryptographyModule.symmetric.decryptAES(encryptedMessage, iv_nonce, key);
         }else{
-            decryptedMessageBytes = CryptographyModule.decryptChaCha(encryptedMessage, iv_nonce, key);
+            decryptedMessageBytes = CryptographyModule.symmetric.decryptChaCha(encryptedMessage, iv_nonce, key);
         }
         messageToWrap = bytesToPQTLSExtension(decryptedMessageBytes);
     }
@@ -110,7 +111,7 @@ public class WrappedRecord implements PQTLSMessage {
         }
         return null;
     }
-    public PQTLSMessage bytesToPQTLSExtension(byte[] decryptedMessageBytes) {
+    public PQTLSMessage bytesToPQTLSExtension(byte[] decryptedMessageBytes) throws IOException {
         return switch (decryptedMessageBytes[0]) {
             case 0x08 -> new EncryptedExtensions(decryptedMessageBytes);
             case 0x0b -> new CertificateMessage(decryptedMessageBytes);
@@ -132,5 +133,9 @@ public class WrappedRecord implements PQTLSMessage {
         System.out.println("LengthAfterRecordHeader: " + Arrays.toString(ByteUtils.shortToByteArr((short) (messageBytes.length - 5))));
         System.out.println("Application Data " + Arrays.toString(encryptedMessage));
         System.out.println("Actual RecordType: " + actualRecordType);
+    }
+
+    public PQTLSMessage getWrappedMessage() {
+        return messageToWrap;
     }
 }

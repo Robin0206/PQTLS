@@ -1,6 +1,9 @@
 package misc;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ByteUtils {
     public static byte[] shortToByteArr(short input) {
@@ -23,5 +26,49 @@ public class ByteUtils {
                 (byte) ((input >> 8) & 0xFF),
                 (byte) ((input >> 16) & 0xFF),
         };
+    }
+    public static byte[] flatten(byte[][] input){
+        ArrayList<Byte> buffer = new ArrayList<>();
+        for(byte[] arr : input){
+            for(byte b : arr){
+                buffer.add(b);
+            }
+        }
+        byte[] result = new byte[buffer.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = buffer.get(i);
+        }
+        return result;
+    }
+    public static byte[] flatten(ArrayList<byte[]> input){
+        ArrayList<Byte> buffer = new ArrayList<>();
+        for(byte[] arr : input){
+            for(byte b : arr){
+                buffer.add(b);
+            }
+        }
+        byte[] result = new byte[buffer.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = buffer.get(i);
+        }
+        return result;
+    }
+    public static byte[] toByteArray(List<Byte> input){
+
+        byte[] result = new byte[input.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = input.get(i);
+        }
+        return result;
+    }
+
+    public static byte[] increment(byte[] input) {
+        BigInteger bigInteger = new BigInteger(input);
+        bigInteger = bigInteger.add(BigInteger.ONE);
+        return bigInteger.toByteArray();
+    }
+
+    public static int byteArrToInt(byte[] input) {
+        return new BigInteger(input).intValue();
     }
 }

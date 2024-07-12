@@ -1,20 +1,21 @@
 package statemachines.client;
 
 import crypto.CryptographyModule;
+import crypto.SharedSecret;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.implementations.HelloMessage;
 import messages.implementations.NullMessage;
+import misc.ByteUtils;
 import misc.Constants;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
 
-import javax.crypto.KeyAgreement;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -43,7 +44,7 @@ public class ClientCalcSharedSecretState extends State {
     private void setStateMachineChosenCurveAndItsKeyIndex() {
         stateMachine.chosenCurve = serverHelloKeyShareExtension.getCurveIdentifier();
         for (int i = 0; i < stateMachine.curveIdentifiers.length; i++) {
-            if(stateMachine.curveIdentifiers[i] == stateMachine.chosenCurve){
+            if (stateMachine.curveIdentifiers[i] == stateMachine.chosenCurve) {
                 stateMachine.chosenCurveKeyIndex = i;
             }
         }
@@ -51,66 +52,66 @@ public class ClientCalcSharedSecretState extends State {
 
     private void setStateMachineSharedSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException {
         ArrayList<Byte> sharedSecretBuffer = new ArrayList<>();
-        byte[] ecSharedSecret = CryptographyModule.generateECSharedSecret(
-                    stateMachine.ecKeyPairs[stateMachine.chosenCurveKeyIndex].getPrivate(),
-                    getECPublicKeyFromServerHello(),
-                    getSymmetricCipherNameFromCipherSuite()
-                );
-        for (byte b : ecSharedSecret){
+        byte[] ecSharedSecret = CryptographyModule.keys.generateECSharedSecret(
+                stateMachine.ecKeyPairs[stateMachine.chosenCurveKeyIndex].getPrivate(),
+                getECPublicKeyFromServerHello(),
+                getSymmetricCipherNameFromCipherSuite()
+        );
+        for (byte b : ecSharedSecret) {
             sharedSecretBuffer.add(b);
         }
         byte[][] serverHelloKeys = serverHelloKeyShareExtension.getKeys();
-        if(cipherSuiteUsesFrodoKEM() && cipherSuiteUsesKyberKEM()){
-            byte[] frodoSharedSecret = CryptographyModule.decapsulateSecret(
+        if (cipherSuiteUsesFrodoKEM() && cipherSuiteUsesKyberKEM()) {
+            byte[] frodoSharedSecret = CryptographyModule.keys.decapsulateSecret(
                     stateMachine.frodoKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 2],
                     "Frodo",
                     getSymmetricCipherNameFromCipherSuite()
             ).getEncoded();
-            for (byte b : frodoSharedSecret){
+            for (byte b : frodoSharedSecret) {
                 sharedSecretBuffer.add(b);
             }
-            byte[] kyberSharedSecret = CryptographyModule.decapsulateSecret(
+            byte[] kyberSharedSecret = CryptographyModule.keys.decapsulateSecret(
                     stateMachine.frodoKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Kyber",
                     getSymmetricCipherNameFromCipherSuite()
             ).getEncoded();
-            for (byte b : kyberSharedSecret){
+            for (byte b : kyberSharedSecret) {
                 sharedSecretBuffer.add(b);
             }
-        }
-        else if(cipherSuiteUsesFrodoKEM()){
-            byte[] frodoSharedSecret = CryptographyModule.decapsulateSecret(
+        } else if (cipherSuiteUsesFrodoKEM()) {
+            byte[] frodoSharedSecret = CryptographyModule.keys.decapsulateSecret(
                     stateMachine.frodoKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Frodo",
                     getSymmetricCipherNameFromCipherSuite()
             ).getEncoded();
-            for (byte b : frodoSharedSecret){
+            for (byte b : frodoSharedSecret) {
                 sharedSecretBuffer.add(b);
             }
-        } else if(cipherSuiteUsesKyberKEM()){
-            byte[] kyberSharedSecret = CryptographyModule.decapsulateSecret(
+        } else if (cipherSuiteUsesKyberKEM()) {
+            byte[] kyberSharedSecret = CryptographyModule.keys.decapsulateSecret(
                     stateMachine.kyberKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Kyber",
                     getSymmetricCipherNameFromCipherSuite()
             ).getEncoded();
-            for (byte b : kyberSharedSecret){
+            for (byte b : kyberSharedSecret) {
                 sharedSecretBuffer.add(b);
             }
         }
-        stateMachine.sharedSecret = new byte[sharedSecretBuffer.size()];
-        for (int i = 0; i < stateMachine.sharedSecret.length; i++) {
-            stateMachine.sharedSecret[i] = sharedSecretBuffer.get(i);
-        }
+        byte[] concatenatedMessages = Arrays.concatenate(new byte[][]{
+                stateMachine.messages.get(0).getBytes(),
+                stateMachine.messages.get(1).getBytes()
+        });
+        byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
+        stateMachine.sharedSecret = new SharedSecret(sharedSecret,"sha384", concatenatedMessages, stateMachine.messages.get(0).getBytes());
     }
 
 
-
     private PublicKey getECPublicKeyFromServerHello() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-        return CryptographyModule.byteArrToPublicKey(
+        return CryptographyModule.keys.byteArrToPublicKey(
                 serverHelloKeyShareExtension.getKeys()[0],
                 "ECDH",
                 "BC"
@@ -120,8 +121,8 @@ public class ClientCalcSharedSecretState extends State {
     private String getSymmetricCipherNameFromCipherSuite() {
         String[] cipherSuiteContentSplit = Strings.split(stateMachine.chosenCipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
-            if(Objects.equals(cipherSuiteContentSplit[i], "WITH")){
-                return cipherSuiteContentSplit[i+1];
+            if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
+                return cipherSuiteContentSplit[i + 1];
             }
         }
         return null;
@@ -139,12 +140,12 @@ public class ClientCalcSharedSecretState extends State {
 
     @Override
     public State next() {
-        return null;
+        return new WaitingForEncryptedExtensionsState();
     }
 
     @Override
     public void setPreviousMessage(PQTLSMessage message) {
-        this.serverHelloMessage = (HelloMessage)message;
+        this.serverHelloMessage = (HelloMessage) message;
     }
 
     @Override
@@ -166,6 +167,6 @@ public class ClientCalcSharedSecretState extends State {
     }
 
     private boolean cipherSuiteUsesFrodoKEM() {
-        return stateMachine.chosenCipherSuite.ordinal() < 7 || stateMachine.chosenCipherSuite.ordinal() > 12;
+        return stateMachine.chosenCipherSuite.ordinal() < 5 || stateMachine.chosenCipherSuite.ordinal() > 8;
     }
 }
