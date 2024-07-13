@@ -8,15 +8,13 @@ import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import statemachines.client.ClientStateMachine;
 import statemachines.server.ServerStateMachine;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,9 +23,13 @@ public class StatemachineInteractionTest {
     ClientStateMachine clientStateMachine;
     ServerStateMachine serverStateMachine;
     static SecureRandom random;
+    static KeyPair sphincsKeyPair;
+    static KeyPair dilithiumKeyPair;
 
     @BeforeAll
-    public static void initialize() {
+    public static void initialize() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+        sphincsKeyPair = CryptographyModule.keys.generateSPHINCSKeyPair();
+        dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
         random = new SecureRandom();
     }
 
@@ -137,11 +139,13 @@ public class StatemachineInteractionTest {
 
     private ServerStateMachine buildRandomServerStateMachine() throws Exception {
         ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair,"SPHINCSPlus")});
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair,"Dilithium")});
         return new ServerStateMachine.ServerStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .supportedCurves(generateRandomCurveIdentifiers())
                 .certificateChains(certificateChains)
+                .signatureKeyPairs(new KeyPair[]{sphincsKeyPair, dilithiumKeyPair})
                 .build();
     }
 }

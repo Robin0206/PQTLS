@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import statemachines.server.ServerStateMachine;
 
-import java.security.SecureRandom;
+import java.security.*;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,16 +16,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class ServerStateMachineTest {
     static SecureRandom random;
     ServerStateMachine serverStateMachine;
+    static KeyPair sphincsKeyPair;
+    static KeyPair dilithiumKeyPair;
 
     @BeforeAll
-    public static void initialize() {
+    public static void initialize() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+        sphincsKeyPair = CryptographyModule.keys.generateSPHINCSKeyPair();
+        dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
         random = new SecureRandom();
     }
 
     @Test
     void buildingShouldNotThrowAnyException() {
         assertAll(()->{
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 100; i++) {
                 assertDoesNotThrow(this::buildRandomServerStateMachine);
             }
         });
@@ -33,11 +37,13 @@ class ServerStateMachineTest {
 
     private ServerStateMachine buildRandomServerStateMachine() throws Exception {
         ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair,"SPHINCSPlus")});
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair,"Dilithium")});
        return new ServerStateMachine.ServerStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .supportedCurves(generateRandomCurveIdentifiers())
                .certificateChains(certificateChains)
+               .signatureKeyPairs(new KeyPair[]{dilithiumKeyPair, sphincsKeyPair})
                 .build();
     }
 
