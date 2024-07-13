@@ -67,7 +67,7 @@ public class ServerStateMachine {
     }
 
     private boolean isNotNullMessage(PQTLSMessage message) {
-        return message.getBytes()[1] != (byte)0xff;
+        return message.getBytes()[0] != (byte)0xff;
     }
 
     public SharedSecret getSharedSecret(){
