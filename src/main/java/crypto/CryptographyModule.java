@@ -164,6 +164,18 @@ public class CryptographyModule {
         public static Key byteArrToSymmetricKey(byte[] key, String algName) {
             return new SecretKeySpec(key, algName);
         }
+
+        public static KeyPair generateSPHINCSKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("SPHINCSPlus", "BCPQC");
+            keyPairGenerator.initialize(SPHINCSPlusParameterSpec.shake_256f, new SecureRandom());
+            return keyPairGenerator.generateKeyPair();
+        }
+
+        public static KeyPair generateDilithiumKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("Dilithium", "BCPQC");
+            keyPairGenerator.initialize(DilithiumParameterSpec.dilithium5, new SecureRandom());
+            return keyPairGenerator.generateKeyPair();
+        }
     }
 
     /*
@@ -225,6 +237,23 @@ public class CryptographyModule {
         public static X509CertificateHolder generateSelfSignedTestCertificate(String algName) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
             X500Name name = new X500Name("CN=TestCertificate");
             KeyPair keyPair = generateSigAlgKeyPair(algName);
+            PrivateKey privateKey = keyPair.getPrivate();
+            X509v1CertificateBuilder certBldr = new JcaX509v1CertificateBuilder(
+                    name,
+                    BigInteger.valueOf(0),
+                    new Date(),
+                    new Date(),
+                    name,
+                    keyPair.getPublic()
+            );
+
+            ContentSigner signer = new JcaContentSignerBuilder(algName)
+                    .setProvider("BCPQC")
+                    .build(privateKey);
+            return certBldr.build(signer);
+        }
+        public static X509CertificateHolder generateSelfSignedTestCertificate(KeyPair keyPair, String algName) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+            X500Name name = new X500Name("CN=TestCertificate");
             PrivateKey privateKey = keyPair.getPrivate();
             X509v1CertificateBuilder certBldr = new JcaX509v1CertificateBuilder(
                     name,

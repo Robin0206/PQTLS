@@ -18,10 +18,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -40,12 +37,14 @@ public class SendingCertificatesState extends State {
 
     private void setCertificatesToSend(){
         ArrayList<X509CertificateHolder[]>[] splitCertificateChains = splitCertificateChainsByAlgorithm();
-        certificatesToSend = splitCertificateChains[determineCertificateChainIndex()].getFirst();
+        certificatesToSend = splitCertificateChains[determineCertificateChainIndex(splitCertificateChains)].getFirst();
     }
 
-    private int determineCertificateChainIndex() {
-        if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2){
+    private int determineCertificateChainIndex(ArrayList<X509CertificateHolder[]>[] splitCertificateChains) {
+        if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2 && !splitCertificateChains[2].isEmpty()){
             return 2;
+        }else if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2){
+            return 1;// Dilithium Certificates are much shorter
         }else if(serverAndClientSupportDilithium()){
             return 1;
         }else{
@@ -130,7 +129,7 @@ public class SendingCertificatesState extends State {
                 stateMachine.preferredCipherSuite
         );
     }
-
+    //TODO
     @Override
     public State next() {
         return null;

@@ -24,6 +24,7 @@ import java.util.*;
 public class ServerStateMachine {
     public PublicKey publicKeyUsedInCertificate;
     ArrayList<X509CertificateHolder[]> certificateChains;
+    KeyPair[] signatureKeyPairs;
     byte[] supportedSignatureAlgorithms;
     public SharedSecret sharedSecret;
     protected CurveIdentifier[] supportedCurves;
@@ -85,12 +86,14 @@ public class ServerStateMachine {
     }
 
     public static class ServerStateMachineBuilder{
+        KeyPair[] signatureKeyPairs;
         protected CipherSuite[] supportedCipherSuites;
         public CurveIdentifier[] supportedCurves;
         boolean supportedCipherSuitesSet = false;
         boolean supportedCurvesSet = false;
         ArrayList<X509CertificateHolder[]> certificateChains;
         private boolean certificatesSet = false;
+        private boolean signatureKeyPairsSet = false;
         byte[] supportedSignatureAlgorithms;
 
         public ServerStateMachineBuilder cipherSuites(CipherSuite[] cipherSuites){
@@ -138,6 +141,12 @@ public class ServerStateMachine {
                 throw new RuntimeException("Doesnt contain the mandatory CurveIdentifier: secp256r1");
             }
         }
+
+        public ServerStateMachineBuilder signatureKeyPairs(KeyPair[] signatureKeyPairs){
+            this.signatureKeyPairs = signatureKeyPairs;
+            this.signatureKeyPairsSet = true;
+            return  this;
+        }
         private boolean cipherSuitesContainMandatoryCipherSuite(CipherSuite[] cipherSuites) {
             for(CipherSuite cipherSuite : cipherSuites){
                 if(cipherSuite == CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384){
@@ -170,6 +179,9 @@ public class ServerStateMachine {
             }
             if(!certificatesSet){
                 throw new Exception("Certificates must be set before calling the build method");
+            }
+            if(!signatureKeyPairsSet){
+                throw new Exception("Signature Key Pairs must be set before calling the build method");
             }
         }
     }

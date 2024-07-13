@@ -37,9 +37,11 @@ public class Main {
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
         testProviderImports();
-
+        KeyPair sphincsKeyPair = CryptographyModule.keys.generateSPHINCSKeyPair();
+        KeyPair dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
         ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("SPHINCSPlus")});
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair,"SPHINCSPlus")});
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair,"Dilithium")});
         ArrayList<X509CertificateHolder[]> clientCertificateChains = new ArrayList<>();
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
@@ -83,6 +85,7 @@ public class Main {
                         CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
                 .certificateChains(certificateChains)
+                .signatureKeyPairs(new KeyPair[]{sphincsKeyPair, dilithiumKeyPair})
                 .build();
         HelloMessage message2 =
                 (HelloMessage) serverStateMachine.step(message1);
