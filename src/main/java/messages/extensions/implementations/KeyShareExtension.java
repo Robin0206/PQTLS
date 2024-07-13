@@ -79,7 +79,7 @@ public class KeyShareExtension implements PQTLSExtension {
 
     private static void throwExceptionIfNecessary(byte[][] keys) {
         if(keys.length < EXTENSION_KEY_SHARE_MIN_KEY_ARR_LENGTH){
-            throw new IllegalArgumentException("Invalid number of keys");
+            throw new IllegalArgumentException("Invalid number of keys: " + keys.length);
         }
     }
 

@@ -32,7 +32,8 @@ public class HelloMessage implements PQTLSMessage {
     }
 
     //Used for testing
-    public boolean equals(HelloMessage message) {
+    public boolean equals(PQTLSMessage messageToCast) {
+        HelloMessage message = (HelloMessage) messageToCast;
         return (java.util.Arrays.equals(this.legacyVersion, message.legacyVersion) &&
                 this.lengthAfterRecordHeader == message.lengthAfterRecordHeader &&
                 this.handShakeMessageType == message.handShakeMessageType &&

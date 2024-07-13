@@ -21,11 +21,15 @@ public class ByteUtils {
     }
 
     public static byte[] intToByteArray3(int input) {
-        return new byte[]{
-                (byte) (input & 0xFF),
-                (byte) ((input >> 8) & 0xFF),
-                (byte) ((input >> 16) & 0xFF),
-        };
+        BigInteger inputBigInteger = new BigInteger(String.valueOf(input));
+        byte[] resultBuffer = inputBigInteger.toByteArray();
+        byte [] result = new byte[3];
+        if(resultBuffer.length > result.length){
+            System.arraycopy(resultBuffer, 0, result, 0, result.length);
+        }else{
+            System.arraycopy(resultBuffer, 0, result, result.length - resultBuffer.length, resultBuffer.length);
+        }
+        return result;
     }
     public static byte[] flatten(byte[][] input){
         ArrayList<Byte> buffer = new ArrayList<>();

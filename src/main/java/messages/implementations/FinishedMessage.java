@@ -15,4 +15,9 @@ public class FinishedMessage implements PQTLSMessage {
     public void printVerbose() {
 
     }
+
+    @Override
+    public boolean equals(PQTLSMessage message) {
+        return false;
+    }
 }

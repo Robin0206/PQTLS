@@ -16,4 +16,9 @@ public class CertificateVerifyMessage implements PQTLSMessage {
     public void printVerbose() {
 
     }
+
+    @Override
+    public boolean equals(PQTLSMessage message) {
+        return false;
+    }
 }

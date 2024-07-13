@@ -81,4 +81,21 @@ public class EncryptedExtensions implements PQTLSMessage{
     public void printVerbose() {
 
     }
+
+    @Override
+    public boolean equals(PQTLSMessage messageToCast) {
+        EncryptedExtensions message = (EncryptedExtensions) messageToCast;
+
+        for (PQTLSExtension extension1 : extensions) {
+            for (PQTLSExtension extension2 : message.extensions) {
+                if(!Arrays.equals(extension1.getByteRepresentation(), extension2.getByteRepresentation())){
+                    return false;
+                }
+            }
+        }
+
+        return
+                Arrays.equals(messageBytes, message.messageBytes) &&
+                Arrays.equals(extensionBytes, message.extensionBytes);
+    }
 }

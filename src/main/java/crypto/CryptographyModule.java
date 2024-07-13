@@ -203,19 +203,19 @@ public class CryptographyModule {
         }
 
         public static byte[] encryptChaCha(byte[] input, byte[] nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
+            Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305", "BC");
             cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(nonce));
             return cipher.doFinal(input);
         }
 
         public static byte[] decryptAES(byte[] input, byte[] iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("AES/GCM/PKCS5Padding", "BC");
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
             return cipher.doFinal(input);
         }
 
         public static byte[] decryptChaCha(byte[] input, byte[] nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
+            Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305", "BC");
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(nonce));
             return cipher.doFinal(input);
         }
@@ -246,7 +246,7 @@ public class CryptographyModule {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(algName, "BCPQC");
         switch (algName){
             case "SPHINCSPlus":
-                kpg.initialize(SPHINCSPlusParameterSpec.sha2_128f);
+                kpg.initialize(SPHINCSPlusParameterSpec.shake_256f);
                 break;
             case "Dilithium":
                 kpg.initialize(DilithiumParameterSpec.dilithium5);

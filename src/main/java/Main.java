@@ -37,7 +37,10 @@ public class Main {
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
         testProviderImports();
-        
+
+        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("SPHINCSPlus")});
+        ArrayList<X509CertificateHolder[]> clientCertificateChains = new ArrayList<>();
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
@@ -61,6 +64,7 @@ public class Main {
                         Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS
                 })
+                .trustedCertificates(clientCertificateChains)
                 .numberOfCurvesSendByClientHello(2)
                 .build();
         HelloMessage message1 =
@@ -68,8 +72,7 @@ public class Main {
 
         System.out.println("Client Sends Client Hello:");
         message1.printVerbose();
-        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
+
         ServerStateMachine serverStateMachine = new ServerStateMachine.ServerStateMachineBuilder()
                 .supportedCurves(new CurveIdentifier[]{
                         CurveIdentifier.secp384r1,
@@ -97,8 +100,9 @@ public class Main {
         System.out.println();
         System.out.println("Server sends Server Certificate");
         message4.printVerbose();
-        /*
+
         clientStateMachine.step(message4);
+        /*
         PQTLSMessage message5 = serverStateMachine.step(new NullMessage());
         System.out.println();
         System.out.println("Server sends Server Certificate Verify");

@@ -32,7 +32,7 @@ public class WaitingForEncryptedExtensionsState extends State {
 
     @Override
     public State next() {
-        return null;
+        return new CheckIfCertificatesTrustedState();
     }
 
     @Override

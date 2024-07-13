@@ -21,21 +21,23 @@ public class WrappedRecord implements PQTLSMessage {
     byte[] encryptedMessage;
     Key key;
     byte[] messageBytes;
+    byte[] decryptedMessageToWrapBytes;
 
     //Constructor that takes the message as an PQTLSMessage Object and also encrypts the message
     public WrappedRecord(
             PQTLSMessage messageToWrap,
             byte actualRecordType,
             Key key,
-            byte [] iv_nonce,
+            byte[] iv_nonce,
             CipherSuite cipherSuite
     ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         this.messageToWrap = messageToWrap;
+        this.decryptedMessageToWrapBytes = messageToWrap.getBytes();
         this.actualRecordType = actualRecordType;
         this.key = key;
-        if(Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")){
+        if (Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")) {
             encryptedMessage = CryptographyModule.symmetric.encryptAES(messageToWrap.getBytes(), iv_nonce, key);
-        }else{
+        } else {
             encryptedMessage = CryptographyModule.symmetric.encryptChaCha(messageToWrap.getBytes(), iv_nonce, key);
         }
         fillMessageBytes();
@@ -49,7 +51,7 @@ public class WrappedRecord implements PQTLSMessage {
             CipherSuite cipherSuite
     ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         this.messageBytes = messageBytes;
-        actualRecordType = messageBytes[messageBytes.length-1];
+        actualRecordType = messageBytes[messageBytes.length - 1];
         this.key = key;
         setEncryptedMessage();
         setDecryptedMessage(cipherSuite, iv_nonce);
@@ -57,12 +59,13 @@ public class WrappedRecord implements PQTLSMessage {
 
     private void setDecryptedMessage(CipherSuite cipherSuite, byte[] iv_nonce) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         byte[] decryptedMessageBytes;
-        if(Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")){
+        if (Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")) {
             decryptedMessageBytes = CryptographyModule.symmetric.decryptAES(encryptedMessage, iv_nonce, key);
-        }else{
+        } else {
             decryptedMessageBytes = CryptographyModule.symmetric.decryptChaCha(encryptedMessage, iv_nonce, key);
         }
         messageToWrap = bytesToPQTLSExtension(decryptedMessageBytes);
+        decryptedMessageToWrapBytes = decryptedMessageBytes;
     }
 
     private void setEncryptedMessage() {
@@ -79,7 +82,7 @@ public class WrappedRecord implements PQTLSMessage {
     private void fillMessageBytes() {
         ArrayList<Byte> buffer = new ArrayList<>();
         //add type
-        buffer.add((byte)0x17);
+        buffer.add((byte) 0x17);
         //add legacy version
         buffer.add((byte) 0x03);
         buffer.add((byte) 0x03);
@@ -87,7 +90,7 @@ public class WrappedRecord implements PQTLSMessage {
         buffer.add((byte) 0x00);
         buffer.add((byte) 0x00);
         //add encrypted content
-        for(byte b : encryptedMessage){
+        for (byte b : encryptedMessage) {
             buffer.add(b);
         }
         //add actual record type
@@ -96,7 +99,7 @@ public class WrappedRecord implements PQTLSMessage {
         for (int i = 0; i < buffer.size(); i++) {
             messageBytes[i] = buffer.get(i);
         }
-        byte[] numOfFollowingBytes = ByteUtils.shortToByteArr((short) (buffer.size()-5));
+        byte[] numOfFollowingBytes = ByteUtils.shortToByteArr((short) (buffer.size() - 5));
         messageBytes[3] = numOfFollowingBytes[0];
         messageBytes[4] = numOfFollowingBytes[1];
     }
@@ -105,21 +108,24 @@ public class WrappedRecord implements PQTLSMessage {
     private String getSymmetricCipherNameFromCipherSuite(CipherSuite cipherSuite) {
         String[] cipherSuiteContentSplit = Strings.split(cipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
-            if(Objects.equals(cipherSuiteContentSplit[i], "WITH")){
-                return cipherSuiteContentSplit[i+1];
+            if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
+                return cipherSuiteContentSplit[i + 1];
             }
         }
         return null;
     }
+
     public PQTLSMessage bytesToPQTLSExtension(byte[] decryptedMessageBytes) throws IOException {
         return switch (decryptedMessageBytes[0]) {
             case 0x08 -> new EncryptedExtensions(decryptedMessageBytes);
             case 0x0b -> new CertificateMessage(decryptedMessageBytes);
             case 0x0f -> new CertificateVerifyMessage(decryptedMessageBytes);
             case 0x14 -> new FinishedMessage(decryptedMessageBytes);
+            case (byte) 0xff -> new NullMessage();
             default -> throw new IllegalArgumentException("Invalid Identifier in Handshake header!");
         };
     }
+
     @Override
     public byte[] getBytes() {
         return messageBytes;
@@ -137,5 +143,14 @@ public class WrappedRecord implements PQTLSMessage {
 
     public PQTLSMessage getWrappedMessage() {
         return messageToWrap;
+    }
+
+    public boolean equals(PQTLSMessage wrappedRecord) {
+        WrappedRecord castMessage = (WrappedRecord) wrappedRecord;
+        return this.actualRecordType == castMessage.actualRecordType &&
+                Arrays.equals(this.encryptedMessage, castMessage.encryptedMessage) &&
+                Arrays.equals(this.key.getEncoded(), castMessage.key.getEncoded()) &&
+                Arrays.equals(this.messageBytes, castMessage.messageBytes) &&
+                Arrays.equals(this.decryptedMessageToWrapBytes, castMessage.decryptedMessageToWrapBytes);
     }
 }

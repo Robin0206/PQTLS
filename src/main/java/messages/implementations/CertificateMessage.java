@@ -3,8 +3,10 @@ package messages.implementations;
 import messages.PQTLSMessage;
 import misc.ByteUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 
 import java.io.IOException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -23,6 +25,10 @@ public class CertificateMessage implements PQTLSMessage {
         setCertificatesFromCertificateBytes();
     }
 
+    public X509CertificateHolder[] getCertificates() {
+        return certificates;
+    }
+
     private void setCertificatesFromCertificateBytes() throws IOException {
         ArrayList<X509CertificateHolder> buffer = new ArrayList<>();
         int index = 0;
@@ -37,7 +43,10 @@ public class CertificateMessage implements PQTLSMessage {
             for (int i = 0; i < currentCertificateLength; i++, index++) {
                 currentCertificateBytes.add(certificateBytes[index]);
             }
-            buffer.add(new X509CertificateHolder(ByteUtils.toByteArray(currentCertificateBytes)));
+            if(currentCertificateBytes.size() > 3){
+                buffer.add(new X509CertificateHolder(ByteUtils.toByteArray(currentCertificateBytes)));
+            }
+
         }
         certificates = new X509CertificateHolder[buffer.size()];
         for (int i = 0; i < buffer.size(); i++) {
@@ -47,6 +56,7 @@ public class CertificateMessage implements PQTLSMessage {
 
     private void setCertificateBytesFromInputBytes() {
         int startIndexOfCertificatesLength = getStartIndexOfCertificatesLength();
+        certificateBytes = new byte[messageBytes.length - startIndexOfCertificatesLength];
         System.arraycopy(
                 messageBytes,
                 startIndexOfCertificatesLength + 3,
@@ -57,7 +67,7 @@ public class CertificateMessage implements PQTLSMessage {
     }
 
     private int getStartIndexOfCertificatesLength() {
-        return messageBytes[4] + 4;
+        return messageBytes[4] + 5;
     }
 
     private void setRequestContextBytes() {
@@ -85,8 +95,11 @@ public class CertificateMessage implements PQTLSMessage {
         ArrayList<byte[]> buffer = new ArrayList<>();
         for (X509CertificateHolder cert : certificates) {
             byte[] certBytes = cert.getEncoded();
-            buffer.add(ByteUtils.intToByteArray3(certBytes.length));
-            buffer.add(certBytes);
+            byte[] certLength = ByteUtils.intToByteArray3(certBytes.length);
+            byte[] certWithLength = new byte[certLength.length + certBytes.length];
+            System.arraycopy(certLength, 0, certWithLength, 0, certLength.length);
+            System.arraycopy(certBytes, 0, certWithLength, certLength.length, certBytes.length);
+            buffer.add(certWithLength);
         }
         certificateBytes = ByteUtils.flatten(buffer);
     }
@@ -122,14 +135,15 @@ public class CertificateMessage implements PQTLSMessage {
     }
 
     @Override
-    public void printVerbose() {
+    public void printVerbose() throws CertificateException {
         System.out.println("================================Certificate Message=================================");
         for(X509CertificateHolder certificate : certificates){
-            System.out.println(certificate.toString());
+            System.out.println(new JcaX509CertificateConverter().getCertificate(certificate).toString());
         }
     }
 
-    public boolean equals(CertificateMessage message) {
+    public boolean equals(PQTLSMessage messageToCast) {
+        CertificateMessage message = (CertificateMessage) messageToCast;
         for (int i = 0; i < certificates.length; i++) {
             if (this.certificates[i] != message.certificates[i]) {
                 return false;

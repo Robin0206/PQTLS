@@ -1,12 +1,15 @@
 package statemachines.server;
 
+import crypto.CryptographyModule;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.implementations.CertificateMessage;
 import messages.implementations.HelloMessage;
+import messages.implementations.WrappedRecord;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 
@@ -19,6 +22,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -28,12 +32,13 @@ public class SendingCertificatesState extends State {
     byte[] clientSupportedSignatureAlgorithms;
     X509CertificateHolder[] certificatesToSend;
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
+    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException {
         determineClientSupportedSignatureAlgorithms();
         setCertificatesToSend();
+        stateMachine.publicKeyUsedInCertificate =  new JcaX509CertificateConverter().getCertificate(certificatesToSend[0]).getPublicKey();
     }
 
-    private void setCertificatesToSend() {
+    private void setCertificatesToSend(){
         ArrayList<X509CertificateHolder[]>[] splitCertificateChains = splitCertificateChainsByAlgorithm();
         certificatesToSend = splitCertificateChains[determineCertificateChainIndex()].getFirst();
     }
@@ -114,8 +119,15 @@ public class SendingCertificatesState extends State {
 
     @Override
     public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
-        return new CertificateMessage(
-                certificatesToSend
+        return new WrappedRecord(
+                new CertificateMessage(certificatesToSend),
+                (byte) 0x0b,
+                CryptographyModule.keys.byteArrToSymmetricKey(
+                        stateMachine.sharedSecret.getServerHandShakeSecret(),
+                        stateMachine.getPreferredSymmetricAlgorithm()
+                ),
+                stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                stateMachine.preferredCipherSuite
         );
     }
 

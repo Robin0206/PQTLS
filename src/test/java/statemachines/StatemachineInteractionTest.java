@@ -7,11 +7,15 @@ import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import statemachines.client.ClientStateMachine;
 import statemachines.server.ServerStateMachine;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
@@ -52,11 +56,14 @@ public class StatemachineInteractionTest {
             }
         });
     }
-    private ClientStateMachine buildRandomClientStateMachine() {
+    private ClientStateMachine buildRandomClientStateMachine() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
+        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
         return new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .curveIdentifiers(generateRandomCurveIdentifiers())
                 .supportedSignatureAlgorithms(generateRandomSupportedSignatureAlgorithms())
+                .trustedCertificates(certificateChains)
                 .extensionIdentifiers(new byte[]{
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS,
                         Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS,

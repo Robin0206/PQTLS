@@ -16,11 +16,13 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 
 public class ServerStateMachine {
+    public PublicKey publicKeyUsedInCertificate;
     ArrayList<X509CertificateHolder[]> certificateChains;
     byte[] supportedSignatureAlgorithms;
     public SharedSecret sharedSecret;
@@ -47,7 +49,7 @@ public class ServerStateMachine {
         this.supportedSignatureAlgorithms = builder.supportedSignatureAlgorithms;
         stepWithoutWaiting = false;
     }
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, CertificateException {
         currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
         if(isNotNullMessage(previousMessage)){
@@ -70,6 +72,16 @@ public class ServerStateMachine {
 
     public SharedSecret getSharedSecret(){
         return sharedSecret;
+    }
+
+    public String getPreferredSymmetricAlgorithm() {
+        String[] splitCipherSuite = preferredCipherSuite.toString().split("_");
+        for (int i = 0; i < splitCipherSuite.length; i++) {
+            if(Objects.equals(splitCipherSuite[i], "WITH")){
+                return splitCipherSuite[i+1];
+            }
+        }
+        throw new RuntimeException("Cant extract symmetric algorithm from cipher suite!");
     }
 
     public static class ServerStateMachineBuilder{
