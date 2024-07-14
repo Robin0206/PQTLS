@@ -87,10 +87,6 @@ public class ServerStateMachine {
         throw new RuntimeException("Cant extract symmetric algorithm from cipher suite!");
     }
 
-    public byte[] getConcatenatedBytesForSignature() {
-        return this.concatenatedBytesForSignature;
-    }
-
     public ArrayList<PQTLSMessage> getMessages() {
         return messages;
     }
