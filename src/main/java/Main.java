@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -32,17 +33,20 @@ public class Main {
     Main shouldnt throw any exception and print a Client-Hello-Message with the corresponding Server-Hello-Message
     as well as the shared secrets from the client and server state machine
      */
-    public static void main(String[]args) throws Exception {
+    public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
         testProviderImports();
         KeyPair sphincsKeyPair = CryptographyModule.keys.generateSPHINCSKeyPair();
         KeyPair dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
+        X509CertificateHolder sphincsCertificate = CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair, "SPHINCSPlus");
+        X509CertificateHolder dilithiumCertificate = CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair, "Dilithium");
         ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair,"SPHINCSPlus")});
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair,"Dilithium")});
+        certificateChains.add(new X509CertificateHolder[]{sphincsCertificate});
+        certificateChains.add(new X509CertificateHolder[]{dilithiumCertificate});
         ArrayList<X509CertificateHolder[]> clientCertificateChains = new ArrayList<>();
+        clientCertificateChains.add(new X509CertificateHolder[]{sphincsCertificate});
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
@@ -66,7 +70,7 @@ public class Main {
                         Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS
                 })
-                .trustedCertificates(clientCertificateChains)
+                .trustedCertificates(certificateChains)
                 .numberOfCurvesSendByClientHello(2)
                 .build();
         HelloMessage message1 =
@@ -105,12 +109,16 @@ public class Main {
         message4.printVerbose();
 
         clientStateMachine.step(message4);
-        /*
+        System.out.println("Client trusted certificates: " +
+                clientStateMachine.getCertificatesTrusted());
+
         PQTLSMessage message5 = serverStateMachine.step(new NullMessage());
         System.out.println();
         System.out.println("Server sends Server Certificate Verify");
         message5.printVerbose();
         clientStateMachine.step(message5);
+        System.out.println("Client checked if signature is valid: " + clientStateMachine.getSignatureVerified());
+        /*
         PQTLSMessage message6 = serverStateMachine.step(new NullMessage());
         System.out.println();
         System.out.println("Server sends Handshake finished");
@@ -118,6 +126,7 @@ public class Main {
         clientStateMachine.step(message6);
         */
     }
+
     private static void testProviderImports() {
         testStaticImportPQProvider();
         testStaticImportJCSSEProvider();
@@ -134,7 +143,7 @@ public class Main {
     }
 
     private static void testStaticImportPQProvider() {
-        try{
+        try {
             Signature sig = Signature.getInstance("SPHINCSPlus", "BCPQC");
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             System.out.println("Exception while testing static import of PQCProvider!");

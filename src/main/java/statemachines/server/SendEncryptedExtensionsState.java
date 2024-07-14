@@ -58,7 +58,7 @@ public class SendEncryptedExtensionsState extends State {
     }
 
     @Override
-    public boolean stepWithoutWaiting() {
+    public boolean stepWithoutWaitingForMessage() {
         return false;
     }
     private String getSymmetricCipherNameFromCipherSuite() {

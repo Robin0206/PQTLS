@@ -5,6 +5,7 @@ import messages.implementations.CertificateMessage;
 import messages.implementations.NullMessage;
 import messages.implementations.WrappedRecord;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
 
@@ -30,11 +31,13 @@ public class CheckIfCertificatesTrustedState extends State {
         stateMachine.certificatesTrusted = checkIfCertificateChainsAreTrusted();
     }
 
-    private boolean checkIfCertificateChainsAreTrusted() {
+    private boolean checkIfCertificateChainsAreTrusted() throws CertificateException {
         for(X509CertificateHolder serverCertificate : certificateMessage.getCertificates()) {
             for(X509CertificateHolder[] clientCertificateChain : stateMachine.trustedCertificates){
                 for(X509CertificateHolder clientCertificate : clientCertificateChain){
                     if(clientCertificate.equals(serverCertificate)){
+                        stateMachine.certificateUsedByServer = serverCertificate;
+                        stateMachine.sigAlgUsedByServer = new JcaX509CertificateConverter().getCertificate(serverCertificate).getSigAlgName();
                         return true;
                     }
                 }
@@ -50,7 +53,7 @@ public class CheckIfCertificatesTrustedState extends State {
 
     @Override
     public State next() {
-        return null;
+        return new CertificateVerifyState();
     }
 
     @Override
@@ -70,7 +73,7 @@ public class CheckIfCertificatesTrustedState extends State {
     }
 
     @Override
-    public boolean stepWithoutWaiting() {
+    public boolean stepWithoutWaitingForMessage() {
         return false;
     }
 }

@@ -24,8 +24,11 @@ The first state is always the ClientHelloState
  */
 public class ClientStateMachine {
 
-    public ArrayList<X509CertificateHolder[]> trustedCertificates;
-    public boolean certificatesTrusted;
+    protected ArrayList<X509CertificateHolder[]> trustedCertificates;
+    protected boolean certificatesTrusted;
+    protected X509CertificateHolder certificateUsedByServer;
+    protected String sigAlgUsedByServer;
+    protected boolean signatureValid;
     protected ArrayList<PQTLSExtension> extensions;
     protected int chosenCurveKeyIndex;
     protected SharedSecret sharedSecret;
@@ -45,6 +48,7 @@ public class ClientStateMachine {
     protected ArrayList<PQTLSMessage> messages;
 
     private boolean stepWithoutWaiting;
+    byte[] concatenatedBytesForSigVerification;
 
     private ClientStateMachine(ClientStateMachineBuilder builder) {
         messages = new ArrayList<>();
@@ -58,7 +62,7 @@ public class ClientStateMachine {
         currentState = new ClientHelloState();
     }
 
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, CertificateException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, CertificateException, SignatureException {
         currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
         if (isNotNullMessage(previousMessage)) {
@@ -69,7 +73,7 @@ public class ClientStateMachine {
         if (isNotNullMessage(result)) {
             messages.add(result);
         }
-        stepWithoutWaiting = currentState.stepWithoutWaiting();
+        stepWithoutWaiting = currentState.stepWithoutWaitingForMessage();
         currentState = currentState.next();
         return result;
     }
@@ -88,6 +92,18 @@ public class ClientStateMachine {
 
     public SharedSecret getSharedSecret() {
         return sharedSecret;
+    }
+
+    public boolean getCertificatesTrusted() {
+        return certificatesTrusted;
+    }
+
+    public boolean getSignatureVerified() {
+        return signatureValid;
+    }
+
+    public ArrayList<PQTLSMessage> getMessages() {
+        return messages;
     }
 
     public static class ClientStateMachineBuilder {

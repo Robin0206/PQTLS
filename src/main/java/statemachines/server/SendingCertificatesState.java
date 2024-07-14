@@ -33,6 +33,7 @@ public class SendingCertificatesState extends State {
         determineClientSupportedSignatureAlgorithms();
         setCertificatesToSend();
         stateMachine.publicKeyUsedInCertificate =  new JcaX509CertificateConverter().getCertificate(certificatesToSend[0]).getPublicKey();
+        stateMachine.sigAlgUsedInCertificate = new JcaX509CertificateConverter().getCertificate(certificatesToSend[0]).getSigAlgName();
     }
 
     private void setCertificatesToSend(){
@@ -129,10 +130,10 @@ public class SendingCertificatesState extends State {
                 stateMachine.preferredCipherSuite
         );
     }
-    //TODO
+
     @Override
     public State next() {
-        return null;
+        return new SendCertificateVerifyState();
     }
 
     @Override
@@ -151,7 +152,7 @@ public class SendingCertificatesState extends State {
     }
 
     @Override
-    public boolean stepWithoutWaiting() {
+    public boolean stepWithoutWaitingForMessage() {
         return true;
     }
 }

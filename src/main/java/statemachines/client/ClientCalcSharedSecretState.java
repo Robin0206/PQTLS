@@ -158,7 +158,7 @@ public class ClientCalcSharedSecretState extends State {
     }
 
     @Override
-    public boolean stepWithoutWaiting() {
+    public boolean stepWithoutWaitingForMessage() {
         return false;
     }
 

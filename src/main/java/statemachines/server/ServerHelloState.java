@@ -287,7 +287,7 @@ public class ServerHelloState extends State {
     }
 
     @Override
-    public boolean stepWithoutWaiting() {
+    public boolean stepWithoutWaitingForMessage() {
         return true;
     }
 }

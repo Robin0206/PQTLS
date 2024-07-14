@@ -6,9 +6,9 @@ import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
+import org.bouncycastle.tls.ProtocolVersion;
 import statemachines.State;
 
 import javax.crypto.BadPaddingException;
@@ -22,11 +22,12 @@ import java.util.*;
 
 
 public class ServerStateMachine {
-    public PublicKey publicKeyUsedInCertificate;
+    public String sigAlgUsedInCertificate;
+    protected PublicKey publicKeyUsedInCertificate;
     ArrayList<X509CertificateHolder[]> certificateChains;
     KeyPair[] signatureKeyPairs;
     byte[] supportedSignatureAlgorithms;
-    public SharedSecret sharedSecret;
+    protected SharedSecret sharedSecret;
     protected CurveIdentifier[] supportedCurves;
     protected CurveIdentifier preferredCurveIdentifier;
     protected KeyPair ecKeyPair;
@@ -40,6 +41,7 @@ public class ServerStateMachine {
     protected PQTLSExtension[] extensions;
     protected ArrayList<PQTLSMessage> messages;
     private boolean stepWithoutWaiting;
+    protected byte[] concatenatedBytesForSignature;
 
     private ServerStateMachine(ServerStateMachineBuilder builder){
         messages = new ArrayList<>();
@@ -48,21 +50,21 @@ public class ServerStateMachine {
         this.currentState = new ServerHelloState();
         this.certificateChains = builder.certificateChains;
         this.supportedSignatureAlgorithms = builder.supportedSignatureAlgorithms;
+        this.signatureKeyPairs = builder.signatureKeyPairs;
         stepWithoutWaiting = false;
     }
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, CertificateException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, CertificateException, SignatureException {
         currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
         if(isNotNullMessage(previousMessage)){
             messages.add(previousMessage);
         }
-        messages.add(previousMessage);
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
         if(isNotNullMessage(result)){
             messages.add(result);
         }
-        stepWithoutWaiting = currentState.stepWithoutWaiting();
+        stepWithoutWaiting = currentState.stepWithoutWaitingForMessage();
         currentState = currentState.next();
         return result;
     }
@@ -83,6 +85,14 @@ public class ServerStateMachine {
             }
         }
         throw new RuntimeException("Cant extract symmetric algorithm from cipher suite!");
+    }
+
+    public byte[] getConcatenatedBytesForSignature() {
+        return this.concatenatedBytesForSignature;
+    }
+
+    public ArrayList<PQTLSMessage> getMessages() {
+        return messages;
     }
 
     public static class ServerStateMachineBuilder{
