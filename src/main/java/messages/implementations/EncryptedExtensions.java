@@ -4,6 +4,7 @@ import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.PQTLSExtensionFactory;
 import misc.ByteUtils;
+import misc.Constants;
 
 import java.security.cert.Extension;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class EncryptedExtensions implements PQTLSMessage{
 
     private void setMessageBytes() {
         messageBytes = new byte[extensionBytes.length + 4];
-        messageBytes[0] = 0x08;
+        messageBytes[0] = Constants.HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS;
         byte[] numOfFollowingBytes = ByteUtils.intToByteArray3(extensionBytes.length);
         messageBytes[1] = numOfFollowingBytes[0];
         messageBytes[2] = numOfFollowingBytes[1];

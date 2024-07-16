@@ -24,6 +24,7 @@ The first state is always the ClientHelloState
  */
 public class ClientStateMachine {
 
+    protected boolean verifiedServerFinishedMessage;
     protected ArrayList<X509CertificateHolder[]> trustedCertificates;
     protected boolean certificatesTrusted;
     protected X509CertificateHolder certificateUsedByServer;
@@ -37,6 +38,7 @@ public class ClientStateMachine {
     protected KeyPair[] ecKeyPairs;
     protected KeyPair frodoKey;
     protected KeyPair kyberKey;
+    protected String symmetricAlgorithm;
     protected State currentState;
     protected CipherSuite[] cipherSuites;
     protected CurveIdentifier[] curveIdentifiers;
@@ -48,7 +50,6 @@ public class ClientStateMachine {
     protected ArrayList<PQTLSMessage> messages;
 
     private boolean stepWithoutWaiting;
-    byte[] concatenatedBytesForSigVerification;
 
     private ClientStateMachine(ClientStateMachineBuilder builder) {
         messages = new ArrayList<>();
@@ -104,6 +105,10 @@ public class ClientStateMachine {
 
     public ArrayList<PQTLSMessage> getMessages() {
         return messages;
+    }
+
+    public boolean verifiedServerFinishedMessage() {
+        return verifiedServerFinishedMessage;
     }
 
     public static class ClientStateMachineBuilder {

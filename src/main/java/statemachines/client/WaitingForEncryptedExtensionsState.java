@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 
-public class WaitingForEncryptedExtensionsState extends State {
+public class WaitingForEncryptedExtensionsState implements State {
     private WrappedRecord previousMessage;
     private ClientStateMachine stateMachine;
 

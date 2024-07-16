@@ -8,7 +8,6 @@ import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
-import org.bouncycastle.tls.ProtocolVersion;
 import statemachines.State;
 
 import javax.crypto.BadPaddingException;
@@ -22,10 +21,10 @@ import java.util.*;
 
 
 public class ServerStateMachine {
-    public String sigAlgUsedInCertificate;
+    protected String sigAlgUsedInCertificate;
     protected PublicKey publicKeyUsedInCertificate;
-    ArrayList<X509CertificateHolder[]> certificateChains;
-    KeyPair[] signatureKeyPairs;
+    protected ArrayList<X509CertificateHolder[]> certificateChains;
+    protected KeyPair[] signatureKeyPairs;
     byte[] supportedSignatureAlgorithms;
     protected SharedSecret sharedSecret;
     protected CurveIdentifier[] supportedCurves;
@@ -41,7 +40,7 @@ public class ServerStateMachine {
     protected PQTLSExtension[] extensions;
     protected ArrayList<PQTLSMessage> messages;
     private boolean stepWithoutWaiting;
-    protected byte[] concatenatedBytesForSignature;
+    protected boolean verifiedClientFinished;
 
     private ServerStateMachine(ServerStateMachineBuilder builder){
         messages = new ArrayList<>();
@@ -61,7 +60,7 @@ public class ServerStateMachine {
         }
         currentState.calculate();
         PQTLSMessage result = currentState.getMessage();
-        if(isNotNullMessage(result)){
+        if(result != null && isNotNullMessage(result)){
             messages.add(result);
         }
         stepWithoutWaiting = currentState.stepWithoutWaitingForMessage();
@@ -89,6 +88,10 @@ public class ServerStateMachine {
 
     public ArrayList<PQTLSMessage> getMessages() {
         return messages;
+    }
+
+    public boolean verifiedClientFinishedMessage() {
+        return verifiedClientFinished;
     }
 
     public static class ServerStateMachineBuilder{

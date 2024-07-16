@@ -285,4 +285,8 @@ public class SharedSecret {
     public byte[] getClientHandShakeSecret() {
         return clientHandshakeTrafficSecret;
     }
+
+    public String getHashName() {
+        return hashName;
+    }
 }

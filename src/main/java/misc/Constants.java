@@ -19,5 +19,7 @@ public class Constants {
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS = 0x00;
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM = 0x01;
     public static final int EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTED_ALGORITHMS_OFFSET = 4;
-    
+
+    public static final byte HANDSHAKE_TYPE_FINISHED = 0x14;
+    public static final byte HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS = 0x08;
 }

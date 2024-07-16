@@ -12,12 +12,12 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public abstract class State {
-    public abstract void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException;
-    public abstract PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException;
-    public abstract State next();
-    public abstract void setPreviousMessage(PQTLSMessage message);
-    public abstract void setStateMachine(ClientStateMachine stateMachine);
-    public abstract void setStateMachine(ServerStateMachine stateMachine);
-    public abstract boolean stepWithoutWaitingForMessage();
+public interface State {
+    void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException;
+    PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException;
+    State next();
+    void setPreviousMessage(PQTLSMessage message);
+    void setStateMachine(ClientStateMachine stateMachine);
+    void setStateMachine(ServerStateMachine stateMachine);
+    boolean stepWithoutWaitingForMessage();
 }

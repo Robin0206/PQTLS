@@ -24,7 +24,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class SendingCertificatesState extends State {
+public class SendingCertificatesState implements State {
     ServerStateMachine stateMachine;
     byte[] clientSupportedSignatureAlgorithms;
     X509CertificateHolder[] certificatesToSend;
@@ -155,4 +155,5 @@ public class SendingCertificatesState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return true;
     }
+
 }

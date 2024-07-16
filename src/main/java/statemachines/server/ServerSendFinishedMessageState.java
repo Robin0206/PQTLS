@@ -2,10 +2,9 @@ package statemachines.server;
 
 import crypto.CryptographyModule;
 import messages.PQTLSMessage;
-import messages.implementations.CertificateMessage;
-import messages.implementations.CertificateVerifyMessage;
+import messages.implementations.FinishedMessage;
 import messages.implementations.WrappedRecord;
-import misc.ByteUtils;
+import misc.Constants;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 
@@ -17,56 +16,32 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-public class SendCertificateVerifyState implements State {
-
+public class ServerSendFinishedMessageState implements State {
+    private ArrayList<byte[]> concatenatedMessages;
     private ServerStateMachine stateMachine;
-    byte[] signature;
-    byte[] messagesToSign;
-    private PrivateKey privateKey;
 
     @Override
     public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
-        determinePrivateKeyToUse();
-        setMessagesToSign();
-        setSignature();
+        setConcatenatedMessages();
     }
 
-    private void setMessagesToSign() {
-        ArrayList<Byte> messagesConcatenated = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            for(Byte b : stateMachine.messages.get(i).getBytes()){
-                messagesConcatenated.add(b);
-            }
-        }
-        messagesToSign = ByteUtils.toByteArray(messagesConcatenated);
-    }
-
-    private void setSignature() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        Signature signatureAlg = Signature.getInstance(stateMachine.sigAlgUsedInCertificate);
-        signatureAlg.initSign(privateKey);
-        signatureAlg.update(messagesToSign);
-        signature = signatureAlg.sign();
-    }
-
-    private void determinePrivateKeyToUse() {
-        for(KeyPair keyPair : stateMachine.signatureKeyPairs){
-            if(Arrays.equals(
-                    keyPair.getPublic().getEncoded(),
-                    stateMachine.publicKeyUsedInCertificate.getEncoded()
-            )){
-                this.privateKey = keyPair.getPrivate();
-                return;
-            }
+    private void setConcatenatedMessages() {
+        concatenatedMessages = new ArrayList<>();
+        for(int i = 0; i < 3; i++){
+            concatenatedMessages.add(stateMachine.messages.get(i).getBytes());
         }
     }
 
     @Override
     public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         return new WrappedRecord(
-                new CertificateVerifyMessage(signature, true),
-                (byte) 0x0f,
+                new FinishedMessage(
+                        concatenatedMessages,
+                        stateMachine.sharedSecret.getServerHandShakeSecret(),
+                        stateMachine.sharedSecret.getHashName()
+                ),
+                Constants.HANDSHAKE_TYPE_FINISHED,
                 CryptographyModule.keys.byteArrToSymmetricKey(
                         stateMachine.sharedSecret.getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
@@ -78,7 +53,7 @@ public class SendCertificateVerifyState implements State {
 
     @Override
     public State next() {
-        return new ServerSendFinishedMessageState();
+        return new VerifyClientFinishedState();
     }
 
     @Override

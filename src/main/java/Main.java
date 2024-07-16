@@ -16,7 +16,6 @@ import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 import statemachines.client.ClientStateMachine;
 import statemachines.server.ServerStateMachine;
-
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
@@ -24,7 +23,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -118,13 +116,20 @@ public class Main {
         message5.printVerbose();
         clientStateMachine.step(message5);
         System.out.println("Client checked if signature is valid: " + clientStateMachine.getSignatureVerified());
-        /*
+
         PQTLSMessage message6 = serverStateMachine.step(new NullMessage());
         System.out.println();
         System.out.println("Server sends Handshake finished");
         message6.printVerbose();
-        clientStateMachine.step(message6);
-        */
+
+        PQTLSMessage message7 = clientStateMachine.step(message6);
+        System.out.println();
+        System.out.println("Client sends Handshake finished");
+        message7.printVerbose();
+        System.out.println("Client checked if ServerFinishedMessageIsValid: " + clientStateMachine.verifiedServerFinishedMessage());
+
+        serverStateMachine.step(message7);
+        System.out.println("server checked if ServerFinishedMessageIsValid: " + serverStateMachine.verifiedClientFinishedMessage());
     }
 
     private static void testProviderImports() {

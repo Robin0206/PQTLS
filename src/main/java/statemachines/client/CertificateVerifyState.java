@@ -18,7 +18,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 
-public class CertificateVerifyState extends State {
+public class CertificateVerifyState implements State {
     private CertificateVerifyMessage certificateVerifyMessage;
     private byte[] signatureSendByServer;
     private ClientStateMachine stateMachine;
@@ -39,7 +39,6 @@ public class CertificateVerifyState extends State {
             }
         }
         concatenatedMessages = ByteUtils.toByteArray(buffer);
-        stateMachine.concatenatedBytesForSigVerification = ByteUtils.toByteArray(buffer);
     }
 
     private void verifySignature() throws NoSuchAlgorithmException, NoSuchProviderException, SignatureException, CertificateException, InvalidKeyException {
@@ -60,7 +59,7 @@ public class CertificateVerifyState extends State {
 
     @Override
     public State next() {
-        return null;
+        return new VerifyServerFinishedState();
     }
 
     @Override
@@ -82,4 +81,5 @@ public class CertificateVerifyState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return false;
     }
+
 }

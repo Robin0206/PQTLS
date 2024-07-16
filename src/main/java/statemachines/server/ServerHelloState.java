@@ -20,7 +20,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class ServerHelloState extends State {
+public class ServerHelloState implements State {
     ServerStateMachine stateMachine;
     private HelloMessage clientHelloMessage;
     private PublicKey clientPublicKeyFrodo;
@@ -290,4 +290,5 @@ public class ServerHelloState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return true;
     }
+
 }

@@ -16,7 +16,7 @@ import statemachines.server.ServerStateMachine;
 import java.security.*;
 import java.util.ArrayList;
 
-public class ClientHelloState extends State {
+public class ClientHelloState implements State {
     private ClientStateMachine stateMachine;
 
     @Override
@@ -154,4 +154,5 @@ public class ClientHelloState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return false;
     }
+
 }

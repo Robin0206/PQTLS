@@ -20,7 +20,7 @@ import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class CheckIfCertificatesTrustedState extends State {
+public class CheckIfCertificatesTrustedState implements State {
     ClientStateMachine stateMachine;
     private WrappedRecord wrappedCertificateMessage;
     private CertificateMessage certificateMessage;
@@ -76,4 +76,5 @@ public class CheckIfCertificatesTrustedState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return false;
     }
+
 }

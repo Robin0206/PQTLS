@@ -19,7 +19,7 @@ import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Objects;
 
-public class SendEncryptedExtensionsState extends State {
+public class SendEncryptedExtensionsState implements State {
     private ServerStateMachine stateMachine;
 
     @Override
@@ -61,6 +61,8 @@ public class SendEncryptedExtensionsState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return false;
     }
+
+
     private String getSymmetricCipherNameFromCipherSuite() {
         String[] cipherSuiteContentSplit = Strings.split(stateMachine.preferredCipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {

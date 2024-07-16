@@ -6,6 +6,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v1CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509v1CertificateBuilder;
+import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
 import org.bouncycastle.jcajce.spec.KEMExtractSpec;
 import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
@@ -97,6 +98,14 @@ public class CryptographyModule {
         // https://www.rfc-editor.org/rfc/rfc5869 section 2.3
         public static byte[] hkdfExpandLabel(byte[] key, String hMacName, byte[] label, byte[] context, int L) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
             return hkdfExpand(key, hMacName, Arrays.concatenate(new byte[][]{label,context}), L);
+        }
+
+        //From the Book "Java Cryptography: Tools and Techniques" by David Hook and john Eaves page 46 to 47
+        public static byte[] hMac(String hMacName, byte[] input, byte[] key) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+            Mac hMac = Mac.getInstance(hMacName, "BC");
+            hMac.init(new SecretKeySpec(key, hMacName));
+            hMac.update(input);
+            return hMac.doFinal();
         }
     }
 

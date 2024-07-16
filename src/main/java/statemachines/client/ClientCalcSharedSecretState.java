@@ -19,7 +19,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class ClientCalcSharedSecretState extends State {
+public class ClientCalcSharedSecretState implements State {
     private HelloMessage serverHelloMessage;
     private ClientStateMachine stateMachine;
     private KeyShareExtension serverHelloKeyShareExtension;
@@ -27,6 +27,7 @@ public class ClientCalcSharedSecretState extends State {
     @Override
     public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
         setStateMachineChosenCipherSuite();
+        setStateMachineChosenSymmetricAlgorithm();
         setServerHelloKeyShareExtension();
         setStateMachineChosenCurveAndItsKeyIndex();
         setStateMachineSharedSecret();
@@ -55,7 +56,7 @@ public class ClientCalcSharedSecretState extends State {
         byte[] ecSharedSecret = CryptographyModule.keys.generateECSharedSecret(
                 stateMachine.ecKeyPairs[stateMachine.chosenCurveKeyIndex].getPrivate(),
                 getECPublicKeyFromServerHello(),
-                getSymmetricCipherNameFromCipherSuite()
+                stateMachine.symmetricAlgorithm
         );
         for (byte b : ecSharedSecret) {
             sharedSecretBuffer.add(b);
@@ -66,7 +67,7 @@ public class ClientCalcSharedSecretState extends State {
                     stateMachine.frodoKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 2],
                     "Frodo",
-                    getSymmetricCipherNameFromCipherSuite()
+                    stateMachine.symmetricAlgorithm
             ).getEncoded();
             for (byte b : frodoSharedSecret) {
                 sharedSecretBuffer.add(b);
@@ -75,7 +76,7 @@ public class ClientCalcSharedSecretState extends State {
                     stateMachine.frodoKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Kyber",
-                    getSymmetricCipherNameFromCipherSuite()
+                    stateMachine.symmetricAlgorithm
             ).getEncoded();
             for (byte b : kyberSharedSecret) {
                 sharedSecretBuffer.add(b);
@@ -85,7 +86,7 @@ public class ClientCalcSharedSecretState extends State {
                     stateMachine.frodoKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Frodo",
-                    getSymmetricCipherNameFromCipherSuite()
+                    stateMachine.symmetricAlgorithm
             ).getEncoded();
             for (byte b : frodoSharedSecret) {
                 sharedSecretBuffer.add(b);
@@ -95,7 +96,7 @@ public class ClientCalcSharedSecretState extends State {
                     stateMachine.kyberKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Kyber",
-                    getSymmetricCipherNameFromCipherSuite()
+                    stateMachine.symmetricAlgorithm
             ).getEncoded();
             for (byte b : kyberSharedSecret) {
                 sharedSecretBuffer.add(b);
@@ -118,16 +119,15 @@ public class ClientCalcSharedSecretState extends State {
         );
     }
 
-    private String getSymmetricCipherNameFromCipherSuite() {
+    private void setStateMachineChosenSymmetricAlgorithm() {
         String[] cipherSuiteContentSplit = Strings.split(stateMachine.chosenCipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
-                return cipherSuiteContentSplit[i + 1];
+                stateMachine.symmetricAlgorithm =  cipherSuiteContentSplit[i + 1];
+                return;
             }
         }
-        return null;
     }
-
     private void setStateMachineChosenCipherSuite() {
         stateMachine.chosenCipherSuite = serverHelloMessage.getCipherSuites()[0];
     }
@@ -161,6 +161,7 @@ public class ClientCalcSharedSecretState extends State {
     public boolean stepWithoutWaitingForMessage() {
         return false;
     }
+
 
     private boolean cipherSuiteUsesKyberKEM() {
         return stateMachine.chosenCipherSuite.ordinal() != 0 && !cipherSuiteUsesFrodoKEM();
