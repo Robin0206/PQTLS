@@ -28,8 +28,7 @@ import java.util.Vector;
 
 public class Main {
     /*
-    Main shouldnt throw any exception and print a Client-Hello-Message with the corresponding Server-Hello-Message
-    as well as the shared secrets from the client and server state machine
+    Main should show messages from a complete Handshake
      */
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
@@ -126,10 +125,10 @@ public class Main {
         System.out.println();
         System.out.println("Client sends Handshake finished");
         message7.printVerbose();
-        System.out.println("Client checked if ServerFinishedMessageIsValid: " + clientStateMachine.verifiedServerFinishedMessage());
+        System.out.println("Client checked if ServerFinishedMessage is valid: " + clientStateMachine.verifiedServerFinishedMessage());
 
         serverStateMachine.step(message7);
-        System.out.println("server checked if ServerFinishedMessageIsValid: " + serverStateMachine.verifiedClientFinishedMessage());
+        System.out.println("server checked if ClientFinishedMessage is valid: " + serverStateMachine.verifiedClientFinishedMessage());
     }
 
     private static void testProviderImports() {
