@@ -1,10 +1,15 @@
 package statemachines.client;
 
+import crypto.CryptographyModule;
 import messages.PQTLSMessage;
 import messages.implementations.CertificateVerifyMessage;
 import messages.implementations.NullMessage;
 import messages.implementations.WrappedRecord;
+import messages.implementations.alerts.AlertDescription;
+import messages.implementations.alerts.AlertLevel;
+import messages.implementations.alerts.PQTLSAlertMessage;
 import misc.ByteUtils;
+import misc.Constants;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
@@ -23,12 +28,18 @@ public class CertificateVerifyState implements State {
     private byte[] signatureSendByServer;
     private ClientStateMachine stateMachine;
     private byte[] concatenatedMessages;
+    private PQTLSAlertMessage alertMessage;
 
     @Override
     public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
         setSignatureSendByServer();
         setConcatenatedMessages();
         verifySignature();
+        //https://www.rfc-editor.org/rfc/rfc8446
+        //page 88
+        if(!stateMachine.signatureValid){
+            alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.bad_certificate);
+        }
     }
 
     private void setConcatenatedMessages() {
@@ -54,6 +65,18 @@ public class CertificateVerifyState implements State {
 
     @Override
     public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+        if(!(alertMessage == null)){
+            return new WrappedRecord(
+                    alertMessage,
+                    Constants.ALERT_MESSAGE,
+                    CryptographyModule.keys.byteArrToSymmetricKey(
+                            stateMachine.sharedSecret.getClientHandShakeSecret(),
+                            stateMachine.symmetricAlgorithm
+                    ),
+                    stateMachine.sharedSecret.getClientHandShakeIVAndIncrement(),
+                    stateMachine.chosenCipherSuite
+            );
+        }
         return new NullMessage();
     }
 

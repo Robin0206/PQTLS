@@ -52,7 +52,7 @@ public class ServerStateMachine {
         this.signatureKeyPairs = builder.signatureKeyPairs;
         stepWithoutWaiting = false;
     }
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, CertificateException, SignatureException {
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
         currentState.setStateMachine(this);
         currentState.setPreviousMessage(previousMessage);
         if(isNotNullMessage(previousMessage)){

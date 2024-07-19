@@ -1,9 +1,14 @@
 package statemachines.server;
 
+import crypto.CryptographyModule;
 import messages.PQTLSMessage;
 import messages.implementations.FinishedMessage;
 import messages.implementations.WrappedRecord;
+import messages.implementations.alerts.AlertDescription;
+import messages.implementations.alerts.AlertLevel;
+import messages.implementations.alerts.PQTLSAlertMessage;
 import misc.ByteUtils;
+import misc.Constants;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 
@@ -20,10 +25,16 @@ import java.util.Arrays;
 public class VerifyClientFinishedState implements State {
     private ServerStateMachine stateMachine;
     private FinishedMessage clientFinishedMessage;
+    private PQTLSAlertMessage alertMessage;
 
     @Override
     public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
         verifyClientVerifyData();
+        //https://www.rfc-editor.org/rfc/rfc8446
+        //page 89
+        if(!stateMachine.verifiedClientFinished){
+            this.alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.decrypt_error);
+        }
     }
 
     private void verifyClientVerifyData() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
@@ -46,6 +57,19 @@ public class VerifyClientFinishedState implements State {
 
     @Override
     public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+        if(!(alertMessage == null)){
+            return new WrappedRecord(
+                    alertMessage,
+                    Constants.ALERT_MESSAGE,
+                    CryptographyModule.keys.byteArrToSymmetricKey(
+                            stateMachine.sharedSecret.getServerHandShakeSecret(),
+                            stateMachine.getPreferredSymmetricAlgorithm()
+                    ),
+                    stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                    stateMachine.preferredCipherSuite
+            );
+        }
+
         return null;
     }
 

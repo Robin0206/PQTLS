@@ -9,6 +9,9 @@ import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
+import messages.implementations.alerts.AlertDescription;
+import messages.implementations.alerts.AlertLevel;
+import messages.implementations.alerts.PQTLSAlertMessage;
 import misc.ByteUtils;
 import misc.Constants;
 import org.bouncycastle.util.Arrays;
@@ -27,21 +30,28 @@ public class ServerHelloState implements State {
     private PublicKey clientPublicKeyKyber;
     private PublicKey clientPublicKeyEC;
     private KeyShareExtension keyShareExtension;
+    private PQTLSAlertMessage alertMessage;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
-        setStateMachinePreferredCipherSuite();
-        setStateMachinePreferredCurve();
-        setStateMachineSessionID();
-        setStateMachineRandom();
-        extractPQKeyPairsFromClientHelloMessage();
-        extractECPublicKeyFromClientHelloMessage();
-        setStateMachineKeyPairs();
-        generateKeyShareExtension();
-        setStateMachineSharedSecret();
+    public void calculate() throws Exception {//only throws the exception if the alertMessage isn't set
+        try{
+            setStateMachinePreferredCipherSuite();
+            setStateMachinePreferredCurve();
+            setStateMachineSessionID();
+            setStateMachineRandom();
+            extractPQKeyPairsFromClientHelloMessage();
+            extractECPublicKeyFromClientHelloMessage();
+            setStateMachineKeyPairs();
+            generateKeyShareExtension();
+            setStateMachineSharedSecret();
+        }catch (Exception e){
+            if(alertMessage == null){
+                throw e;
+            }
+        }
     }
 
-    private void extractECPublicKeyFromClientHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    private void extractECPublicKeyFromClientHelloMessage() throws Exception {
         KeyShareExtension clientKeyShare = getKeyShareExtensionFromClientHello();
         int index = getPreferredCurveIndexInKeyShareExtension();
         clientPublicKeyEC = CryptographyModule.keys.byteArrToPublicKey(
@@ -51,7 +61,7 @@ public class ServerHelloState implements State {
         );
     }
 
-    private int getPreferredCurveIndexInKeyShareExtension() {
+    private int getPreferredCurveIndexInKeyShareExtension() throws Exception {
         CurveIdentifier[] clientSupportedCurves = getSupportedCurvesByClient();
         for (int i = 0; i < clientSupportedCurves.length; i++) {
             if(clientSupportedCurves[i] == stateMachine.preferredCurveIdentifier){
@@ -118,7 +128,7 @@ public class ServerHelloState implements State {
         keyShareExtension =  new KeyShareExtension(keysArray, stateMachine.preferredCurveIdentifier);
 
     }
-    private void extractPQKeyPairsFromClientHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    private void extractPQKeyPairsFromClientHelloMessage() throws Exception {
         KeyShareExtension keyShare = getKeyShareExtensionFromClientHello();
         byte[][] keys = keyShare.getKeys();
         if(clientHelloCipherSuitesContainOneWithFrodoKEM() && clientHelloCipherSuitesContainOneWithKyberKEM()){
@@ -147,16 +157,17 @@ public class ServerHelloState implements State {
         }
     }
 
-    private KeyShareExtension getKeyShareExtensionFromClientHello() {
+    private KeyShareExtension getKeyShareExtensionFromClientHello() throws Exception {
         PQTLSExtension[] extensions = clientHelloMessage.getExtensions();
         for(PQTLSExtension extension : extensions){
             if(extension.getIdentifier() == Constants.EXTENSION_IDENTIFIER_KEY_SHARE){
                 return (KeyShareExtension)extension;
             }
         }
-        //TODO
-        // Will be removed later
-        throw new RuntimeException("Client-Hello didnt contain Key-Share Extension");
+        //https://www.rfc-editor.org/rfc/rfc8446
+        //page 90
+        alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.missing_extension);
+        throw new Exception("");
     }
 
     //TODO
@@ -203,7 +214,7 @@ public class ServerHelloState implements State {
         }
         return false;
     }
-    private void setStateMachinePreferredCurve() {
+    private void setStateMachinePreferredCurve() throws Exception {
         CurveIdentifier[] supportedCurvesByServer = stateMachine.supportedCurves;
         CurveIdentifier[] supportedCurvesByClient = getSupportedCurvesByClient();
         for(CurveIdentifier curveIdentifierClient : supportedCurvesByClient){
@@ -214,18 +225,23 @@ public class ServerHelloState implements State {
                 }
             }
         }
+        //https://www.rfc-editor.org/rfc/rfc8446
+        //page 88
+        alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.handshake_failure);
+        throw new Exception("");
     }
 
-    private CurveIdentifier[] getSupportedCurvesByClient() {
+    private CurveIdentifier[] getSupportedCurvesByClient() throws Exception {
         PQTLSExtension[] extensions = clientHelloMessage.getExtensions();
         for(PQTLSExtension extension : extensions){
             if(extension.getIdentifier() == Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS){
                 return ((SupportedGroupsExtension)extension).getSupportedGroups();
             }
         }
-        //TODO
-        // Will be removed later
-        throw new RuntimeException("Client-Hello didnt contain Supported Groups Extension");
+        //https://www.rfc-editor.org/rfc/rfc8446
+        //page 90
+        alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.missing_extension);
+        throw new Exception("");
     }
 
 
@@ -256,14 +272,18 @@ public class ServerHelloState implements State {
 
     @Override
     public PQTLSMessage getMessage() {
-        return new HelloMessage.HelloBuilder()
-                .extensions(new PQTLSExtension[]{keyShareExtension})
-                .cipherSuites(new CipherSuite[]{stateMachine.preferredCipherSuite})
-                .sessionID(stateMachine.sessionID)
-                .LegacyVersion(new byte[]{0x03, 0x03})
-                .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)
-                .random(stateMachine.random)
-                .build();
+        if(alertMessage == null){
+            return new HelloMessage.HelloBuilder()
+                    .extensions(new PQTLSExtension[]{keyShareExtension})
+                    .cipherSuites(new CipherSuite[]{stateMachine.preferredCipherSuite})
+                    .sessionID(stateMachine.sessionID)
+                    .LegacyVersion(new byte[]{0x03, 0x03})
+                    .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)
+                    .random(stateMachine.random)
+                    .build();
+        }else{
+            return alertMessage;
+        }
     }
 
     @Override

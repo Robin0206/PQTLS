@@ -22,4 +22,5 @@ public class Constants {
 
     public static final byte HANDSHAKE_TYPE_FINISHED = 0x14;
     public static final byte HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS = 0x08;
+    public static final byte ALERT_MESSAGE = 0x15;
 }
