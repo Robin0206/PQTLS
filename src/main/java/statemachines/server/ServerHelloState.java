@@ -260,7 +260,7 @@ public class ServerHelloState implements State {
                 .getCipherSuites();
         for (int i = 0; i < stateMachine.supportedCipherSuites.length; i++) {
             for (int j = 0; j < clientCipherSuites.length; j++) {
-                if(stateMachine.supportedCipherSuites[i] == clientCipherSuites[i]){
+                if(stateMachine.supportedCipherSuites[i] == clientCipherSuites[j]){
                     //This if will always be reached since there is a mandatory cipher suite
                     stateMachine.preferredCipherSuite = clientCipherSuites[i];
                     return;

@@ -6,6 +6,7 @@ import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
+import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import statemachines.State;
 
@@ -133,14 +134,14 @@ public class ClientStateMachine {
                 cipherSuitesSet = true;
                 return this;
             } else {
-                throw new RuntimeException("Doesnt contain the mandatory Cipher-Suite: TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384");
+                throw new RuntimeException("Doesnt contain the mandatory Cipher-Suite: TLS_ECDHE_FRODOKEM_SPHINCS_WITH_CHACHA20_POLY1305_SHA384");
             }
 
         }
 
         private boolean cipherSuitesContainMandatoryCipherSuite(CipherSuite[] cipherSuites) {
             for (CipherSuite cipherSuite : cipherSuites) {
-                if (cipherSuite == CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384) {
+                if (cipherSuite == Constants.MANDATORY_CIPHERSUITE) {
                     return true;
                 }
             }

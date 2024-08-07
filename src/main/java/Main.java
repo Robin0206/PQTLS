@@ -47,7 +47,9 @@ public class Main {
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
                         CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
+                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                        Constants.MANDATORY_CIPHERSUITE
                 })
                 .curveIdentifiers(new CurveIdentifier[]{
                         CurveIdentifier.secp384r1,
@@ -82,8 +84,7 @@ public class Main {
                         CurveIdentifier.secp256r1
                 })
                 .cipherSuites(new CipherSuite[]{
-                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384
+                        Constants.MANDATORY_CIPHERSUITE
                 })
                 .certificateChains(certificateChains)
                 .signatureKeyPairs(new KeyPair[]{sphincsKeyPair, dilithiumKeyPair})

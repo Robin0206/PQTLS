@@ -1,5 +1,9 @@
 package misc;
 
+import crypto.enums.CipherSuite;
+
+import javax.crypto.Cipher;
+
 public class Constants {
 
     public static final byte HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO = 0x01;
@@ -23,4 +27,5 @@ public class Constants {
     public static final byte HANDSHAKE_TYPE_FINISHED = 0x14;
     public static final byte HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS = 0x08;
     public static final byte ALERT_MESSAGE = 0x15;
+    public static final CipherSuite MANDATORY_CIPHERSUITE = CipherSuite.TLS_ECDHE_FRODOKEM_SPHINCS_WITH_CHACHA20_POLY1305_SHA384;
 }
