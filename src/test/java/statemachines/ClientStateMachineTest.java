@@ -96,7 +96,7 @@ class ClientStateMachineTest {
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             cipherSuiteGetsUsed[i] = random.nextBoolean();
         }
-        cipherSuiteGetsUsed[1] = true;
+        cipherSuiteGetsUsed[Constants.MANDATORY_CIPHERSUITE.ordinal()] = true;
         ArrayList<CipherSuite> buffer = new ArrayList<>();
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             if(cipherSuiteGetsUsed[i]){

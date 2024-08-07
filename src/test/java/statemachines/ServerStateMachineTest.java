@@ -3,6 +3,7 @@ package statemachines;
 import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
+import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,7 @@ class ServerStateMachineTest {
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             cipherSuiteGetsUsed[i] = random.nextBoolean();
         }
-        cipherSuiteGetsUsed[1] = true;
+        cipherSuiteGetsUsed[Constants.MANDATORY_CIPHERSUITE.ordinal()] = true;
         ArrayList<CipherSuite> buffer = new ArrayList<>();
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             if(cipherSuiteGetsUsed[i]){
@@ -82,7 +83,7 @@ class ServerStateMachineTest {
             }
         }
         if(buffer.isEmpty()){
-            buffer.add(CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384);
+            buffer.add(Constants.MANDATORY_CIPHERSUITE);
         }
         CipherSuite[] result = new CipherSuite[buffer.size()];
         for (int i = 0; i < result.length; i++) {
