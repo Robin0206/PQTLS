@@ -5,7 +5,9 @@ import crypto.enums.CurveIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v1CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v1CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
 import org.bouncycastle.jcajce.spec.KEMExtractSpec;
@@ -21,6 +23,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -197,9 +201,12 @@ public class CryptographyModule {
             return cipher.doFinal(input);
         }
 
-        public static byte[] encryptChaCha(byte[] input, long nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        public static byte[] encryptChaCha(byte[] input, long nonce_iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
-            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(nonce)));
+            byte[] nonceArr = ByteUtils.longToByteArray(nonce_iv);
+            byte[] nonce = new byte[12];
+            System.arraycopy(nonceArr, 0, nonce, 0, nonce.length);
+            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(nonce));
             return cipher.doFinal(input);
         }
 
@@ -223,8 +230,10 @@ public class CryptographyModule {
             return cipher.doFinal(input);
         }
 
-        public static byte[] encryptChaCha(byte[] input, byte[] nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        public static byte[] encryptChaCha(byte[] input, byte[] nonce_iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305", "BC");
+            byte[] nonce = new byte[12];
+            System.arraycopy(nonce_iv, 0, nonce, 0, nonce.length);
             cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(nonce));
             return cipher.doFinal(input);
         }
@@ -277,6 +286,9 @@ public class CryptographyModule {
                     .setProvider("BCPQC")
                     .build(privateKey);
             return certBldr.build(signer);
+        }
+        public static X509Certificate holderToCertificate(X509CertificateHolder input) throws CertificateException {
+            return new JcaX509CertificateConverter().getCertificate(input);
         }
     }
 

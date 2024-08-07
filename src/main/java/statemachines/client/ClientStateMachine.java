@@ -1,5 +1,6 @@
 package statemachines.client;
 
+import crypto.CryptographyModule;
 import crypto.SharedSecret;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
@@ -8,6 +9,7 @@ import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.State;
 
 import javax.crypto.BadPaddingException;
@@ -18,6 +20,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /*
 Uses fluent builder pattern
@@ -26,7 +29,7 @@ The first state is always the ClientHelloState
 public class ClientStateMachine {
 
     protected boolean verifiedServerFinishedMessage;
-    protected ArrayList<X509CertificateHolder[]> trustedCertificates;
+    protected ArrayList<X509CertificateHolder> trustedCertificates;
     protected boolean certificatesTrusted;
     protected X509CertificateHolder certificateUsedByServer;
     protected String sigAlgUsedByServer;
@@ -52,7 +55,7 @@ public class ClientStateMachine {
 
     private boolean stepWithoutWaiting;
 
-    private ClientStateMachine(ClientStateMachineBuilder builder) {
+    private ClientStateMachine(ClientStateMachineBuilder builder){
         messages = new ArrayList<>();
         this.cipherSuites = builder.cipherSuites;
         this.curveIdentifiers = builder.curveIdentifiers;
@@ -62,6 +65,8 @@ public class ClientStateMachine {
         this.extensionIdentifiers = builder.extensionIdentifiers;
         this.trustedCertificates = builder.trustedCertificates;
         currentState = new ClientHelloState();
+
+
     }
 
     public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
@@ -116,7 +121,7 @@ public class ClientStateMachine {
         private CipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
         private ECPointFormat[] ecPointFormats;
-        private ArrayList<X509CertificateHolder[]> trustedCertificates;
+        private ArrayList<X509CertificateHolder> trustedCertificates;
         private byte[] supportedSignatureAlgorithms;
         private int numberOfCurvesSendByClientHello;
         private byte[] extensionIdentifiers;
@@ -179,7 +184,7 @@ public class ClientStateMachine {
             return this;
         }
 
-        public ClientStateMachineBuilder trustedCertificates(ArrayList<X509CertificateHolder[]> trustedCertificates) {
+        public ClientStateMachineBuilder trustedCertificates(ArrayList<X509CertificateHolder> trustedCertificates) {
             this.trustedCertificates = trustedCertificates;
             this.trustedCertificatesSet = true;
             return this;

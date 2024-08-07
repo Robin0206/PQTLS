@@ -56,6 +56,7 @@ public class SendCertificateVerifyState implements State {
                     keyPair.getPublic().getEncoded(),
                     stateMachine.publicKeyUsedInCertificate.getEncoded()
             )){
+
                 this.privateKey = keyPair.getPrivate();
                 return;
             }

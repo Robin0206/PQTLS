@@ -37,13 +37,13 @@ class ClientStateMachineTest {
     }
 
     private void buildRandomClientStateMachine() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
-        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("SPHINCSPlus")});
+        ArrayList<X509CertificateHolder> certificate = new ArrayList<>();
+        certificate.add(CryptographyModule.certificate.generateSelfSignedTestCertificate("SPHINCSPlus"));
         clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .curveIdentifiers(generateRandomCurveIdentifiers())
                 .supportedSignatureAlgorithms(generateRandomSupportedSignatureAlgorithms())
-                .trustedCertificates(certificateChains)
+                .trustedCertificates(certificate)
                 .extensionIdentifiers(new byte[]{
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS,
                         Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS,

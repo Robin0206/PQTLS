@@ -1,5 +1,6 @@
 package statemachines.server;
 
+import crypto.CryptographyModule;
 import crypto.SharedSecret;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;

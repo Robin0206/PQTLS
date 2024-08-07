@@ -8,6 +8,7 @@ import messages.implementations.HelloMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
@@ -23,6 +24,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -39,16 +41,16 @@ public class Main {
         KeyPair dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
         X509CertificateHolder sphincsCertificate = CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair, "SPHINCSPlus");
         X509CertificateHolder dilithiumCertificate = CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair, "Dilithium");
-        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{sphincsCertificate});
-        certificateChains.add(new X509CertificateHolder[]{dilithiumCertificate});
-        ArrayList<X509CertificateHolder[]> clientCertificateChains = new ArrayList<>();
-        clientCertificateChains.add(new X509CertificateHolder[]{sphincsCertificate});
+        ArrayList<X509CertificateHolder[]> serverCertificateChains = new ArrayList<>();
+        serverCertificateChains.add(new X509CertificateHolder[]{sphincsCertificate});
+        serverCertificateChains.add(new X509CertificateHolder[]{dilithiumCertificate});
+        ArrayList<X509CertificateHolder> clientCertificates = new ArrayList<>();
+        clientCertificates.add(sphincsCertificate);
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(new CipherSuite[]{
-                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                        CipherSuite.TLS_ECDHE_KYBER_SPHINCS_WITH_CHACHA20_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_CHACHA20_POLY1305_SHA384,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_AES_256_GCM_SHA384,
                         Constants.MANDATORY_CIPHERSUITE
                 })
                 .curveIdentifiers(new CurveIdentifier[]{
@@ -60,7 +62,6 @@ public class Main {
                         ECPointFormat.uncompressed
                 })
                 .supportedSignatureAlgorithms(new byte[]{
-                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM,
                         Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
                 })
                 .extensionIdentifiers(new byte[]{
@@ -69,7 +70,7 @@ public class Main {
                         Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS
                 })
-                .trustedCertificates(certificateChains)
+                .trustedCertificates(clientCertificates)
                 .numberOfCurvesSendByClientHello(2)
                 .build();
         HelloMessage message1 =
@@ -84,9 +85,10 @@ public class Main {
                         CurveIdentifier.secp256r1
                 })
                 .cipherSuites(new CipherSuite[]{
-                        Constants.MANDATORY_CIPHERSUITE
+                        Constants.MANDATORY_CIPHERSUITE,
+                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
-                .certificateChains(certificateChains)
+                .certificateChains(serverCertificateChains)
                 .signatureKeyPairs(new KeyPair[]{sphincsKeyPair, dilithiumKeyPair})
                 .build();
         HelloMessage message2 =
@@ -108,7 +110,7 @@ public class Main {
 
         clientStateMachine.step(message4);
         System.out.println("Client trusted certificates: " +
-                clientStateMachine.getCertificatesTrusted());
+        clientStateMachine.getCertificatesTrusted());
 
         PQTLSMessage message5 = serverStateMachine.step(new NullMessage());
         System.out.println();
@@ -116,6 +118,7 @@ public class Main {
         message5.printVerbose();
         clientStateMachine.step(message5);
         System.out.println("Client checked if signature is valid: " + clientStateMachine.getSignatureVerified());
+
 
         PQTLSMessage message6 = serverStateMachine.step(new NullMessage());
         System.out.println();
@@ -130,6 +133,7 @@ public class Main {
 
         serverStateMachine.step(message7);
         System.out.println("server checked if ClientFinishedMessage is valid: " + serverStateMachine.verifiedClientFinishedMessage());
+
     }
 
     private static void testProviderImports() {

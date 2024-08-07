@@ -59,13 +59,13 @@ public class StatemachineInteractionTest {
         });
     }
     private ClientStateMachine buildRandomClientStateMachine() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
-        ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium")});
+        ArrayList<X509CertificateHolder> certificates = new ArrayList<>();
+        certificates.add(CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium"));
         return new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .curveIdentifiers(generateRandomCurveIdentifiers())
                 .supportedSignatureAlgorithms(generateRandomSupportedSignatureAlgorithms())
-                .trustedCertificates(certificateChains)
+                .trustedCertificates(certificates)
                 .extensionIdentifiers(new byte[]{
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS,
                         Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS,

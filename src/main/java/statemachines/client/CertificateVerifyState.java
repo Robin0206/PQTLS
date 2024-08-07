@@ -22,6 +22,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class CertificateVerifyState implements State {
     private CertificateVerifyMessage certificateVerifyMessage;
@@ -52,9 +53,15 @@ public class CertificateVerifyState implements State {
         concatenatedMessages = ByteUtils.toByteArray(buffer);
     }
 
-    private void verifySignature() throws NoSuchAlgorithmException, NoSuchProviderException, SignatureException, CertificateException, InvalidKeyException {
+    private void verifySignature() throws NoSuchAlgorithmException, NoSuchProviderException, SignatureException, CertificateException, InvalidKeyException, InvalidKeySpecException {
         Signature signature = Signature.getInstance(stateMachine.sigAlgUsedByServer, "BCPQC");
-        signature.initVerify(new JcaX509CertificateConverter().getCertificate(stateMachine.certificateUsedByServer).getPublicKey());
+        signature.initVerify(
+                CryptographyModule.keys.byteArrToPublicKey(
+                new JcaX509CertificateConverter().getCertificate(stateMachine.certificateUsedByServer).getPublicKey().getEncoded(),
+                        stateMachine.sigAlgUsedByServer,
+                        "BCPQC"
+                )
+        );
         signature.update(this.concatenatedMessages);
         stateMachine.signatureValid = signature.verify(signatureSendByServer);
     }

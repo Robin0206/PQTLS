@@ -22,6 +22,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class SendingCertificatesState implements State {
@@ -43,11 +44,12 @@ public class SendingCertificatesState implements State {
 
     private int determineCertificateChainIndex(ArrayList<X509CertificateHolder[]>[] splitCertificateChains) {
         if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2 && !splitCertificateChains[2].isEmpty()){
-            return 2;
+            return 2; // if the client and the server support dilithium and sphincs, the server can send a chain that uses both algorithms if it has one
         }else if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2){
-            return 1;// Dilithium Certificates are much shorter
+            return 1;// if the server has certificate chains that use dilithium and others that use sphincs but none that use both,
+                     // it should use the dilithium certificate chain, because the signatures are much shorter.
         }else if(serverAndClientSupportDilithium()){
-            return 1;
+            return 1;// Because of the large Signatures of sphincs, the server should always check if it can send a dilithium certificate.
         }else{
             return 0;
         }

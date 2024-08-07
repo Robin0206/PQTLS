@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 public class CheckIfCertificatesTrustedState implements State {
     ClientStateMachine stateMachine;
@@ -37,21 +38,21 @@ public class CheckIfCertificatesTrustedState implements State {
         stateMachine.certificatesTrusted = checkIfCertificateChainsAreTrusted();
         //https://www.rfc-editor.org/rfc/rfc8446
         //page 88
-        if(!stateMachine.certificatesTrusted){
+        if (!stateMachine.certificatesTrusted) {
             alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.bad_certificate);
         }
     }
 
     private boolean checkIfCertificateChainsAreTrusted() throws CertificateException {
-        for(X509CertificateHolder serverCertificate : certificateMessage.getCertificates()) {
-            for(X509CertificateHolder[] clientCertificateChain : stateMachine.trustedCertificates){
-                for(X509CertificateHolder clientCertificate : clientCertificateChain){
-                    if(clientCertificate.equals(serverCertificate)){
-                        stateMachine.certificateUsedByServer = serverCertificate;
-                        stateMachine.sigAlgUsedByServer = new JcaX509CertificateConverter().getCertificate(serverCertificate).getSigAlgName();
-                        return true;
-                    }
+        for (X509CertificateHolder serverCertificate : certificateMessage.getCertificates()) {
+            for (X509CertificateHolder clientCertificate : stateMachine.trustedCertificates) {
+                if (clientCertificate.equals(serverCertificate)) {
+                    stateMachine.certificateUsedByServer = serverCertificate;
+                    stateMachine.sigAlgUsedByServer = new JcaX509CertificateConverter().getCertificate(serverCertificate).getSigAlgName();
+
+                    return true;
                 }
+
             }
         }
         return false;
@@ -59,7 +60,7 @@ public class CheckIfCertificatesTrustedState implements State {
 
     @Override
     public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
-        if(!(alertMessage == null)){
+        if (!(alertMessage == null)) {
             return new WrappedRecord(
                     alertMessage,
                     Constants.ALERT_MESSAGE,
@@ -82,7 +83,7 @@ public class CheckIfCertificatesTrustedState implements State {
     @Override
     public void setPreviousMessage(PQTLSMessage message) {
         this.wrappedCertificateMessage = (WrappedRecord) message;
-        this.certificateMessage = (CertificateMessage)(((WrappedRecord)message).getWrappedMessage());
+        this.certificateMessage = (CertificateMessage) (((WrappedRecord) message).getWrappedMessage());
     }
 
     @Override
