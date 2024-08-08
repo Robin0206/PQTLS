@@ -2,13 +2,11 @@
 import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
-import crypto.enums.ECPointFormat;
 import messages.PQTLSMessage;
 import messages.implementations.HelloMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
@@ -24,7 +22,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -57,15 +54,7 @@ public class Main {
                         CurveIdentifier.secp384r1,
                         CurveIdentifier.secp256r1
                 })
-                .ecPointFormats(new ECPointFormat[]{
-                        ECPointFormat.ansiX962_compressed_char2,
-                        ECPointFormat.uncompressed
-                })
-                .supportedSignatureAlgorithms(new byte[]{
-                        Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_SPHINCS
-                })
                 .extensionIdentifiers(new byte[]{
-                        Constants.EXTENSION_IDENTIFIER_EC_POINT_FORMATS,
                         Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS,
                         Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS

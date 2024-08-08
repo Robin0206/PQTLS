@@ -22,9 +22,8 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-public class CertificateVerifyState implements State {
+public class SignatureVerifyState implements State {
     private CertificateVerifyMessage certificateVerifyMessage;
     private byte[] signatureSendByServer;
     private ClientStateMachine stateMachine;
@@ -38,7 +37,7 @@ public class CertificateVerifyState implements State {
         verifySignature();
         //https://www.rfc-editor.org/rfc/rfc8446
         //page 88
-        if(!stateMachine.signatureValid){
+        if (!stateMachine.signatureValid) {
             alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.bad_certificate);
         }
     }
@@ -54,16 +53,16 @@ public class CertificateVerifyState implements State {
     }
 
     private void verifySignature() throws NoSuchAlgorithmException, NoSuchProviderException, SignatureException, CertificateException, InvalidKeyException, InvalidKeySpecException {
-        Signature signature = Signature.getInstance(stateMachine.sigAlgUsedByServer, "BCPQC");
-        signature.initVerify(
+        stateMachine.signatureValid = CryptographyModule.certificate.verifySignature(
                 CryptographyModule.keys.byteArrToPublicKey(
-                new JcaX509CertificateConverter().getCertificate(stateMachine.certificateUsedByServer).getPublicKey().getEncoded(),
+                        new JcaX509CertificateConverter().getCertificate(stateMachine.certificateUsedByServer).getPublicKey().getEncoded(),
                         stateMachine.sigAlgUsedByServer,
                         "BCPQC"
-                )
+                ),
+                stateMachine.sigAlgUsedByServer,
+                this.concatenatedMessages,
+                signatureSendByServer
         );
-        signature.update(this.concatenatedMessages);
-        stateMachine.signatureValid = signature.verify(signatureSendByServer);
     }
 
     private void setSignatureSendByServer() {
@@ -72,7 +71,7 @@ public class CertificateVerifyState implements State {
 
     @Override
     public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
-        if(!(alertMessage == null)){
+        if (!(alertMessage == null)) {
             return new WrappedRecord(
                     alertMessage,
                     Constants.ALERT_MESSAGE,
@@ -94,7 +93,7 @@ public class CertificateVerifyState implements State {
 
     @Override
     public void setPreviousMessage(PQTLSMessage message) {
-        this.certificateVerifyMessage = (CertificateVerifyMessage) (((WrappedRecord)message).getWrappedMessage());
+        this.certificateVerifyMessage = (CertificateVerifyMessage) (((WrappedRecord) message).getWrappedMessage());
     }
 
     @Override

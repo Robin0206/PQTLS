@@ -42,7 +42,6 @@ class ClientStateMachineTest {
         clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .curveIdentifiers(generateRandomCurveIdentifiers())
-                .supportedSignatureAlgorithms(generateRandomSupportedSignatureAlgorithms())
                 .trustedCertificates(certificate)
                 .extensionIdentifiers(new byte[]{
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS,

@@ -41,7 +41,6 @@ public class PQTLSClient {
         private InetAddress address;
         private boolean portSet = false;
         private boolean addressSet = false;
-        private boolean algIdentifiersSet = false;
         private boolean trustedCertificatesSet = false;
         private boolean curveIdentifiersSet = false;
         private boolean cipherSuiteSet = false;
@@ -49,18 +48,20 @@ public class PQTLSClient {
         public PQTLSClientBuilder cipherSuites(CipherSuite[] cipherSuites){
             this.cipherSuites = cipherSuites;
             this.cipherSuiteSet = true;
+            for(CipherSuite c : cipherSuites){
+                if(c.toString().contains("DILITHIUM")){
+                    this.algIdentifiers = new byte[]{0,1};// supports sphincs and dilithium
+                    return this;
+                }
+            }
+            // only supports sphincs
+            this.algIdentifiers = new byte[]{0};
             return this;
         }
 
         public PQTLSClientBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers){
             this.curveIdentifiers = curveIdentifiers;
             this.curveIdentifiersSet = true;
-            return this;
-        }
-
-        public PQTLSClientBuilder supportedSignatureAlgorithms(byte[] algIdentifiers){
-            this.algIdentifiers = algIdentifiers;
-            this.algIdentifiersSet = true;
             return this;
         }
 
@@ -94,14 +95,14 @@ public class PQTLSClient {
             if(!addressSet){
                 throw new IllegalStateException("Address must be set before building");
             }
-            if(!algIdentifiersSet){
-                throw new IllegalStateException("AlgIdentifier must be set before building");
-            }
             if(!curveIdentifiersSet){
                 throw new IllegalStateException("CurveIdentifiers must be set before building");
             }
             if(!cipherSuiteSet){
                 throw new IllegalStateException("CipherSuites must be set before building");
+            }
+            if(!trustedCertificatesSet){
+                throw new IllegalStateException("trustedCertificates must be set before building");
             }
         }
     }

@@ -64,7 +64,6 @@ public class StatemachineInteractionTest {
         return new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .curveIdentifiers(generateRandomCurveIdentifiers())
-                .supportedSignatureAlgorithms(generateRandomSupportedSignatureAlgorithms())
                 .trustedCertificates(certificates)
                 .extensionIdentifiers(new byte[]{
                         Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS,

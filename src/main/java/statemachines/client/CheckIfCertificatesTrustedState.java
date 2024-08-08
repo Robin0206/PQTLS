@@ -18,13 +18,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 
 public class CheckIfCertificatesTrustedState implements State {
     ClientStateMachine stateMachine;
@@ -34,7 +30,7 @@ public class CheckIfCertificatesTrustedState implements State {
 
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException {
+    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
         stateMachine.certificatesTrusted = checkIfCertificateChainsAreTrusted();
         //https://www.rfc-editor.org/rfc/rfc8446
         //page 88
@@ -43,14 +39,14 @@ public class CheckIfCertificatesTrustedState implements State {
         }
     }
 
-    private boolean checkIfCertificateChainsAreTrusted() throws CertificateException {
+    private boolean checkIfCertificateChainsAreTrusted() throws CertificateException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
         for (X509CertificateHolder serverCertificate : certificateMessage.getCertificates()) {
             for (X509CertificateHolder clientCertificate : stateMachine.trustedCertificates) {
                 if (clientCertificate.equals(serverCertificate)) {
                     stateMachine.certificateUsedByServer = serverCertificate;
                     stateMachine.sigAlgUsedByServer = new JcaX509CertificateConverter().getCertificate(serverCertificate).getSigAlgName();
 
-                    return true;
+                    return CryptographyModule.certificate.verifyCertificateChain(certificateMessage.getCertificates());
                 }
 
             }
@@ -77,7 +73,7 @@ public class CheckIfCertificatesTrustedState implements State {
 
     @Override
     public State next() {
-        return new CertificateVerifyState();
+        return new SignatureVerifyState();
     }
 
     @Override

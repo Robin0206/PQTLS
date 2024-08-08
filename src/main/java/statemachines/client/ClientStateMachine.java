@@ -36,9 +36,9 @@ public class ClientStateMachine {
     protected boolean signatureValid;
     protected ArrayList<PQTLSExtension> extensions;
     protected int chosenCurveKeyIndex;
-    protected SharedSecret sharedSecret;
     protected PQTLSMessage serverEncryptedExtensions;
     protected CipherSuite chosenCipherSuite;
+    protected SharedSecret sharedSecret;
     protected KeyPair[] ecKeyPairs;
     protected KeyPair frodoKey;
     protected KeyPair kyberKey;
@@ -128,7 +128,6 @@ public class ClientStateMachine {
 
         private boolean cipherSuitesSet = false;
         private boolean curveIdentifiersSet = false;
-        private boolean supportedSignatureAlgorithmsSet = false;
         private boolean numberOfCurvesSendByClientHelloSet = false;
         private boolean extensionIdentifiersSet = false;
         private boolean trustedCertificatesSet = false;
@@ -137,11 +136,22 @@ public class ClientStateMachine {
             if (cipherSuitesContainMandatoryCipherSuite(cipherSuites)) {
                 this.cipherSuites = cipherSuites;
                 cipherSuitesSet = true;
+                setSupportedSignatureAlgorithms();
                 return this;
             } else {
                 throw new RuntimeException("Doesnt contain the mandatory Cipher-Suite: TLS_ECDHE_FRODOKEM_SPHINCS_WITH_CHACHA20_POLY1305_SHA384");
             }
 
+        }
+
+        private void setSupportedSignatureAlgorithms() {
+            for(CipherSuite cs : cipherSuites){
+                if(cs.toString().contains("DILITHIUM")){
+                    supportedSignatureAlgorithms = new byte[]{0,1};
+                    return;
+                }
+            }
+            supportedSignatureAlgorithms = new byte[]{0};
         }
 
         private boolean cipherSuitesContainMandatoryCipherSuite(CipherSuite[] cipherSuites) {
@@ -164,12 +174,6 @@ public class ClientStateMachine {
 
         public ClientStateMachineBuilder ecPointFormats(ECPointFormat[] ecPointFormats) {
             this.ecPointFormats = ecPointFormats;
-            return this;
-        }
-
-        public ClientStateMachineBuilder supportedSignatureAlgorithms(byte[] supportedSignatureAlgorithms) {
-            this.supportedSignatureAlgorithms = supportedSignatureAlgorithms;
-            supportedSignatureAlgorithmsSet = true;
             return this;
         }
 
@@ -203,14 +207,13 @@ public class ClientStateMachine {
             if (
                     cipherSuitesSet &&
                             curveIdentifiersSet &&
-                            supportedSignatureAlgorithmsSet &&
                             extensionIdentifiersSet &&
                             trustedCertificatesSet
             ) {
                 return new ClientStateMachine(this);
             } else {
                 throw new IllegalArgumentException("before calling build, the following builder methods must be called:\n" +
-                        "cipherSuites, curveIdentifiers, supportedSignatureAlgorithms, extensionIdentifiers, supportedCertificates");
+                        "cipherSuites, curveIdentifiers, extensionIdentifiers, supportedCertificates");
             }
         }
     }

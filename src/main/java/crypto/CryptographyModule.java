@@ -8,6 +8,7 @@ import org.bouncycastle.cert.X509v1CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v1CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.cert.path.CertPath;
 import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
 import org.bouncycastle.jcajce.spec.KEMExtractSpec;
@@ -24,10 +25,12 @@ import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Date;
 
 import misc.ByteUtils;
@@ -251,7 +254,7 @@ public class CryptographyModule {
         }
     }
 
-    public class certificate{
+    public static class certificate{
         public static X509CertificateHolder generateSelfSignedTestCertificate(String algName) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
             X500Name name = new X500Name("CN=TestCertificate");
             KeyPair keyPair = generateSigAlgKeyPair(algName);
@@ -289,6 +292,32 @@ public class CryptographyModule {
         }
         public static X509Certificate holderToCertificate(X509CertificateHolder input) throws CertificateException {
             return new JcaX509CertificateConverter().getCertificate(input);
+        }
+        //only does verify the signatures! is done manually because of flexibility
+        public static boolean verifyCertificateChain(X509CertificateHolder[] certificates) throws CertificateException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
+            for(int index = 0; index < certificates.length - 1; index++){
+                X509Certificate messageCert = holderToCertificate(certificates[index]);
+                X509Certificate signersCert = holderToCertificate(certificates[index + 1]);
+                byte[] messageSignature = messageCert.getSignature();
+                byte[] messageCertBytes = messageCert.getEncoded();
+                PublicKey signersPublicKey = signersCert.getPublicKey();
+                String signersSigAlgName = signersCert.getSigAlgName();
+                if(!verifySignature(signersPublicKey, signersSigAlgName, messageCertBytes, messageSignature)){
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static boolean verifySignature(PublicKey publicKey, String algName, byte[] originalMessage, byte[] signature) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, InvalidKeySpecException {
+            Signature sigAlg = Signature.getInstance(algName, "BCPQC");
+            sigAlg.initVerify(
+                    //For some strange reason, this is the only way to verify sphincs signatures
+                    //it will throw an exception if you don't convert it to bytes and back
+                    keys.byteArrToPublicKey(publicKey.getEncoded(), algName, "BCPQC")
+            );
+            sigAlg.update(originalMessage);
+            return sigAlg.verify(signature);
         }
     }
 
