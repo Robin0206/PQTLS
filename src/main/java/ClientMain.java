@@ -6,24 +6,19 @@ import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 public class ClientMain {
-    public static void main(String[] args) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException {
-        KeyPair sphincsKeyPair = CryptographyModule.keys.generateSPHINCSKeyPair();
-        KeyPair dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
-        X509CertificateHolder sphincsCertificate = CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair, "SPHINCSPlus");
-        X509CertificateHolder dilithiumCertificate = CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair, "Dilithium");
-        ArrayList<X509CertificateHolder> trustedCerts = new ArrayList<>();
-        trustedCerts.add(sphincsCertificate);
-        trustedCerts.add(dilithiumCertificate);
+    public static void main(String[] args) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException, CertificateException {
+        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        FileInputStream storeIn = new FileInputStream("clientTrustStore.jks");
+        trustStore.load(storeIn, "password".toCharArray());
         PQTLSClient client = new PQTLSClient.PQTLSClientBuilder()
                 .cipherSuites(
                         new CipherSuite[]{
@@ -36,7 +31,7 @@ public class ClientMain {
                                 CurveIdentifier.secp256r1
                         }
                 ).port(4443)
-                .trustedCertificates(trustedCerts)
+                .truststore(trustStore)
                 .address(InetAddress.getByName("localhost"))
                 .build();
     }

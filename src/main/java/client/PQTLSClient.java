@@ -2,14 +2,18 @@ package client;
 
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
-import jdk.jshell.spi.ExecutionControl;
+import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.cert.X509CertificateHolder;
 import statemachines.client.ClientStateMachine;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 public class PQTLSClient {
     ClientHandShakeConnection handShakeConnection;
@@ -65,12 +69,14 @@ public class PQTLSClient {
             return this;
         }
 
-        public PQTLSClientBuilder trustedCertificates(ArrayList<X509CertificateHolder> trustedCertificates){
-            this.trustedCertificates = trustedCertificates;
+        public PQTLSClientBuilder truststore(KeyStore keystore) throws KeyStoreException, CertificateEncodingException, IOException {
+            this.trustedCertificates = extractCertsFromKeyStore(keystore);
             this.trustedCertificatesSet = true;
             return this;
         }
-        
+
+
+
         public PQTLSClientBuilder port(int port){
             this.port = port;
             this.portSet = true;
@@ -105,5 +111,13 @@ public class PQTLSClient {
                 throw new IllegalStateException("trustedCertificates must be set before building");
             }
         }
+    }
+    private static ArrayList<X509CertificateHolder> extractCertsFromKeyStore(KeyStore keystore) throws KeyStoreException, CertificateEncodingException, IOException {
+        ArrayList<X509CertificateHolder> result = new ArrayList<>();
+        Enumeration<String> aliases = keystore.aliases();
+        while(aliases.hasMoreElements()){
+            result.add(new X509CertificateHolder(keystore.getCertificate(aliases.nextElement()).getEncoded()));
+        }
+        return result;
     }
 }
