@@ -107,7 +107,9 @@ public class ClientCalcSharedSecretState implements State {
                 stateMachine.messages.get(1).getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecret = new SharedSecret(sharedSecret,"sha384", concatenatedMessages, stateMachine.messages.get(0).getBytes());
+        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.get(0).getBytes());
+
+        stateMachine.sharedSecret.setCipherSuite(serverHelloMessage.getCipherSuites()[0]);
     }
 
 
@@ -123,11 +125,12 @@ public class ClientCalcSharedSecretState implements State {
         String[] cipherSuiteContentSplit = Strings.split(stateMachine.chosenCipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
-                stateMachine.symmetricAlgorithm =  cipherSuiteContentSplit[i + 1];
+                stateMachine.symmetricAlgorithm = cipherSuiteContentSplit[i + 1];
                 return;
             }
         }
     }
+
     private void setStateMachineChosenCipherSuite() {
         stateMachine.chosenCipherSuite = serverHelloMessage.getCipherSuites()[0];
     }

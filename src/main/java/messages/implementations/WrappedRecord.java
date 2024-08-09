@@ -3,6 +3,7 @@ package messages.implementations;
 import crypto.CryptographyModule;
 import crypto.enums.CipherSuite;
 import messages.PQTLSMessage;
+import misc.Constants;
 import misc.ByteUtils;
 import org.bouncycastle.util.Strings;
 
@@ -82,7 +83,7 @@ public class WrappedRecord implements PQTLSMessage {
     private void fillMessageBytes() {
         ArrayList<Byte> buffer = new ArrayList<>();
         //add type
-        buffer.add((byte) 0x17);
+        buffer.add(Constants.MESSAGE_TYPE_WRAPPED_RECORD);
         //add legacy version
         buffer.add((byte) 0x03);
         buffer.add((byte) 0x03);

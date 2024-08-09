@@ -39,6 +39,9 @@ public class VerifyServerFinishedState implements State {
         if(!stateMachine.verifiedServerFinishedMessage){
             this.alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.decrypt_error);
         }
+        if(this.alertMessage == null){
+            stateMachine.finished = true;
+        }
     }
 
     private void resetCalculatedMessages() {

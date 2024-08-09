@@ -15,7 +15,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 public class ClientMain {
-    public static void main(String[] args) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException, CertificateException {
+    public static void main(String[] args) throws Exception {
         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
         FileInputStream storeIn = new FileInputStream("clientTrustStore.jks");
         trustStore.load(storeIn, "password".toCharArray());

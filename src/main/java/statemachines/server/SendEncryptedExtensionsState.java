@@ -67,6 +67,7 @@ public class SendEncryptedExtensionsState implements State {
         String[] cipherSuiteContentSplit = Strings.split(stateMachine.preferredCipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
+                stateMachine.sharedSecret.setSymmetricAlgName(cipherSuiteContentSplit[i + 1]);
                 return cipherSuiteContentSplit[i + 1];
             }
         }

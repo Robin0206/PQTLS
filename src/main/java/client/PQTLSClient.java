@@ -2,10 +2,11 @@ package client;
 
 import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
-import org.bouncycastle.asn1.x509.Certificate;
+import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import statemachines.client.ClientStateMachine;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -15,28 +16,43 @@ import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-public class PQTLSClient {
+public class PQTLSClient implements Closeable {
     ClientHandShakeConnection handShakeConnection;
     ClientPSKConnection pskConnection;
     Socket socket;
 
-    private PQTLSClient(PQTLSClientBuilder pqtlsClientBuilder) throws IOException {
+    private PQTLSClient(PQTLSClientBuilder pqtlsClientBuilder) throws Exception {
         this.socket = new Socket(pqtlsClientBuilder.address, pqtlsClientBuilder.port);
         ClientStateMachine stateMachine = buildStateMachine(pqtlsClientBuilder);
-        handShakeConnection = new ClientHandShakeConnection(stateMachine, socket);
+        handShakeConnection = new ClientHandShakeConnection(stateMachine, socket, this);
         pskConnection = new ClientPSKConnection(handShakeConnection.getStateMachine().getSharedSecret(), socket);
+        handShakeConnection.doHandshake();
+        handShakeConnection.close();
     }
 
+    private PQTLSClient() {}
 
-
-    private PQTLSClient(){}
-
-    //TODO
-    private ClientStateMachine buildStateMachine(PQTLSClientBuilder pqtlsClientBuilder) {
-        return null;
+    private ClientStateMachine buildStateMachine(PQTLSClientBuilder builder) {
+        return new ClientStateMachine.ClientStateMachineBuilder()
+                .cipherSuites(builder.cipherSuites)
+                .curveIdentifiers(builder.curveIdentifiers)
+                .trustedCertificates(builder.trustedCertificates)
+                .numberOfCurvesSendByClientHello(builder.curveIdentifiers.length)
+                .extensionIdentifiers(new byte[]{
+                                Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS,
+                                Constants.EXTENSION_IDENTIFIER_KEY_SHARE,
+                                Constants.EXTENSION_IDENTIFIER_SIGNATURE_ALGORITHMS
+                        }
+                )
+                .build();
     }
 
-    public static class PQTLSClientBuilder{
+    @Override
+    public void close() throws IOException {
+        socket.close();
+    }
+
+    public static class PQTLSClientBuilder {
         private CipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
         private byte[] algIdentifiers;
@@ -49,12 +65,12 @@ public class PQTLSClient {
         private boolean curveIdentifiersSet = false;
         private boolean cipherSuiteSet = false;
 
-        public PQTLSClientBuilder cipherSuites(CipherSuite[] cipherSuites){
+        public PQTLSClientBuilder cipherSuites(CipherSuite[] cipherSuites) {
             this.cipherSuites = cipherSuites;
             this.cipherSuiteSet = true;
-            for(CipherSuite c : cipherSuites){
-                if(c.toString().contains("DILITHIUM")){
-                    this.algIdentifiers = new byte[]{0,1};// supports sphincs and dilithium
+            for (CipherSuite c : cipherSuites) {
+                if (c.toString().contains("DILITHIUM")) {
+                    this.algIdentifiers = new byte[]{0, 1};// supports sphincs and dilithium
                     return this;
                 }
             }
@@ -63,7 +79,7 @@ public class PQTLSClient {
             return this;
         }
 
-        public PQTLSClientBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers){
+        public PQTLSClientBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers) {
             this.curveIdentifiers = curveIdentifiers;
             this.curveIdentifiersSet = true;
             return this;
@@ -76,46 +92,47 @@ public class PQTLSClient {
         }
 
 
-
-        public PQTLSClientBuilder port(int port){
+        public PQTLSClientBuilder port(int port) {
             this.port = port;
             this.portSet = true;
             return this;
         }
 
-        public PQTLSClientBuilder address(InetAddress address){
+        public PQTLSClientBuilder address(InetAddress address) {
             this.address = address;
             this.addressSet = true;
             return this;
         }
 
-        public PQTLSClient build() throws IOException {
+
+        public PQTLSClient build() throws Exception {
             throwExceptionIfNecessary();
             return new PQTLSClient(this);
         }
 
         private void throwExceptionIfNecessary() {
-            if(!portSet){
+            if (!portSet) {
                 throw new IllegalStateException("Port must be set before building");
             }
-            if(!addressSet){
+            if (!addressSet) {
                 throw new IllegalStateException("Address must be set before building");
             }
-            if(!curveIdentifiersSet){
+            if (!curveIdentifiersSet) {
                 throw new IllegalStateException("CurveIdentifiers must be set before building");
             }
-            if(!cipherSuiteSet){
+            if (!cipherSuiteSet) {
                 throw new IllegalStateException("CipherSuites must be set before building");
             }
-            if(!trustedCertificatesSet){
+            if (!trustedCertificatesSet) {
                 throw new IllegalStateException("trustedCertificates must be set before building");
             }
         }
     }
+
     private static ArrayList<X509CertificateHolder> extractCertsFromKeyStore(KeyStore keystore) throws KeyStoreException, CertificateEncodingException, IOException {
         ArrayList<X509CertificateHolder> result = new ArrayList<>();
         Enumeration<String> aliases = keystore.aliases();
-        while(aliases.hasMoreElements()){
+        while (aliases.hasMoreElements()) {
             result.add(new X509CertificateHolder(keystore.getCertificate(aliases.nextElement()).getEncoded()));
         }
         return result;

@@ -1,5 +1,6 @@
 package crypto;
 
+import crypto.enums.CipherSuite;
 import misc.ByteUtils;
 
 import java.security.InvalidKeyException;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 // Main source is https://www.rfc-editor.org/rfc/rfc8446
 // The constructor and the method deriveSecretsAfterFinish together exactly follow the figure on page 93
 public class SharedSecret {
+    CipherSuite cipherSuite;
     String
             hashName,
             hMacName;
@@ -39,6 +41,7 @@ public class SharedSecret {
             resumptionMasterSecret,
             clientWriteIV,
             serverWriteIV;
+    private String symmetricAlgName;
 
 
     public SharedSecret(byte[] sharedSecret, String hashName, byte[] concatenatedHelloMessages, byte[] clientHelloMessage, byte[] PSK) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
@@ -288,5 +291,21 @@ public class SharedSecret {
 
     public String getHashName() {
         return hashName;
+    }
+
+    public void setCipherSuite(CipherSuite cipherSuite) {
+        this.cipherSuite = cipherSuite;
+    }
+
+    public void setSymmetricAlgName(String symmetricAlgName) {
+        this.symmetricAlgName = symmetricAlgName;
+    }
+
+    public String getSymmetricalAlgName() {
+        return symmetricAlgName;
+    }
+
+    public CipherSuite getCipherSuite() {
+        return cipherSuite;
     }
 }

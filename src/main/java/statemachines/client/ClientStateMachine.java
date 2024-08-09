@@ -54,6 +54,7 @@ public class ClientStateMachine {
     protected ArrayList<PQTLSMessage> messages;
 
     private boolean stepWithoutWaiting;
+    protected boolean finished = false;
 
     private ClientStateMachine(ClientStateMachineBuilder builder){
         messages = new ArrayList<>();
@@ -65,8 +66,6 @@ public class ClientStateMachine {
         this.extensionIdentifiers = builder.extensionIdentifiers;
         this.trustedCertificates = builder.trustedCertificates;
         currentState = new ClientHelloState();
-
-
     }
 
     public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
@@ -115,6 +114,14 @@ public class ClientStateMachine {
 
     public boolean verifiedServerFinishedMessage() {
         return verifiedServerFinishedMessage;
+    }
+
+    public boolean stepWithoutWaiting() {
+        return this.stepWithoutWaiting;
+    }
+
+    public boolean finished() {
+        return this.finished;
     }
 
     public static class ClientStateMachineBuilder {
