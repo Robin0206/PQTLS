@@ -4,7 +4,9 @@ import crypto.enums.CipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +18,8 @@ import java.util.ArrayList;
 
 public class ClientMain {
     public static void main(String[] args) throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastlePQCProvider());
         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
         FileInputStream storeIn = new FileInputStream("clientTrustStore.jks");
         trustStore.load(storeIn, "password".toCharArray());
@@ -34,5 +38,6 @@ public class ClientMain {
                 .truststore(trustStore)
                 .address(InetAddress.getByName("localhost"))
                 .build();
+        client.printApplicationSecrets();
     }
 }

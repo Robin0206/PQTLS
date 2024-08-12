@@ -249,7 +249,9 @@ public class CryptographyModule {
 
         public static byte[] decryptChaCha(byte[] input, byte[] nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305", "BC");
-            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(nonce));
+            byte[] cutNonce = new byte[12];
+            System.arraycopy(nonce, 0, cutNonce, 0, cutNonce.length);
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cutNonce));
             return cipher.doFinal(input);
         }
     }

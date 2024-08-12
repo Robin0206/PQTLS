@@ -25,7 +25,7 @@ public class SupportedGroupsExtension implements PQTLSExtension {
 
     public SupportedGroupsExtension(CurveIdentifier[] supportedGroups) {
         this.supportedGroups = supportedGroups;
-        this.fillDictionaries();
+        fillDictionaries();
         this.fillByteRepresentation();
     }
 
@@ -46,7 +46,7 @@ public class SupportedGroupsExtension implements PQTLSExtension {
         }
     }
 
-    private void fillDictionaries() {
+    private static void fillDictionaries() {
         curveIdentifierToByteArr = new Hashtable<>();
         shortToCurveIdentifier = new Hashtable<>();
 
@@ -76,7 +76,9 @@ public class SupportedGroupsExtension implements PQTLSExtension {
     public byte getIdentifier() {
         return EXTENSION_IDENTIFIER_SUPPORTED_GROUPS;
     }
+
     public static PQTLSExtension fromBytes(byte[] input) {
+        fillDictionaries();
         ArrayList<CurveIdentifier> buffer = new ArrayList<>();
         for (int i = 4; i < input.length; i+=2) {
             buffer.add(shortToCurveIdentifier.get(ByteUtils.byteArrToShort(new byte[]{input[i], input[i+1]})));

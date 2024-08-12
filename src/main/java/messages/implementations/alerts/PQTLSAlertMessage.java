@@ -44,7 +44,9 @@ public class PQTLSAlertMessage implements PQTLSMessage {
 
     @Override
     public void printVerbose() throws CertificateException {
-
+        System.out.println("=======================================Alert========================================");
+        System.out.println("Alert level:       " + this.alertLevel.toString());
+        System.out.println("Alert Description: " + this.alertDescription.toString());
     }
 
     @Override

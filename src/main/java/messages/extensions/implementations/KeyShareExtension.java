@@ -143,7 +143,11 @@ public class KeyShareExtension implements PQTLSExtension {
                 keys[i][j] = buffer.get(i).get(j);
             }
         }
-        return new KeyShareExtension(keys);
+        if(input[4] != -1){// it has a preferred curve identifier
+            return new KeyShareExtension(keys, CurveIdentifier.values()[input[4]]);
+        }else{
+            return new KeyShareExtension(keys);
+        }
     }
 
     /*

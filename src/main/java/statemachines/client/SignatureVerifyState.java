@@ -88,7 +88,7 @@ public class SignatureVerifyState implements State {
 
     @Override
     public State next() {
-        return new VerifyServerFinishedState();
+        return new VerifyServerFinishedAndFinishSharedSecretCalculationState();
     }
 
     @Override

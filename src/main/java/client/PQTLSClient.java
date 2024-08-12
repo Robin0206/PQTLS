@@ -27,7 +27,6 @@ public class PQTLSClient implements Closeable {
         handShakeConnection = new ClientHandShakeConnection(stateMachine, socket, this);
         pskConnection = new ClientPSKConnection(handShakeConnection.getStateMachine().getSharedSecret(), socket);
         handShakeConnection.doHandshake();
-        handShakeConnection.close();
     }
 
     private PQTLSClient() {}
@@ -50,6 +49,10 @@ public class PQTLSClient implements Closeable {
     @Override
     public void close() throws IOException {
         socket.close();
+    }
+
+    public void printApplicationSecrets() {
+        handShakeConnection.getStateMachine().getSharedSecret().printApplicationTrafficSecrets();
     }
 
     public static class PQTLSClientBuilder {

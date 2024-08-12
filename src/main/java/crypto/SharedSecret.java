@@ -3,11 +3,13 @@ package crypto;
 import crypto.enums.CipherSuite;
 import misc.ByteUtils;
 
+import javax.crypto.Cipher;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 // Main source is https://www.rfc-editor.org/rfc/rfc8446
@@ -44,17 +46,19 @@ public class SharedSecret {
     private String symmetricAlgName;
 
 
-    public SharedSecret(byte[] sharedSecret, String hashName, byte[] concatenatedHelloMessages, byte[] clientHelloMessage, byte[] PSK) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+
+    public SharedSecret(byte[] sharedSecret, String hashName, byte[] concatenatedHelloMessages, byte[] clientHelloMessage, CipherSuite cipherSuite) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         this.zeroes = new byte[MessageDigest.getInstance(hashName, "BC").getDigestLength()];
         this.sharedSecret = sharedSecret;
         this.concatenatedHelloMessages = concatenatedHelloMessages;
         this.clientHelloMessage = clientHelloMessage;
-        this.PSK = PSK;
+        this.PSK = zeroes;//https://www.rfc-editor.org/rfc/rfc8446 p. 94 z. 9-10
         this.hashName = hashName;
         this.hMacName = "hmac" + hashName;
+        this.cipherSuite = cipherSuite;
+        this.setCipherSuiteAndSymmetricalAlgorithm(cipherSuite);
 
         deriveServerAndClientIV();// https://www.rfc-editor.org/rfc/rfc8446 p. 95, z. 8
-
         deriveEarlySecret();
 
         deriveBinderKey();
@@ -71,33 +75,15 @@ public class SharedSecret {
         deriveMasterSecret();
     }
 
-
-    public SharedSecret(byte[] sharedSecret, String hashName, byte[] concatenatedHelloMessages, byte[] clientHelloMessage) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
-        this.zeroes = new byte[MessageDigest.getInstance(hashName, "BC").getDigestLength()];
-        this.sharedSecret = sharedSecret;
-        this.concatenatedHelloMessages = concatenatedHelloMessages;
-        this.clientHelloMessage = clientHelloMessage;
-        this.PSK = zeroes;//https://www.rfc-editor.org/rfc/rfc8446 p. 94 z. 9-10
-        this.hashName = hashName;
-        this.hMacName = "hmac" + hashName;
-
-        deriveServerAndClientIV();// https://www.rfc-editor.org/rfc/rfc8446 p. 95, z. 8
-
-
-        deriveEarlySecret();
-
-        deriveBinderKey();
-        deriveClientEarlyTrafficSecret();
-        deriveEarlyExporterMasterSecret();
-        deriveDerivedSecret0();
-
-        deriveHandShakeSecret();
-
-        deriveClientHandshakeTrafficSecret();
-        deriveServerHandshakeTrafficSecret();
-        deriveDerivedSecret1();
-
-        deriveMasterSecret();
+    private void setCipherSuiteAndSymmetricalAlgorithm(CipherSuite cipherSuite) {
+        this.cipherSuite = cipherSuite;
+        String[] cipherSuiteSplit = cipherSuite.name().split("_");
+        for (int i = 0; i < cipherSuiteSplit.length; i++) {
+            if (Objects.equals(cipherSuiteSplit[i], "WITH")) {
+                this.symmetricAlgName = cipherSuiteSplit[i + 1];
+                break;
+            }
+        }
     }
 
 
@@ -293,10 +279,6 @@ public class SharedSecret {
         return hashName;
     }
 
-    public void setCipherSuite(CipherSuite cipherSuite) {
-        this.cipherSuite = cipherSuite;
-    }
-
     public void setSymmetricAlgName(String symmetricAlgName) {
         this.symmetricAlgName = symmetricAlgName;
     }
@@ -307,5 +289,10 @@ public class SharedSecret {
 
     public CipherSuite getCipherSuite() {
         return cipherSuite;
+    }
+
+    public void printApplicationTrafficSecrets(){
+        System.out.println("Client: " + Arrays.toString(clientApplicationTrafficSecret0));
+        System.out.println("Server: " + Arrays.toString(serverApplicationTrafficSecret0));
     }
 }

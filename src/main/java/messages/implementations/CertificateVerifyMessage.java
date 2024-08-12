@@ -32,6 +32,7 @@ public class CertificateVerifyMessage implements PQTLSMessage {
                 0,
                 byteRepresentation,
                 4,
+
                 signature.length
         );
         System.arraycopy(

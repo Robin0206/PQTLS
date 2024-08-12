@@ -59,7 +59,7 @@ public class SendEncryptedExtensionsState implements State {
 
     @Override
     public boolean stepWithoutWaitingForMessage() {
-        return false;
+        return true;
     }
 
 

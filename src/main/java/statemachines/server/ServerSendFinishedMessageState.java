@@ -53,7 +53,7 @@ public class ServerSendFinishedMessageState implements State {
 
     @Override
     public State next() {
-        return new VerifyClientFinishedState();
+        return new VerifyClientFinishedAndFinishSharedSecretCalculationState();
     }
 
     @Override

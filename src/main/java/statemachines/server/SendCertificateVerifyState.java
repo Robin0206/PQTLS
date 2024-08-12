@@ -99,7 +99,7 @@ public class SendCertificateVerifyState implements State {
 
     @Override
     public boolean stepWithoutWaitingForMessage() {
-        return false;
+        return true;
     }
 
 }

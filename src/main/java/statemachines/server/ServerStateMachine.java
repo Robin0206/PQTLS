@@ -10,6 +10,7 @@ import misc.ByteUtils;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
+import statemachines.FinishedState;
 import statemachines.State;
 
 import javax.crypto.BadPaddingException;
@@ -43,6 +44,7 @@ public class ServerStateMachine {
     protected ArrayList<PQTLSMessage> messages;
     private boolean stepWithoutWaiting;
     protected boolean verifiedClientFinished;
+    boolean finished = false;
 
     private ServerStateMachine(ServerStateMachineBuilder builder){
         messages = new ArrayList<>();
@@ -67,6 +69,9 @@ public class ServerStateMachine {
         }
         stepWithoutWaiting = currentState.stepWithoutWaitingForMessage();
         currentState = currentState.next();
+        if(currentState instanceof FinishedState){
+            this.finished = true;
+        }
         return result;
     }
 
@@ -94,6 +99,14 @@ public class ServerStateMachine {
 
     public boolean verifiedClientFinishedMessage() {
         return verifiedClientFinished;
+    }
+
+    public boolean stepWithoutWaitingForMessage() {
+        return this.stepWithoutWaiting;
+    }
+
+    public boolean finished() {
+        return this.finished;
     }
 
     public static class ServerStateMachineBuilder{

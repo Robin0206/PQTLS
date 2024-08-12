@@ -15,6 +15,7 @@ import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 import statemachines.client.ClientStateMachine;
 import statemachines.server.ServerStateMachine;
+
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
@@ -99,7 +100,7 @@ public class Main {
 
         clientStateMachine.step(message4);
         System.out.println("Client trusted certificates: " +
-        clientStateMachine.getCertificatesTrusted());
+                clientStateMachine.getCertificatesTrusted());
 
         PQTLSMessage message5 = serverStateMachine.step(new NullMessage());
         System.out.println();

@@ -10,6 +10,7 @@ import messages.extensions.PQTLSExtension;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import statemachines.FinishedState;
 import statemachines.State;
 
 import javax.crypto.BadPaddingException;
@@ -81,6 +82,9 @@ public class ClientStateMachine {
         }
         stepWithoutWaiting = currentState.stepWithoutWaitingForMessage();
         currentState = currentState.next();
+        if(currentState instanceof FinishedState){
+            this.finished = true;
+        }
         return result;
     }
 

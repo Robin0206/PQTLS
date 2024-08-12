@@ -107,9 +107,7 @@ public class ClientCalcSharedSecretState implements State {
                 stateMachine.messages.get(1).getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.get(0).getBytes());
-
-        stateMachine.sharedSecret.setCipherSuite(serverHelloMessage.getCipherSuites()[0]);
+        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.get(0).getBytes(), serverHelloMessage.getCipherSuites()[0]);
     }
 
 

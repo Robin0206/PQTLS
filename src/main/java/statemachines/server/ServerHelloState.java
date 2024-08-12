@@ -99,7 +99,7 @@ public class ServerHelloState implements State {
                 this.getMessage().getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.getFirst().getBytes());
+        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.getFirst().getBytes(), stateMachine.preferredCipherSuite);
         stateMachine.sharedSecret.setSymmetricAlgName(stateMachine.getPreferredSymmetricAlgorithm());
     }
 
