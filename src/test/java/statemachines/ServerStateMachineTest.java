@@ -1,7 +1,7 @@
 package statemachines;
 
 import crypto.CryptographyModule;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -31,6 +31,7 @@ class ServerStateMachineTest {
     void buildingShouldNotThrowAnyException() {
         assertAll(()->{
             for (int i = 0; i < 100; i++) {
+                System.out.println("buildingShouldNotThrowAnyException: " + i + " of " + "100");
                 assertDoesNotThrow(this::buildRandomServerStateMachine);
             }
         });
@@ -70,22 +71,22 @@ class ServerStateMachineTest {
         return result;
     }
 
-    private CipherSuite[] generateRandomCipherSuites() {
-        boolean[] cipherSuiteGetsUsed = new boolean[CipherSuite.values().length];
+    private PQTLSCipherSuite[] generateRandomCipherSuites() {
+        boolean[] cipherSuiteGetsUsed = new boolean[PQTLSCipherSuite.values().length];
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             cipherSuiteGetsUsed[i] = random.nextBoolean();
         }
         cipherSuiteGetsUsed[Constants.MANDATORY_CIPHERSUITE.ordinal()] = true;
-        ArrayList<CipherSuite> buffer = new ArrayList<>();
+        ArrayList<PQTLSCipherSuite> buffer = new ArrayList<>();
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             if(cipherSuiteGetsUsed[i]){
-                buffer.add(CipherSuite.values()[i]);
+                buffer.add(PQTLSCipherSuite.values()[i]);
             }
         }
         if(buffer.isEmpty()){
             buffer.add(Constants.MANDATORY_CIPHERSUITE);
         }
-        CipherSuite[] result = new CipherSuite[buffer.size()];
+        PQTLSCipherSuite[] result = new PQTLSCipherSuite[buffer.size()];
         for (int i = 0; i < result.length; i++) {
             result[i] = buffer.get(i);
         }

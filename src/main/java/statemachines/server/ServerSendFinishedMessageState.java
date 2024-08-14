@@ -38,15 +38,15 @@ public class ServerSendFinishedMessageState implements State {
         return new WrappedRecord(
                 new FinishedMessage(
                         concatenatedMessages,
-                        stateMachine.sharedSecret.getServerHandShakeSecret(),
-                        stateMachine.sharedSecret.getHashName()
+                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
+                        stateMachine.sharedSecretHolder.getHashName()
                 ),
                 Constants.HANDSHAKE_TYPE_FINISHED,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecret.getServerHandShakeSecret(),
+                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
                 ),
-                stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
                 stateMachine.preferredCipherSuite
         );
     }

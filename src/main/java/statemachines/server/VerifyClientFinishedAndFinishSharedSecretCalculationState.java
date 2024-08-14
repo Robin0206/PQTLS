@@ -47,7 +47,7 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
         for (int i = 0; i < stateMachine.messages.size() - 1; i++) {//loop over all messages except the last(which is the client finished message)
             buffer.add(stateMachine.messages.get(i).getBytes());
         }
-        stateMachine.sharedSecret.deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
+        stateMachine.sharedSecretHolder.deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
     }
 
     private void verifyClientVerifyData() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
@@ -63,8 +63,8 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
         }
         return new FinishedMessage(
                 concatenatedMessages,
-                stateMachine.sharedSecret.getClientHandShakeSecret(),
-                stateMachine.sharedSecret.getHashName()
+                stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
+                stateMachine.sharedSecretHolder.getHashName()
         ).getVerifyData();
     }
 
@@ -75,10 +75,10 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
                     alertMessage,
                     Constants.ALERT_MESSAGE,
                     CryptographyModule.keys.byteArrToSymmetricKey(
-                            stateMachine.sharedSecret.getServerHandShakeSecret(),
+                            stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
                             stateMachine.getPreferredSymmetricAlgorithm()
                     ),
-                    stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                    stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
                     stateMachine.preferredCipherSuite
             );
         }

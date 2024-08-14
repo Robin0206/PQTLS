@@ -10,11 +10,11 @@ public class ClientMessageConverter extends PQTLSMessageConverter{
 
     @Override
     protected byte[] getIVAndIncrement() {
-        return sharedSecret.getClientHandShakeIVAndIncrement();
+        return sharedSecretHolder.getClientHandShakeIVAndIncrement();
     }
 
     @Override
     protected byte[] getHandshakeSecret() {
-        return sharedSecret.getClientHandShakeSecret();
+        return sharedSecretHolder.getClientHandShakeSecret();
     }
 }

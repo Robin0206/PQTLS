@@ -1,6 +1,6 @@
 package messages.implementations;
 
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.PQTLSExtension;
@@ -69,7 +69,7 @@ public class HelloMessage implements PQTLSMessage {
 
     //cipher suites
     private final byte cipherSuitesLength;
-    private final CipherSuite[] cipherSuites;
+    private final PQTLSCipherSuite[] cipherSuites;
 
     //compression methods
     private final byte compressionMethodsLength = 0x1;
@@ -131,7 +131,7 @@ public class HelloMessage implements PQTLSMessage {
         return extensionsLength;
     }
 
-    public CipherSuite[] getCipherSuites() {
+    public PQTLSCipherSuite[] getCipherSuites() {
         return cipherSuites;
     }
 
@@ -161,7 +161,7 @@ public class HelloMessage implements PQTLSMessage {
 
         //cipher suites
         private byte cipherSuitesLength;
-        private CipherSuite[] cipherSuites;
+        private PQTLSCipherSuite[] cipherSuites;
         private byte[] cipherSuiteBytes;
 
         //extensions
@@ -216,7 +216,7 @@ public class HelloMessage implements PQTLSMessage {
             return this;
         }
 
-        public HelloBuilder cipherSuites(CipherSuite[] cipherSuites) {
+        public HelloBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites) {
             if (cipherSuites.length == 0) {
                 throw new IllegalArgumentException("There must be at least one cipher-suite");
             }
@@ -370,9 +370,9 @@ public class HelloMessage implements PQTLSMessage {
         Fills the CipherSuite Array by using the bytes as ordinals
          */
         private void fillCipherSuitesFromBytes() {
-            cipherSuites = new CipherSuite[cipherSuitesLength];
+            cipherSuites = new PQTLSCipherSuite[cipherSuitesLength];
             for (int i = 0; i < cipherSuitesLength; i++) {
-                cipherSuites[i] = CipherSuite.values()[cipherSuiteBytes[i]];
+                cipherSuites[i] = PQTLSCipherSuite.values()[cipherSuiteBytes[i]];
             }
         }
     }

@@ -1,8 +1,7 @@
 package statemachines.server;
 
-import crypto.CryptographyModule;
-import crypto.SharedSecret;
-import crypto.enums.CipherSuite;
+import crypto.SharedSecretHolder;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
@@ -13,13 +12,8 @@ import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
 import statemachines.FinishedState;
 import statemachines.State;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 
@@ -29,14 +23,14 @@ public class ServerStateMachine {
     protected ArrayList<X509CertificateHolder[]> certificateChains;
     protected KeyPair[] signatureKeyPairs;
     byte[] supportedSignatureAlgorithms;
-    protected SharedSecret sharedSecret;
+    protected SharedSecretHolder sharedSecretHolder;
     protected CurveIdentifier[] supportedCurves;
     protected CurveIdentifier preferredCurveIdentifier;
     protected KeyPair ecKeyPair;
     protected SecretKeyWithEncapsulation frodoEncapsulatedSecret;
     protected SecretKeyWithEncapsulation kyberEncapsulatedSecret;
-    protected CipherSuite preferredCipherSuite;
-    protected CipherSuite[] supportedCipherSuites;
+    protected PQTLSCipherSuite preferredCipherSuite;
+    protected PQTLSCipherSuite[] supportedCipherSuites;
     private State currentState;
     protected byte[] sessionID;
     protected byte[] random;
@@ -79,8 +73,8 @@ public class ServerStateMachine {
         return message.getBytes()[0] != (byte)0xff;
     }
 
-    public SharedSecret getSharedSecret(){
-        return sharedSecret;
+    public SharedSecretHolder getSharedSecret(){
+        return sharedSecretHolder;
     }
 
     public String getPreferredSymmetricAlgorithm() {
@@ -111,7 +105,7 @@ public class ServerStateMachine {
 
     public static class ServerStateMachineBuilder{
         KeyPair[] signatureKeyPairs;
-        protected CipherSuite[] supportedCipherSuites;
+        protected PQTLSCipherSuite[] supportedCipherSuites;
         public CurveIdentifier[] supportedCurves;
         boolean supportedCipherSuitesSet = false;
         boolean supportedCurvesSet = false;
@@ -120,7 +114,7 @@ public class ServerStateMachine {
         private boolean signatureKeyPairsSet = false;
         byte[] supportedSignatureAlgorithms;
 
-        public ServerStateMachineBuilder cipherSuites(CipherSuite[] cipherSuites){
+        public ServerStateMachineBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites){
             if(cipherSuitesContainMandatoryCipherSuite(cipherSuites)){
                 supportedCipherSuites = cipherSuites;
                 supportedCipherSuitesSet = true;
@@ -171,8 +165,8 @@ public class ServerStateMachine {
             this.signatureKeyPairsSet = true;
             return  this;
         }
-        private boolean cipherSuitesContainMandatoryCipherSuite(CipherSuite[] cipherSuites) {
-            for(CipherSuite cipherSuite : cipherSuites){
+        private boolean cipherSuitesContainMandatoryCipherSuite(PQTLSCipherSuite[] cipherSuites) {
+            for(PQTLSCipherSuite cipherSuite : cipherSuites){
                 if(cipherSuite == Constants.MANDATORY_CIPHERSUITE){
                     return true;
                 }

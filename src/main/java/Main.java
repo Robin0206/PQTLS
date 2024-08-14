@@ -1,6 +1,6 @@
 
 import crypto.CryptographyModule;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
 import messages.implementations.HelloMessage;
@@ -45,10 +45,10 @@ public class Main {
         ArrayList<X509CertificateHolder> clientCertificates = new ArrayList<>();
         clientCertificates.add(sphincsCertificate);
         ClientStateMachine clientStateMachine = new ClientStateMachine.ClientStateMachineBuilder()
-                .cipherSuites(new CipherSuite[]{
-                        CipherSuite.TLS_ECDHE_KYBER_SPHINCS_WITH_CHACHA20_POLY1305_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_CHACHA20_POLY1305_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_AES_256_GCM_SHA384,
+                .cipherSuites(new PQTLSCipherSuite[]{
+                        PQTLSCipherSuite.TLS_ECDHE_KYBER_SPHINCS_WITH_CHACHA20_POLY1305_SHA256,
+                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_CHACHA20_POLY1305_SHA256,
+                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_AES_256_GCM_SHA384,
                         Constants.MANDATORY_CIPHERSUITE
                 })
                 .curveIdentifiers(new CurveIdentifier[]{
@@ -74,9 +74,9 @@ public class Main {
                         CurveIdentifier.secp384r1,
                         CurveIdentifier.secp256r1
                 })
-                .cipherSuites(new CipherSuite[]{
+                .cipherSuites(new PQTLSCipherSuite[]{
                         Constants.MANDATORY_CIPHERSUITE,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                 })
                 .certificateChains(serverCertificateChains)
                 .signatureKeyPairs(new KeyPair[]{sphincsKeyPair, dilithiumKeyPair})

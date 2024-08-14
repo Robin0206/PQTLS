@@ -1,14 +1,13 @@
 package messages.implementations;
 
 import crypto.CryptographyModule;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.jcajce.provider.asymmetric.X509;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -51,6 +50,7 @@ class WrappedRecordTest {
     void randomGeneratingOfMessagesShouldNotThrow(){
         assertAll(()->{
             for (int i = 0; i < 100; i++) {
+                System.out.println("randomGeneratingOfMessagesShouldNotThrow: " + i + " of " + "100");
                 setWrappedRecord1Random(Math.abs(rand.nextInt())% keys.length, rand.nextBoolean() ? "AES" : "ChaCha20");
             }
         });
@@ -60,6 +60,7 @@ class WrappedRecordTest {
     void testGenerationFromBytes(){
         assertAll(()->{
             for (int i = 0; i < 100; i++) {
+                System.out.println("testGenerationFromBytes: " + i + " of " + "100");
                 int usedKeyIndex = Math.abs(rand.nextInt())% keys.length;
                 String usedKeyAlg = rand.nextBoolean() ? "AES" : "ChaCha20";
                 setWrappedRecord1Random(usedKeyIndex, usedKeyAlg);
@@ -68,8 +69,8 @@ class WrappedRecordTest {
                         CryptographyModule.keys.byteArrToSymmetricKey(keys[usedKeyIndex], usedKeyAlg),
                         iv,
                         usedKeyAlg.equals("AES") ?
-                                CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384 :
-                                CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384
+                                PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384 :
+                                PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA256
                 );
                 assertTrue(wrappedRecord1.equals(wrappedRecord2));
             }
@@ -84,8 +85,8 @@ class WrappedRecordTest {
                 CryptographyModule.keys.byteArrToSymmetricKey(keys[keyIndex], symmetricAlgorithm),
                 iv,
                 symmetricAlgorithm.equals("AES") ?
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384 :
-                        CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384
+                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384 :
+                        PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA256
         );
     }
 
@@ -104,9 +105,9 @@ class WrappedRecordTest {
 
     static HelloMessage generateRandomHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         SecureRandom rand = new SecureRandom();
-        CipherSuite[] cipherSuites = new CipherSuite[1+ Math.abs(rand.nextInt())%4];
+        PQTLSCipherSuite[] cipherSuites = new PQTLSCipherSuite[1+ Math.abs(rand.nextInt())%4];
         for (int i = 0; i < cipherSuites.length; i++) {
-            cipherSuites[i] = CipherSuite.values()[Math.abs(rand.nextInt())%CipherSuite.values().length];
+            cipherSuites[i] = PQTLSCipherSuite.values()[Math.abs(rand.nextInt())% PQTLSCipherSuite.values().length];
         }
         byte[] sessionID = new byte[Math.abs(rand.nextInt())%40];
         Arrays.fill(sessionID, (byte) 1);

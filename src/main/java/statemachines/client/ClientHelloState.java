@@ -1,7 +1,7 @@
 package statemachines.client;
 
 import crypto.CryptographyModule;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.ECPointFormatsExtension;
@@ -94,7 +94,7 @@ public class ClientHelloState implements State {
     }
 
     private boolean cipherSuitesContainOneWithKyberKEM() {
-        for(CipherSuite cipherSuite : stateMachine.cipherSuites){
+        for(PQTLSCipherSuite cipherSuite : stateMachine.cipherSuites){
             if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
                 return true;
             }
@@ -103,7 +103,7 @@ public class ClientHelloState implements State {
     }
 
     private boolean cipherSuitesContainOneWithFrodoKEM() {
-        for(CipherSuite cipherSuite : stateMachine.cipherSuites){
+        for(PQTLSCipherSuite cipherSuite : stateMachine.cipherSuites){
             if(cipherSuite.ordinal() < 5 || cipherSuite.ordinal() > 8){
                 return true;
             }

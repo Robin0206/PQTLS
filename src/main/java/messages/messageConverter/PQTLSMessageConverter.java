@@ -1,7 +1,7 @@
 package messages.messageConverter;
 
 import crypto.CryptographyModule;
-import crypto.SharedSecret;
+import crypto.SharedSecretHolder;
 import messages.PQTLSMessage;
 import messages.implementations.HelloMessage;
 import messages.implementations.WrappedRecord;
@@ -24,14 +24,14 @@ import java.util.ArrayList;
 
 public abstract class PQTLSMessageConverter {
 
-    protected SharedSecret sharedSecret;
+    protected SharedSecretHolder sharedSecretHolder;
 
     public PQTLSMessageConverter(ClientStateMachine statemachine) {
-        this.sharedSecret = statemachine.getSharedSecret();
+        this.sharedSecretHolder = statemachine.getSharedSecret();
     }
 
     public PQTLSMessageConverter(ServerStateMachine statemachine) {
-        this.sharedSecret = statemachine.getSharedSecret();
+        this.sharedSecretHolder = statemachine.getSharedSecret();
     }
 
     public PQTLSMessage convertMessage(byte[] messageByteBuffer) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, NoSuchProviderException, InvalidKeyException {
@@ -43,10 +43,10 @@ public abstract class PQTLSMessageConverter {
                         messageByteBuffer,
                         CryptographyModule.keys.byteArrToSymmetricKey(
                                 getHandshakeSecret(),
-                                sharedSecret.getSymmetricalAlgName()
+                                sharedSecretHolder.getSymmetricalAlgName()
                         ),
                         getIVAndIncrement(),
-                        sharedSecret.getCipherSuite()
+                        sharedSecretHolder.getCipherSuite()
                 );
                 return message;
             }catch (Exception e){// if it cant be converted into an wrapped record, return an internal error alert
@@ -105,7 +105,7 @@ public abstract class PQTLSMessageConverter {
     }
 
 
-    public void setSharedSecret(SharedSecret sharedSecret) {
-        this.sharedSecret = sharedSecret;
+    public void setSharedSecret(SharedSecretHolder sharedSecretHolder) {
+        this.sharedSecretHolder = sharedSecretHolder;
     }
 }

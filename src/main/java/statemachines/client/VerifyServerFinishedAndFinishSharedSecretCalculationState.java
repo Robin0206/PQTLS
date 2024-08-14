@@ -52,7 +52,7 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
         for (int i = 0; i < stateMachine.messages.size(); i++) {
             buffer.add(stateMachine.messages.get(i).getBytes());
         }
-        stateMachine.sharedSecret.deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
+        stateMachine.sharedSecretHolder.deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
     }
 
     private void resetCalculatedMessages() {
@@ -71,8 +71,8 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
     private byte[] calculateServerVerifyData() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         return new FinishedMessage(
                 concatenatedMessages,
-                stateMachine.sharedSecret.getServerHandShakeSecret(),
-                stateMachine.sharedSecret.getHashName()
+                stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
+                stateMachine.sharedSecretHolder.getHashName()
         ).getVerifyData();
     }
 
@@ -90,25 +90,25 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
                     alertMessage,
                     Constants.ALERT_MESSAGE,
                     CryptographyModule.keys.byteArrToSymmetricKey(
-                            stateMachine.sharedSecret.getClientHandShakeSecret(),
+                            stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
                             stateMachine.symmetricAlgorithm
                     ),
-                    stateMachine.sharedSecret.getClientHandShakeIVAndIncrement(),
+                    stateMachine.sharedSecretHolder.getClientHandShakeIVAndIncrement(),
                     stateMachine.chosenCipherSuite
             );
         }
         return new WrappedRecord(
                 new FinishedMessage(
                         concatenatedMessages,
-                        stateMachine.sharedSecret.getClientHandShakeSecret(),
-                        stateMachine.sharedSecret.getHashName()
+                        stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
+                        stateMachine.sharedSecretHolder.getHashName()
                 ),
                 Constants.HANDSHAKE_TYPE_FINISHED,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecret.getClientHandShakeSecret(),
+                        stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
                         stateMachine.symmetricAlgorithm
                 ),
-                stateMachine.sharedSecret.getClientHandShakeIVAndIncrement(),
+                stateMachine.sharedSecretHolder.getClientHandShakeIVAndIncrement(),
                 stateMachine.chosenCipherSuite
         );
     }

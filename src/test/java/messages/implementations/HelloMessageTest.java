@@ -1,6 +1,6 @@
 package messages.implementations;
 
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
@@ -28,9 +28,9 @@ class HelloMessageTest {
         new SecureRandom().nextBytes(random);
         message1 = new HelloMessage.HelloBuilder()
                 .extensions(new PQTLSExtension[]{})
-                .cipherSuites(new CipherSuite[]{
-                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384
+                .cipherSuites(new PQTLSCipherSuite[]{
+                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_CHACHA20_POLY1305_SHA256
                 })
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)
                 .random(random)
@@ -86,9 +86,9 @@ class HelloMessageTest {
             assertThrows(Exception.class,
                     ()->{
                         message2 = new HelloMessage.HelloBuilder()
-                                .cipherSuites(new CipherSuite[]{
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                .cipherSuites(new PQTLSCipherSuite[]{
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 })
                                 .extensions(new PQTLSExtension[]{})
                                 .sessionID(new byte[32])
@@ -98,9 +98,9 @@ class HelloMessageTest {
             assertThrows(Exception.class,
                     ()->{
                         message2 = new HelloMessage.HelloBuilder()
-                                .cipherSuites(new CipherSuite[]{
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                .cipherSuites(new PQTLSCipherSuite[]{
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 })
                                 .extensions(new PQTLSExtension[]{})
                                 .LegacyVersion(new byte[]{0x03, 0x03})
@@ -110,9 +110,9 @@ class HelloMessageTest {
             assertThrows(Exception.class,
                     ()->{
                         message2 = new HelloMessage.HelloBuilder()
-                                .cipherSuites(new CipherSuite[]{
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                .cipherSuites(new PQTLSCipherSuite[]{
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 })
                                 .LegacyVersion(new byte[]{0x03, 0x03})
                                 .sessionID(new byte[32])
@@ -126,9 +126,9 @@ class HelloMessageTest {
 
         assertThrows(Exception.class, ()->{
             message2 = new HelloMessage.HelloBuilder()
-                    .cipherSuites(new CipherSuite[]{
-                            CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                            CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                    .cipherSuites(new PQTLSCipherSuite[]{
+                            PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                            PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                     })
                     .fromBytes(message1.getBytes())
                     .build();
@@ -141,9 +141,9 @@ class HelloMessageTest {
             assertThrows(Exception.class, ()->{
                 message2 = new HelloMessage.HelloBuilder()
                         .cipherSuites(
-                                new CipherSuite[]{
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                new PQTLSCipherSuite[]{
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 }
                         )
                         .random(new byte[32])
@@ -159,9 +159,9 @@ class HelloMessageTest {
                         .LegacyVersion(new byte[]{0x03, 0x03})
                         .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)
                         .cipherSuites(
-                                new CipherSuite[]{
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
-                                        CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
+                                new PQTLSCipherSuite[]{
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                        PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384
                                 }
                         )
                         .extensions(new PQTLSExtension[0])
@@ -173,9 +173,9 @@ class HelloMessageTest {
     }
     static HelloMessage buildRandomClientHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         SecureRandom rand = new SecureRandom();
-        CipherSuite[] cipherSuites = new CipherSuite[1+ Math.abs(rand.nextInt())%4];
+        PQTLSCipherSuite[] cipherSuites = new PQTLSCipherSuite[1+ Math.abs(rand.nextInt())%4];
         for (int i = 0; i < cipherSuites.length; i++) {
-            cipherSuites[i] = CipherSuite.values()[Math.abs(rand.nextInt())%CipherSuite.values().length];
+            cipherSuites[i] = PQTLSCipherSuite.values()[Math.abs(rand.nextInt())% PQTLSCipherSuite.values().length];
         }
         byte[] sessionID = new byte[Math.abs(rand.nextInt())%40];
         Arrays.fill(sessionID, (byte) 1);

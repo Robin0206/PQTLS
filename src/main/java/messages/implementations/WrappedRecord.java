@@ -1,7 +1,7 @@
 package messages.implementations;
 
 import crypto.CryptographyModule;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import messages.PQTLSMessage;
 import misc.Constants;
 import misc.ByteUtils;
@@ -30,7 +30,7 @@ public class WrappedRecord implements PQTLSMessage {
             byte actualRecordType,
             Key key,
             byte[] iv_nonce,
-            CipherSuite cipherSuite
+            PQTLSCipherSuite cipherSuite
     ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         this.messageToWrap = messageToWrap;
         this.decryptedMessageToWrapBytes = messageToWrap.getBytes();
@@ -49,7 +49,7 @@ public class WrappedRecord implements PQTLSMessage {
             byte[] messageBytes,
             Key key,
             byte[] iv_nonce,
-            CipherSuite cipherSuite
+            PQTLSCipherSuite cipherSuite
     ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         this.messageBytes = messageBytes;
         actualRecordType = messageBytes[messageBytes.length - 1];
@@ -58,7 +58,7 @@ public class WrappedRecord implements PQTLSMessage {
         setDecryptedMessage(cipherSuite, iv_nonce);
     }
 
-    private void setDecryptedMessage(CipherSuite cipherSuite, byte[] iv_nonce) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    private void setDecryptedMessage(PQTLSCipherSuite cipherSuite, byte[] iv_nonce) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
         byte[] decryptedMessageBytes;
         if (Objects.equals(getSymmetricCipherNameFromCipherSuite(cipherSuite), "AES")) {
             decryptedMessageBytes = CryptographyModule.symmetric.decryptAES(encryptedMessage, iv_nonce, key);
@@ -106,7 +106,7 @@ public class WrappedRecord implements PQTLSMessage {
     }
 
 
-    private String getSymmetricCipherNameFromCipherSuite(CipherSuite cipherSuite) {
+    private String getSymmetricCipherNameFromCipherSuite(PQTLSCipherSuite cipherSuite) {
         String[] cipherSuiteContentSplit = Strings.split(cipherSuite.name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {

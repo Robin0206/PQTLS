@@ -1,6 +1,6 @@
 package client;
 
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -56,7 +56,7 @@ public class PQTLSClient implements Closeable {
     }
 
     public static class PQTLSClientBuilder {
-        private CipherSuite[] cipherSuites;
+        private PQTLSCipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
         private byte[] algIdentifiers;
         private ArrayList<X509CertificateHolder> trustedCertificates;
@@ -68,10 +68,10 @@ public class PQTLSClient implements Closeable {
         private boolean curveIdentifiersSet = false;
         private boolean cipherSuiteSet = false;
 
-        public PQTLSClientBuilder cipherSuites(CipherSuite[] cipherSuites) {
+        public PQTLSClientBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites) {
             this.cipherSuites = cipherSuites;
             this.cipherSuiteSet = true;
-            for (CipherSuite c : cipherSuites) {
+            for (PQTLSCipherSuite c : cipherSuites) {
                 if (c.toString().contains("DILITHIUM")) {
                     this.algIdentifiers = new byte[]{0, 1};// supports sphincs and dilithium
                     return this;

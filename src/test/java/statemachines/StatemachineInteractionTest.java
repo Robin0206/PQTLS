@@ -1,14 +1,15 @@
 package statemachines;
 
 import crypto.CryptographyModule;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import statemachines.client.ClientStateMachine;
@@ -16,6 +17,7 @@ import statemachines.server.ServerStateMachine;
 
 import java.security.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,11 +27,17 @@ public class StatemachineInteractionTest {
     static SecureRandom random;
     static KeyPair sphincsKeyPair;
     static KeyPair dilithiumKeyPair;
+    static X509CertificateHolder sphincsCert;
+    static X509CertificateHolder dilithiumCert;
 
     @BeforeAll
-    public static void initialize() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+    public static void initialize() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+        Security.addProvider(new BouncyCastlePQCProvider());
+        Security.addProvider(new BouncyCastleProvider());
         sphincsKeyPair = CryptographyModule.keys.generateSPHINCSKeyPair();
+        sphincsCert = CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair, "SPHINCSPlus");
         dilithiumKeyPair = CryptographyModule.keys.generateDilithiumKeyPair();
+        dilithiumCert = CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair, "Dilithium");
         random = new SecureRandom();
     }
 
@@ -37,11 +45,22 @@ public class StatemachineInteractionTest {
     void randomMachinesInteractingShouldNotThrow(){;
         assertDoesNotThrow(()->{
             for (int i = 0; i < 100; i++) {
+                System.out.println("randomMachinesInteractingShouldNotThrowTest: " + i + " of " + "100");
                 clientStateMachine = buildRandomClientStateMachine();
                 serverStateMachine = buildRandomServerStateMachine();
                 PQTLSMessage clientHelloMessage = clientStateMachine.step(new NullMessage());
                 PQTLSMessage serverHelloMessage = serverStateMachine.step(clientHelloMessage);
+                System.out.println("\t Cipher suite: " + serverStateMachine.getSharedSecret().getCipherSuite());
                 clientStateMachine.step(serverHelloMessage);
+                PQTLSMessage encryptedExtensionsMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(encryptedExtensionsMessage);
+                PQTLSMessage certMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(certMessage);
+                PQTLSMessage certVerifyMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(certVerifyMessage);
+                PQTLSMessage serverHandshakeFinishedMessage = serverStateMachine.step(new NullMessage());
+                PQTLSMessage clientHandshakeFinishedMessage = clientStateMachine.step(serverHandshakeFinishedMessage);
+                serverStateMachine.step(clientHandshakeFinishedMessage);
             }
         });
     }
@@ -60,7 +79,8 @@ public class StatemachineInteractionTest {
     }
     private ClientStateMachine buildRandomClientStateMachine() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         ArrayList<X509CertificateHolder> certificates = new ArrayList<>();
-        certificates.add(CryptographyModule.certificate.generateSelfSignedTestCertificate("Dilithium"));
+        certificates.add(sphincsCert);
+        certificates.add(dilithiumCert);
         return new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .curveIdentifiers(generateRandomCurveIdentifiers())
@@ -113,23 +133,24 @@ public class StatemachineInteractionTest {
         return result;
     }
 
-    private CipherSuite[] generateRandomCipherSuites() {
-        boolean[] cipherSuiteGetsUsed = new boolean[CipherSuite.values().length];
+    private PQTLSCipherSuite[] generateRandomCipherSuites() {
+        boolean[] cipherSuiteGetsUsed = new boolean[PQTLSCipherSuite.values().length];
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             cipherSuiteGetsUsed[i] = random.nextBoolean();
         }
         cipherSuiteGetsUsed[Constants.MANDATORY_CIPHERSUITE.ordinal()] = true;
         cipherSuiteGetsUsed[0] = false;
-        ArrayList<CipherSuite> buffer = new ArrayList<>();
+        ArrayList<PQTLSCipherSuite> buffer = new ArrayList<>();
         for (int i = 0; i < cipherSuiteGetsUsed.length; i++) {
             if(cipherSuiteGetsUsed[i]){
-                buffer.add(CipherSuite.values()[i]);
+                buffer.add(PQTLSCipherSuite.values()[i]);
             }
         }
         if(buffer.isEmpty()){
-            buffer.add(CipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384);
+            buffer.add(PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384);
         }
-        CipherSuite[] result = new CipherSuite[buffer.size()];
+        Collections.shuffle(buffer);//This is needed because the used cipher suite is determined by the order they are in the servers CipherSuite[]
+        PQTLSCipherSuite[] result = new PQTLSCipherSuite[buffer.size()];
         for (int i = 0; i < result.length; i++) {
             result[i] = buffer.get(i);
         }
@@ -138,8 +159,8 @@ public class StatemachineInteractionTest {
 
     private ServerStateMachine buildRandomServerStateMachine() throws Exception {
         ArrayList<X509CertificateHolder[]> certificateChains = new ArrayList<>();
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(sphincsKeyPair,"SPHINCSPlus")});
-        certificateChains.add(new X509CertificateHolder[]{CryptographyModule.certificate.generateSelfSignedTestCertificate(dilithiumKeyPair,"Dilithium")});
+        certificateChains.add(new X509CertificateHolder[]{sphincsCert});
+        certificateChains.add(new X509CertificateHolder[]{dilithiumCert});
         return new ServerStateMachine.ServerStateMachineBuilder()
                 .cipherSuites(generateRandomCipherSuites())
                 .supportedCurves(generateRandomCurveIdentifiers())

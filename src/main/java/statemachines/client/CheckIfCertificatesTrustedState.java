@@ -61,10 +61,10 @@ public class CheckIfCertificatesTrustedState implements State {
                     alertMessage,
                     Constants.ALERT_MESSAGE,
                     CryptographyModule.keys.byteArrToSymmetricKey(
-                            stateMachine.sharedSecret.getServerHandShakeSecret(),
+                            stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
                             stateMachine.symmetricAlgorithm
                     ),
-                    stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                    stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
                     stateMachine.chosenCipherSuite
             );
         }

@@ -1,8 +1,8 @@
 package statemachines.server;
 
 import crypto.CryptographyModule;
-import crypto.SharedSecret;
-import crypto.enums.CipherSuite;
+import crypto.SharedSecretHolder;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
@@ -99,8 +99,8 @@ public class ServerHelloState implements State {
                 this.getMessage().getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.getFirst().getBytes(), stateMachine.preferredCipherSuite);
-        stateMachine.sharedSecret.setSymmetricAlgName(stateMachine.getPreferredSymmetricAlgorithm());
+        stateMachine.sharedSecretHolder = new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.messages.getFirst().getBytes(), stateMachine.preferredCipherSuite);
+        //stateMachine.sharedSecret.setSymmetricAlgName(stateMachine.getPreferredSymmetricAlgorithm());
     }
 
     private String getSymmetricCipherNameFromCipherSuite() {
@@ -200,7 +200,7 @@ public class ServerHelloState implements State {
     }
 
     private boolean clientHelloCipherSuitesContainOneWithFrodoKEM(){
-        for(CipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
+        for(PQTLSCipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
             if(cipherSuite.ordinal() < 5 || cipherSuite.ordinal() > 8){
                 return true;
             }
@@ -208,7 +208,7 @@ public class ServerHelloState implements State {
         return false;
     }
     private boolean clientHelloCipherSuitesContainOneWithKyberKEM(){
-        for(CipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
+        for(PQTLSCipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
             if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
                 return true;
             }
@@ -257,7 +257,7 @@ public class ServerHelloState implements State {
 
 
     private void setStateMachinePreferredCipherSuite() {
-        CipherSuite[] clientCipherSuites = clientHelloMessage
+        PQTLSCipherSuite[] clientCipherSuites = clientHelloMessage
                 .getCipherSuites();
         for (int i = 0; i < stateMachine.supportedCipherSuites.length; i++) {
             for (int j = 0; j < clientCipherSuites.length; j++) {
@@ -276,7 +276,7 @@ public class ServerHelloState implements State {
         if(alertMessage == null){
             return new HelloMessage.HelloBuilder()
                     .extensions(new PQTLSExtension[]{keyShareExtension})
-                    .cipherSuites(new CipherSuite[]{stateMachine.preferredCipherSuite})
+                    .cipherSuites(new PQTLSCipherSuite[]{stateMachine.preferredCipherSuite})
                     .sessionID(stateMachine.sessionID)
                     .LegacyVersion(new byte[]{0x03, 0x03})
                     .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)

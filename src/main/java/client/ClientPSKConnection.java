@@ -1,15 +1,15 @@
 package client;
 
-import crypto.SharedSecret;
+import crypto.SharedSecretHolder;
 
 import java.net.Socket;
 
 public class ClientPSKConnection {
-    private final SharedSecret sharedSecret;
+    private final SharedSecretHolder sharedSecretHolder;
     private final Socket socket;
 
-    public ClientPSKConnection(SharedSecret sharedSecret, Socket socket) {
-        this.sharedSecret = sharedSecret;
+    public ClientPSKConnection(SharedSecretHolder sharedSecretHolder, Socket socket) {
+        this.sharedSecretHolder = sharedSecretHolder;
         this.socket = socket;
     }
 }

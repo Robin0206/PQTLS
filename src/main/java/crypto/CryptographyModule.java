@@ -41,26 +41,29 @@ public class CryptographyModule {
         public static byte[] deriveSecret(byte[] secret, byte[] label, byte[] messages, String hashName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
             return hkdfExpandLabel(
                     secret,
-                    "hmac"+hashName,
+                    "hmac" + hashName,
                     label,
                     hash(messages, hashName),
                     MessageDigest.getInstance(hashName, "BC").getDigestLength()
             );
         }
+
         public static byte[] deriveSecret(byte[] secret, byte[] label, byte[] messages, String hashName, int len) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
             return hkdfExpandLabel(
                     secret,
-                    "hmac"+hashName,
+                    "hmac" + hashName,
                     label,
                     hash(messages, hashName),
                     len
             );
         }
+
         public static byte[] hash(byte[] input, String hashName) throws NoSuchAlgorithmException, NoSuchProviderException {
             MessageDigest md = MessageDigest.getInstance(hashName, "BC");
             md.update(input);
             return md.digest();
         }
+
         // https://www.rfc-editor.org/rfc/rfc5869 section 2.2
         public static byte[] hkdfExtract(byte[] salt, byte[] key, String hMacName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
             SecretKey macKey = new SecretKeySpec(key, hMacName);
@@ -102,9 +105,10 @@ public class CryptographyModule {
             System.arraycopy(flattenedT, 0, result, 0, L);
             return result;
         }
+
         // https://www.rfc-editor.org/rfc/rfc5869 section 2.3
         public static byte[] hkdfExpandLabel(byte[] key, String hMacName, byte[] label, byte[] context, int L) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
-            return hkdfExpand(key, hMacName, Arrays.concatenate(new byte[][]{label,context}), L);
+            return hkdfExpand(key, hMacName, Arrays.concatenate(new byte[][]{label, context}), L);
         }
 
         //From the Book "Java Cryptography: Tools and Techniques" by David Hook and john Eaves page 46 to 47
@@ -198,34 +202,6 @@ public class CryptographyModule {
     Subclass responsible for symmetric ciphers
      */
     public static class symmetric {
-        public static byte[] encryptAES(byte[] input, long iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(iv)));
-            return cipher.doFinal(input);
-        }
-
-        public static byte[] encryptChaCha(byte[] input, long nonce_iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
-            byte[] nonceArr = ByteUtils.longToByteArray(nonce_iv);
-            byte[] nonce = new byte[12];
-            System.arraycopy(nonceArr, 0, nonce, 0, nonce.length);
-            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(nonce));
-            return cipher.doFinal(input);
-        }
-
-        public static byte[] decryptAES(byte[] input, long iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("AES/GCM/PKCS5Padding", "BC");
-            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(iv)));
-            return cipher.doFinal(input);
-        }
-
-        public static byte[] decryptChaCha(byte[] input, long nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-            Cipher cipher = Cipher.getInstance("ChaCha20Poly1305", "BC");
-            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ByteUtils.longToByteArray(nonce)));
-            return cipher.doFinal(input);
-        }
-
-        //______________________________________________________
 
         public static byte[] encryptAES(byte[] input, byte[] iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
@@ -233,10 +209,8 @@ public class CryptographyModule {
             return cipher.doFinal(input);
         }
 
-        public static byte[] encryptChaCha(byte[] input, byte[] nonce_iv, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        public static byte[] encryptChaCha(byte[] input, byte[] nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305", "BC");
-            byte[] nonce = new byte[12];
-            System.arraycopy(nonce_iv, 0, nonce, 0, nonce.length);
             cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(nonce));
             return cipher.doFinal(input);
         }
@@ -249,14 +223,12 @@ public class CryptographyModule {
 
         public static byte[] decryptChaCha(byte[] input, byte[] nonce, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
             Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305", "BC");
-            byte[] cutNonce = new byte[12];
-            System.arraycopy(nonce, 0, cutNonce, 0, cutNonce.length);
-            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cutNonce));
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(nonce));
             return cipher.doFinal(input);
         }
     }
 
-    public static class certificate{
+    public static class certificate {
         public static X509CertificateHolder generateSelfSignedTestCertificate(String algName) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
             X500Name name = new X500Name("CN=TestCertificate");
             KeyPair keyPair = generateSigAlgKeyPair(algName);
@@ -275,6 +247,7 @@ public class CryptographyModule {
                     .build(privateKey);
             return certBldr.build(signer);
         }
+
         public static X509CertificateHolder generateSelfSignedTestCertificate(KeyPair keyPair, String algName) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
             X500Name name = new X500Name("CN=TestCertificate");
             PrivateKey privateKey = keyPair.getPrivate();
@@ -292,19 +265,21 @@ public class CryptographyModule {
                     .build(privateKey);
             return certBldr.build(signer);
         }
+
         public static X509Certificate holderToCertificate(X509CertificateHolder input) throws CertificateException {
             return new JcaX509CertificateConverter().getCertificate(input);
         }
+
         //only does verify the signatures! is done manually because of flexibility
         public static boolean verifyCertificateChain(X509CertificateHolder[] certificates) throws CertificateException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
-            for(int index = 0; index < certificates.length - 1; index++){
+            for (int index = 0; index < certificates.length - 1; index++) {
                 X509Certificate messageCert = holderToCertificate(certificates[index]);
                 X509Certificate signersCert = holderToCertificate(certificates[index + 1]);
                 byte[] messageSignature = messageCert.getSignature();
                 byte[] messageCertBytes = messageCert.getEncoded();
                 PublicKey signersPublicKey = signersCert.getPublicKey();
                 String signersSigAlgName = signersCert.getSigAlgName();
-                if(!verifySignature(signersPublicKey, signersSigAlgName, messageCertBytes, messageSignature)){
+                if (!verifySignature(signersPublicKey, signersSigAlgName, messageCertBytes, messageSignature)) {
                     return false;
                 }
             }
@@ -325,7 +300,7 @@ public class CryptographyModule {
 
     private static KeyPair generateSigAlgKeyPair(String algName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(algName, "BCPQC");
-        switch (algName){
+        switch (algName) {
             case "SPHINCSPlus":
                 kpg.initialize(SPHINCSPlusParameterSpec.shake_256f);
                 break;

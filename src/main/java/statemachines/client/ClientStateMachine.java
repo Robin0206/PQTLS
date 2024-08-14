@@ -1,27 +1,18 @@
 package statemachines.client;
 
-import crypto.CryptographyModule;
-import crypto.SharedSecret;
-import crypto.enums.CipherSuite;
+import crypto.SharedSecretHolder;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.FinishedState;
 import statemachines.State;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /*
 Uses fluent builder pattern
@@ -38,14 +29,14 @@ public class ClientStateMachine {
     protected ArrayList<PQTLSExtension> extensions;
     protected int chosenCurveKeyIndex;
     protected PQTLSMessage serverEncryptedExtensions;
-    protected CipherSuite chosenCipherSuite;
-    protected SharedSecret sharedSecret;
+    protected PQTLSCipherSuite chosenCipherSuite;
+    protected SharedSecretHolder sharedSecretHolder;
     protected KeyPair[] ecKeyPairs;
     protected KeyPair frodoKey;
     protected KeyPair kyberKey;
     protected String symmetricAlgorithm;
     protected State currentState;
-    protected CipherSuite[] cipherSuites;
+    protected PQTLSCipherSuite[] cipherSuites;
     protected CurveIdentifier[] curveIdentifiers;
     protected CurveIdentifier chosenCurve;
     protected ECPointFormat[] ecPointFormats;
@@ -100,8 +91,8 @@ public class ClientStateMachine {
         this.ecKeyPairs = ecKeyPairs;
     }
 
-    public SharedSecret getSharedSecret() {
-        return sharedSecret;
+    public SharedSecretHolder getSharedSecret() {
+        return sharedSecretHolder;
     }
 
     public boolean getCertificatesTrusted() {
@@ -129,7 +120,7 @@ public class ClientStateMachine {
     }
 
     public static class ClientStateMachineBuilder {
-        private CipherSuite[] cipherSuites;
+        private PQTLSCipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
         private ECPointFormat[] ecPointFormats;
         private ArrayList<X509CertificateHolder> trustedCertificates;
@@ -143,7 +134,7 @@ public class ClientStateMachine {
         private boolean extensionIdentifiersSet = false;
         private boolean trustedCertificatesSet = false;
 
-        public ClientStateMachineBuilder cipherSuites(CipherSuite[] cipherSuites) {
+        public ClientStateMachineBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites) {
             if (cipherSuitesContainMandatoryCipherSuite(cipherSuites)) {
                 this.cipherSuites = cipherSuites;
                 cipherSuitesSet = true;
@@ -156,7 +147,7 @@ public class ClientStateMachine {
         }
 
         private void setSupportedSignatureAlgorithms() {
-            for(CipherSuite cs : cipherSuites){
+            for(PQTLSCipherSuite cs : cipherSuites){
                 if(cs.toString().contains("DILITHIUM")){
                     supportedSignatureAlgorithms = new byte[]{0,1};
                     return;
@@ -165,8 +156,8 @@ public class ClientStateMachine {
             supportedSignatureAlgorithms = new byte[]{0};
         }
 
-        private boolean cipherSuitesContainMandatoryCipherSuite(CipherSuite[] cipherSuites) {
-            for (CipherSuite cipherSuite : cipherSuites) {
+        private boolean cipherSuitesContainMandatoryCipherSuite(PQTLSCipherSuite[] cipherSuites) {
+            for (PQTLSCipherSuite cipherSuite : cipherSuites) {
                 if (cipherSuite == Constants.MANDATORY_CIPHERSUITE) {
                     return true;
                 }

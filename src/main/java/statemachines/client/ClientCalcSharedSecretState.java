@@ -1,7 +1,7 @@
 package statemachines.client;
 
 import crypto.CryptographyModule;
-import crypto.SharedSecret;
+import crypto.SharedSecretHolder;
 import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import messages.extensions.implementations.KeyShareExtension;
@@ -107,7 +107,7 @@ public class ClientCalcSharedSecretState implements State {
                 stateMachine.messages.get(1).getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecret = new SharedSecret(sharedSecret, "sha384", concatenatedMessages, stateMachine.messages.get(0).getBytes(), serverHelloMessage.getCipherSuites()[0]);
+        stateMachine.sharedSecretHolder = new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.messages.get(0).getBytes(), serverHelloMessage.getCipherSuites()[0]);
     }
 
 

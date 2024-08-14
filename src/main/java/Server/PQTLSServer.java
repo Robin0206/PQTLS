@@ -1,6 +1,6 @@
 package Server;
 
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import statemachines.server.ServerStateMachine;
@@ -52,7 +52,7 @@ public class PQTLSServer {
 
     public static class PQTLSServerBuilder {
         private int port;
-        private CipherSuite[] cipherSuites;
+        private PQTLSCipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
         private boolean curveIdentifiersSet = false;
         private boolean portSet = false;
@@ -66,7 +66,7 @@ public class PQTLSServer {
             return this;
         }
 
-        public PQTLSServerBuilder cipherSuites(CipherSuite[] cipherSuites) {
+        public PQTLSServerBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites) {
             this.cipherSuites = cipherSuites;
             this.cipherSuitesSet = true;
             return this;

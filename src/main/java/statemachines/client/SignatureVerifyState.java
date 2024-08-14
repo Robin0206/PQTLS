@@ -76,10 +76,10 @@ public class SignatureVerifyState implements State {
                     alertMessage,
                     Constants.ALERT_MESSAGE,
                     CryptographyModule.keys.byteArrToSymmetricKey(
-                            stateMachine.sharedSecret.getClientHandShakeSecret(),
+                            stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
                             stateMachine.symmetricAlgorithm
                     ),
-                    stateMachine.sharedSecret.getClientHandShakeIVAndIncrement(),
+                    stateMachine.sharedSecretHolder.getClientHandShakeIVAndIncrement(),
                     stateMachine.chosenCipherSuite
             );
         }

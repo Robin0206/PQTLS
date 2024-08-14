@@ -2,7 +2,6 @@ package statemachines.server;
 
 import crypto.CryptographyModule;
 import messages.PQTLSMessage;
-import messages.implementations.CertificateMessage;
 import messages.implementations.CertificateVerifyMessage;
 import messages.implementations.WrappedRecord;
 import misc.ByteUtils;
@@ -69,10 +68,10 @@ public class SendCertificateVerifyState implements State {
                 new CertificateVerifyMessage(signature, true),
                 (byte) 0x0f,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecret.getServerHandShakeSecret(),
+                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
                 ),
-                stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
                 stateMachine.preferredCipherSuite
         );
     }

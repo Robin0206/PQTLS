@@ -1,5 +1,5 @@
 import Server.PQTLSServer;
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -17,11 +17,9 @@ public class ServerMain {
         keyStore.load(storeIn, "password".toCharArray());
         PQTLSServer server = new PQTLSServer.PQTLSServerBuilder()
                 .cipherSuites(
-                        new CipherSuite[]{
-                                Constants.MANDATORY_CIPHERSUITE,
-                                CipherSuite.TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384,
-                                CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_SPHINCS_WITH_AES_256_GCM_SHA384,
-                                CipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA384
+                        new PQTLSCipherSuite[]{
+                                PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                Constants.MANDATORY_CIPHERSUITE
                         }
                 )
                 .port(4443)

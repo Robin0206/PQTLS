@@ -16,13 +16,11 @@ import statemachines.client.ClientStateMachine;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.*;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class SendingCertificatesState implements State {
@@ -125,10 +123,10 @@ public class SendingCertificatesState implements State {
                 new CertificateMessage(certificatesToSend),
                 (byte) 0x0b,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecret.getServerHandShakeSecret(),
+                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
                 ),
-                stateMachine.sharedSecret.getServerHandShakeIVAndIncrement(),
+                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
                 stateMachine.preferredCipherSuite
         );
     }

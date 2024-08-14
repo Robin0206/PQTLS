@@ -1,9 +1,8 @@
 package crypto;
 
-import crypto.enums.CipherSuite;
+import crypto.enums.PQTLSCipherSuite;
 import misc.ByteUtils;
 
-import javax.crypto.Cipher;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,8 +13,8 @@ import java.util.Objects;
 
 // Main source is https://www.rfc-editor.org/rfc/rfc8446
 // The constructor and the method deriveSecretsAfterFinish together exactly follow the figure on page 93
-public class SharedSecret {
-    CipherSuite cipherSuite;
+public class SharedSecretHolder {
+    PQTLSCipherSuite cipherSuite;
     String
             hashName,
             hMacName;
@@ -44,19 +43,21 @@ public class SharedSecret {
             clientWriteIV,
             serverWriteIV;
     private String symmetricAlgName;
+    int nonceIVSize;
 
 
 
-    public SharedSecret(byte[] sharedSecret, String hashName, byte[] concatenatedHelloMessages, byte[] clientHelloMessage, CipherSuite cipherSuite) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
-        this.zeroes = new byte[MessageDigest.getInstance(hashName, "BC").getDigestLength()];
+    public SharedSecretHolder(byte[] sharedSecret, byte[] concatenatedHelloMessages, byte[] clientHelloMessage, PQTLSCipherSuite cipherSuite) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         this.sharedSecret = sharedSecret;
         this.concatenatedHelloMessages = concatenatedHelloMessages;
         this.clientHelloMessage = clientHelloMessage;
+        this.hashName = deriveHashNameFromCipherSuite(cipherSuite);
+        this.hMacName = "hmac" + this.hashName;
+        this.zeroes = new byte[MessageDigest.getInstance(this.hashName, "BC").getDigestLength()];
         this.PSK = zeroes;//https://www.rfc-editor.org/rfc/rfc8446 p. 94 z. 9-10
-        this.hashName = hashName;
-        this.hMacName = "hmac" + hashName;
         this.cipherSuite = cipherSuite;
         this.setCipherSuiteAndSymmetricalAlgorithm(cipherSuite);
+        this.nonceIVSize = this.symmetricAlgName.toLowerCase() == "aes" ? 32 : 12;
 
         deriveServerAndClientIV();// https://www.rfc-editor.org/rfc/rfc8446 p. 95, z. 8
         deriveEarlySecret();
@@ -75,7 +76,12 @@ public class SharedSecret {
         deriveMasterSecret();
     }
 
-    private void setCipherSuiteAndSymmetricalAlgorithm(CipherSuite cipherSuite) {
+    private String deriveHashNameFromCipherSuite(PQTLSCipherSuite cipherSuite) {
+        String[] cipherSuiteSplit = cipherSuite.toString().split("_");
+        return cipherSuiteSplit[cipherSuiteSplit.length-1].toLowerCase();
+    }
+
+    private void setCipherSuiteAndSymmetricalAlgorithm(PQTLSCipherSuite cipherSuite) {
         this.cipherSuite = cipherSuite;
         String[] cipherSuiteSplit = cipherSuite.name().split("_");
         for (int i = 0; i < cipherSuiteSplit.length; i++) {
@@ -229,30 +235,30 @@ public class SharedSecret {
                 hMacName,
                 "iv".getBytes(),
                 "".getBytes(),
-                32
+                this.nonceIVSize
         );
         serverWriteIV = iv;
         clientWriteIV = iv;
     }
 
-    public boolean equals(SharedSecret sharedSecret) {
+    public boolean equals(SharedSecretHolder sharedSecretHolder) {
         return
-                Arrays.equals(earlySecret, sharedSecret.earlySecret) &&
-                Arrays.equals(binderKey, sharedSecret.binderKey) &&
-                Arrays.equals(clientEarlyTrafficSecret, sharedSecret.clientEarlyTrafficSecret) &&
-                Arrays.equals(earlyExporterMasterSecret, sharedSecret.earlyExporterMasterSecret) &&
-                Arrays.equals(derivedSecret0, sharedSecret.derivedSecret0) &&
-                Arrays.equals(handShakeSecret, sharedSecret.handShakeSecret) &&
-                Arrays.equals(clientHandshakeTrafficSecret, sharedSecret.clientHandshakeTrafficSecret) &&
-                Arrays.equals(serverHandshakeTrafficSecret, sharedSecret.serverHandshakeTrafficSecret) &&
-                Arrays.equals(derivedSecret1, sharedSecret.derivedSecret1) &&
-                Arrays.equals(masterSecret, sharedSecret.masterSecret) &&
-                Arrays.equals(clientApplicationTrafficSecret0, sharedSecret.clientApplicationTrafficSecret0) &&
-                Arrays.equals(serverApplicationTrafficSecret0, sharedSecret.serverApplicationTrafficSecret0) &&
-                Arrays.equals(exporterMasterSecret, sharedSecret.exporterMasterSecret) &&
-                Arrays.equals(resumptionMasterSecret, sharedSecret.resumptionMasterSecret) &&
-                Arrays.equals(clientWriteIV, sharedSecret.clientWriteIV) &&
-                Arrays.equals(serverWriteIV, sharedSecret.serverWriteIV);
+                Arrays.equals(earlySecret, sharedSecretHolder.earlySecret) &&
+                Arrays.equals(binderKey, sharedSecretHolder.binderKey) &&
+                Arrays.equals(clientEarlyTrafficSecret, sharedSecretHolder.clientEarlyTrafficSecret) &&
+                Arrays.equals(earlyExporterMasterSecret, sharedSecretHolder.earlyExporterMasterSecret) &&
+                Arrays.equals(derivedSecret0, sharedSecretHolder.derivedSecret0) &&
+                Arrays.equals(handShakeSecret, sharedSecretHolder.handShakeSecret) &&
+                Arrays.equals(clientHandshakeTrafficSecret, sharedSecretHolder.clientHandshakeTrafficSecret) &&
+                Arrays.equals(serverHandshakeTrafficSecret, sharedSecretHolder.serverHandshakeTrafficSecret) &&
+                Arrays.equals(derivedSecret1, sharedSecretHolder.derivedSecret1) &&
+                Arrays.equals(masterSecret, sharedSecretHolder.masterSecret) &&
+                Arrays.equals(clientApplicationTrafficSecret0, sharedSecretHolder.clientApplicationTrafficSecret0) &&
+                Arrays.equals(serverApplicationTrafficSecret0, sharedSecretHolder.serverApplicationTrafficSecret0) &&
+                Arrays.equals(exporterMasterSecret, sharedSecretHolder.exporterMasterSecret) &&
+                Arrays.equals(resumptionMasterSecret, sharedSecretHolder.resumptionMasterSecret) &&
+                Arrays.equals(clientWriteIV, sharedSecretHolder.clientWriteIV) &&
+                Arrays.equals(serverWriteIV, sharedSecretHolder.serverWriteIV);
     }
 
     public byte[] getServerHandShakeIVAndIncrement() {
@@ -287,7 +293,7 @@ public class SharedSecret {
         return symmetricAlgName;
     }
 
-    public CipherSuite getCipherSuite() {
+    public PQTLSCipherSuite getCipherSuite() {
         return cipherSuite;
     }
 
