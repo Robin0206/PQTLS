@@ -4,8 +4,12 @@ import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+import org.bouncycastle.tls.TlsProtocol;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.security.*;
 
 public class ServerMain {
@@ -18,7 +22,7 @@ public class ServerMain {
         PQTLSServer server = new PQTLSServer.PQTLSServerBuilder()
                 .cipherSuites(
                         new PQTLSCipherSuite[]{
-                                PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_AES_256_GCM_SHA384,
+                                PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA256,
                                 Constants.MANDATORY_CIPHERSUITE
                         }
                 )
@@ -31,7 +35,14 @@ public class ServerMain {
                 )
                 .keyStore(keyStore, "password".toCharArray())
                 .build();
-        server.printApplicationSecrets();
 
+        TlsProtocol protocol = server.getProtocol();
+        String message = "Hello Client";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(protocol.getInputStream()));
+        PrintWriter writer = new PrintWriter(protocol.getOutputStream(), true);
+        String clientMessage = reader.readLine();
+        System.out.println("recieved: " +clientMessage);
+        writer.println(message);
+        System.out.println("sent back: " + message);
     }
 }

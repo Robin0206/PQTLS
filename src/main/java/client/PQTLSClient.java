@@ -4,6 +4,9 @@ import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.tls.TlsClient;
+import org.bouncycastle.tls.TlsClientProtocol;
+import org.bouncycastle.tls.TlsServerProtocol;
 import statemachines.client.ClientStateMachine;
 
 import java.io.Closeable;
@@ -20,16 +23,23 @@ public class PQTLSClient implements Closeable {
     ClientHandShakeConnection handShakeConnection;
     ClientPSKConnection pskConnection;
     Socket socket;
+    TlsClientProtocol protocol;
 
     private PQTLSClient(PQTLSClientBuilder pqtlsClientBuilder) throws Exception {
         this.socket = new Socket(pqtlsClientBuilder.address, pqtlsClientBuilder.port);
         ClientStateMachine stateMachine = buildStateMachine(pqtlsClientBuilder);
-        handShakeConnection = new ClientHandShakeConnection(stateMachine, socket, this);
-        pskConnection = new ClientPSKConnection(handShakeConnection.getStateMachine().getSharedSecret(), socket);
+        handShakeConnection = new ClientHandShakeConnection(stateMachine, socket, this, pqtlsClientBuilder.printHandShakeMessages);
         handShakeConnection.doHandshake();
+        pskConnection = new ClientPSKConnection(handShakeConnection.getStateMachine().getSharedSecret(), socket);
+        protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
+        protocol.connect(this.pskConnection);
     }
 
     private PQTLSClient() {}
+
+    public TlsClientProtocol getProtocol(){
+        return protocol;
+    }
 
     private ClientStateMachine buildStateMachine(PQTLSClientBuilder builder) {
         return new ClientStateMachine.ClientStateMachineBuilder()
@@ -48,6 +58,7 @@ public class PQTLSClient implements Closeable {
 
     @Override
     public void close() throws IOException {
+        protocol.close();
         socket.close();
     }
 
@@ -62,6 +73,7 @@ public class PQTLSClient implements Closeable {
         private ArrayList<X509CertificateHolder> trustedCertificates;
         private int port;
         private InetAddress address;
+        private boolean printHandShakeMessages = false;
         private boolean portSet = false;
         private boolean addressSet = false;
         private boolean trustedCertificatesSet = false;
@@ -85,6 +97,11 @@ public class PQTLSClient implements Closeable {
         public PQTLSClientBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers) {
             this.curveIdentifiers = curveIdentifiers;
             this.curveIdentifiersSet = true;
+            return this;
+        }
+
+        public PQTLSClientBuilder printHandShakeMessages() {
+            this.printHandShakeMessages = true;
             return this;
         }
 

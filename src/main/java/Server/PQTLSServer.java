@@ -3,8 +3,11 @@ package Server;
 import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.tls.TlsServerProtocol;
+import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 import statemachines.server.ServerStateMachine;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,11 +18,12 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 
 
-public class PQTLSServer {
+public class PQTLSServer implements Closeable {
     private Socket clientSocket;
     protected ServerSocket serverSocket;
     protected ServerHandshakeConnection handshakeConnection;
     protected ServerPSKConnection pskConnection;
+    protected TlsServerProtocol protocol;
 
     private PQTLSServer() {
 
@@ -30,11 +34,21 @@ public class PQTLSServer {
         this.clientSocket = this.serverSocket.accept();
         this.handshakeConnection = new ServerHandshakeConnection(
                 buildStateMachine(builder),
-                serverSocket,
                 clientSocket,
-                this
+                this,
+                builder.printHandShakeMessages
         );
         this.handshakeConnection.doHandshake();
+        this.pskConnection = new ServerPSKConnection(
+                new BcTlsCrypto(),
+                handshakeConnection.getStateMachine().getSharedSecret()
+        );
+        protocol = new TlsServerProtocol(clientSocket.getInputStream(), clientSocket.getOutputStream());
+        protocol.accept(this.pskConnection);
+    }
+
+    public TlsServerProtocol getProtocol(){
+        return protocol;
     }
 
     private ServerStateMachine buildStateMachine(PQTLSServerBuilder builder) throws Exception {
@@ -50,6 +64,13 @@ public class PQTLSServer {
         handshakeConnection.getStateMachine().getSharedSecret().printApplicationTrafficSecrets();
     }
 
+    @Override
+    public void close() throws IOException {
+        this.protocol.close();
+        this.clientSocket.close();
+        this.serverSocket.close();
+    }
+
     public static class PQTLSServerBuilder {
         private int port;
         private PQTLSCipherSuite[] cipherSuites;
@@ -59,7 +80,12 @@ public class PQTLSServer {
         private boolean cipherSuitesSet = false;
         private ArrayList<X509CertificateHolder[]> certificateChains;
         private KeyPair[] keyPairs;
+        private boolean printHandShakeMessages = false;
 
+        public PQTLSServerBuilder printHandShakeMessages() {
+            this.printHandShakeMessages = true;
+            return this;
+        }
         public PQTLSServerBuilder port(int port) {
             this.port = port;
             this.portSet = true;

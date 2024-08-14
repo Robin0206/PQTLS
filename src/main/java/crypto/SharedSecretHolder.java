@@ -301,4 +301,8 @@ public class SharedSecretHolder {
         System.out.println("Client: " + Arrays.toString(clientApplicationTrafficSecret0));
         System.out.println("Server: " + Arrays.toString(serverApplicationTrafficSecret0));
     }
+
+    public byte[] getServerApplicationSecret() {
+        return serverApplicationTrafficSecret0;
+    }
 }

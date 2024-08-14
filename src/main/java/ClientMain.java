@@ -4,8 +4,13 @@ import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+import org.bouncycastle.tls.TlsClientProtocol;
+import org.bouncycastle.tls.TlsProtocol;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.security.*;
 
@@ -31,6 +36,14 @@ public class ClientMain {
                 .truststore(trustStore)
                 .address(InetAddress.getByName("localhost"))
                 .build();
-        client.printApplicationSecrets();
+
+        String message = "Hello Server";
+        TlsProtocol protocol = client.getProtocol();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(protocol.getInputStream()));
+        PrintWriter writer = new PrintWriter(protocol.getOutputStream(), true);
+        writer.println(message);
+        System.out.println("Sent: " + message);
+        String response = reader.readLine();
+        System.out.println("Server response: " + response);
     }
 }

@@ -3,7 +3,6 @@ package client;
 import messages.messageConverter.PQTLSMessageConverter;
 import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
-import messages.implementations.alerts.PQTLSAlertMessage;
 import messages.messageConverter.ServerMessageConverter;
 import statemachines.client.ClientStateMachine;
 
@@ -14,14 +13,15 @@ public class ClientHandShakeConnection {
     private final ClientStateMachine statemachine;
     private final Socket socket;
     private final PQTLSClient client;
-    PQTLSMessageConverter messageConverter;
+    private final boolean printHandShakeMessages;
+    private PQTLSMessageConverter messageConverter;
 
-    public ClientHandShakeConnection(ClientStateMachine stateMachine, Socket socket, PQTLSClient pqtlsClient) throws IOException {
+    public ClientHandShakeConnection(ClientStateMachine stateMachine, Socket socket, PQTLSClient pqtlsClient, boolean printHandShakeMessages) throws IOException {
         this.statemachine = stateMachine;
         this.socket = socket;
         this.client = pqtlsClient;
-        InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
         this.messageConverter = new ServerMessageConverter(this.statemachine);
+        this.printHandShakeMessages = printHandShakeMessages;
     }
 
 
@@ -43,24 +43,30 @@ public class ClientHandShakeConnection {
                 messageConverter.setSharedSecret(statemachine.getSharedSecret());
                 if (!(messageToSend instanceof NullMessage)) {
                     socket.getOutputStream().write(messageToSend.getBytes());
-                    System.out.print("Client sent: ");
-                    messageToSend.printVerbose();
+                    if(printHandShakeMessages){
+                        System.out.println("Client sent: ");
+                        messageToSend.printVerbose();
+                    }
                 }
                 //set next message or step through states until the state returns the next message to send
                 while (statemachine.stepWithoutWaiting()) {
                     messageToSend = statemachine.step(new NullMessage());
                     if (!(messageToSend instanceof NullMessage)) {
                         socket.getOutputStream().write(messageToSend.getBytes());
-                        System.out.print("Client sent: ");
-                        messageToSend.printVerbose();
+                        if(printHandShakeMessages){
+                            System.out.println("Client sent: ");
+                            messageToSend.printVerbose();
+                        }
                     }
                 }
 
                 //wait for response
                 if(!statemachine.finished()){
                     messageRecieved = messageConverter.convertMessage(PQTLSMessageConverter.readMessageFromStream(socket.getInputStream()));
-                    System.out.println("Client received: ");
-                    messageRecieved.printVerbose();
+                    if(printHandShakeMessages){
+                        System.out.println("Client received: ");
+                        messageRecieved.printVerbose();
+                    }
                 }
             }
         }
