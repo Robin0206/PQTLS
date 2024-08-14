@@ -48,11 +48,11 @@ public class ClientHelloState implements State {
     }
 
     private PQTLSExtension generateSignatureAlgorithmsExtension() {
-        return new SignatureAlgorithmsExtension(stateMachine.supportedSignatureAlgorithms);
+        return new SignatureAlgorithmsExtension(stateMachine.getSupportedSignatureAlgorithms());
     }
 
     private PQTLSExtension generateSupportedGroupsExtension() {
-        return new SupportedGroupsExtension(stateMachine.curveIdentifiers);
+        return new SupportedGroupsExtension(stateMachine.getSupportedCurves());
     }
 
     private PQTLSExtension generateKeyShareExtension() {
@@ -87,14 +87,14 @@ public class ClientHelloState implements State {
     //sets them in this class and the clientHelloStateMachine
     private void calculateAndSetKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //calculate Keys
-        this.stateMachine.ecKeyPairs = CryptographyModule.keys.generateECKeyPairs(stateMachine.getSupportedGroups());
+        this.stateMachine.ecKeyPairs = CryptographyModule.keys.generateECKeyPairs(stateMachine.getSupportedCurves());
         this.stateMachine.frodoKey = CryptographyModule.keys.generateFrodoKeyPair();
         this.stateMachine.kyberKey = CryptographyModule.keys.generateKyberKeyPair();
         stateMachine.setEcKeyPairs(stateMachine.ecKeyPairs);
     }
 
     private boolean cipherSuitesContainOneWithKyberKEM() {
-        for(PQTLSCipherSuite cipherSuite : stateMachine.cipherSuites){
+        for(PQTLSCipherSuite cipherSuite : stateMachine.getSupportedCipherSuites()){
             if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
                 return true;
             }
@@ -103,7 +103,7 @@ public class ClientHelloState implements State {
     }
 
     private boolean cipherSuitesContainOneWithFrodoKEM() {
-        for(PQTLSCipherSuite cipherSuite : stateMachine.cipherSuites){
+        for(PQTLSCipherSuite cipherSuite : stateMachine.getSupportedCipherSuites()){
             if(cipherSuite.ordinal() < 5 || cipherSuite.ordinal() > 8){
                 return true;
             }
@@ -124,7 +124,7 @@ public class ClientHelloState implements State {
         random.nextBytes(rand);
         return new HelloMessage.HelloBuilder()
                 .extensions(extensionsArray)
-                .cipherSuites(stateMachine.cipherSuites)
+                .cipherSuites(stateMachine.getSupportedCipherSuites())
                 .sessionID(sessionID)
                 .LegacyVersion(new byte[]{0x03, 0x03})
                 .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO)

@@ -9,8 +9,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 
 public interface State {
     void calculate() throws Exception;

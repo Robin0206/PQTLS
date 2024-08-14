@@ -41,9 +41,9 @@ public class SendingCertificatesState implements State {
     }
 
     private int determineCertificateChainIndex(ArrayList<X509CertificateHolder[]>[] splitCertificateChains) {
-        if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2 && !splitCertificateChains[2].isEmpty()){
+        if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.getSupportedSignatureAlgorithms().length == 2 && !splitCertificateChains[2].isEmpty()){
             return 2; // if the client and the server support dilithium and sphincs, the server can send a chain that uses both algorithms if it has one
-        }else if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.supportedSignatureAlgorithms.length == 2){
+        }else if(clientSupportedSignatureAlgorithms.length == 2 && stateMachine.getSupportedSignatureAlgorithms().length == 2){
             return 1;// if the server has certificate chains that use dilithium and others that use sphincs but none that use both,
                      // it should use the dilithium certificate chain, because the signatures are much shorter.
         }else if(serverAndClientSupportDilithium()){
@@ -56,7 +56,7 @@ public class SendingCertificatesState implements State {
     private boolean serverAndClientSupportDilithium() {
         boolean serverSupportsDilithium = false;
         boolean clientSupportsDilithium = false;
-        for(byte b : stateMachine.supportedSignatureAlgorithms){
+        for(byte b : stateMachine.getSupportedSignatureAlgorithms()){
             if(b == Constants.EXTENSION_SIGNATURE_ALGORITHMS_SUPPORTS_DILITHIUM){
                 serverSupportsDilithium = true;
                 break;
@@ -101,7 +101,7 @@ public class SendingCertificatesState implements State {
     }
 
     private void determineClientSupportedSignatureAlgorithms() {
-        HelloMessage clientHello = (HelloMessage) stateMachine.messages.getFirst();
+        HelloMessage clientHello = (HelloMessage) stateMachine.getMessages().getFirst();
         PQTLSExtension[] extensions = clientHello.getExtensions();
         SignatureAlgorithmsExtension supportedSignatureAlgorithms = extractSignatureAlgorithmsExtension(extensions);
         clientSupportedSignatureAlgorithms = supportedSignatureAlgorithms.getSupportedSignatureAlgorithms();
@@ -123,11 +123,11 @@ public class SendingCertificatesState implements State {
                 new CertificateMessage(certificatesToSend),
                 (byte) 0x0b,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
+                        stateMachine.getSharedSecretHolder().getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
                 ),
-                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
-                stateMachine.preferredCipherSuite
+                stateMachine.getSharedSecretHolder().getServerHandShakeIVAndIncrement(),
+                stateMachine.getChosenCipherSuite()
         );
     }
 

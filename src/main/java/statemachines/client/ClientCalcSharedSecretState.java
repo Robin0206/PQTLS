@@ -43,9 +43,9 @@ public class ClientCalcSharedSecretState implements State {
     }
 
     private void setStateMachineChosenCurveAndItsKeyIndex() {
-        stateMachine.chosenCurve = serverHelloKeyShareExtension.getCurveIdentifier();
-        for (int i = 0; i < stateMachine.curveIdentifiers.length; i++) {
-            if (stateMachine.curveIdentifiers[i] == stateMachine.chosenCurve) {
+        stateMachine.setChosenCurve(serverHelloKeyShareExtension.getCurveIdentifier());
+        for (int i = 0; i < stateMachine.getSupportedCurves().length; i++) {
+            if (stateMachine.getSupportedCurves()[i] == stateMachine.getChosenCurve()) {
                 stateMachine.chosenCurveKeyIndex = i;
             }
         }
@@ -103,11 +103,11 @@ public class ClientCalcSharedSecretState implements State {
             }
         }
         byte[] concatenatedMessages = Arrays.concatenate(new byte[][]{
-                stateMachine.messages.get(0).getBytes(),
-                stateMachine.messages.get(1).getBytes()
+                stateMachine.getMessages().get(0).getBytes(),
+                stateMachine.getMessages().get(1).getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecretHolder = new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.messages.get(0).getBytes(), serverHelloMessage.getCipherSuites()[0]);
+        stateMachine.setSharedSecretHolder(new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.getMessages().get(0).getBytes(), serverHelloMessage.getCipherSuites()[0]));
     }
 
 
@@ -120,7 +120,7 @@ public class ClientCalcSharedSecretState implements State {
     }
 
     private void setStateMachineChosenSymmetricAlgorithm() {
-        String[] cipherSuiteContentSplit = Strings.split(stateMachine.chosenCipherSuite.name(), '_');
+        String[] cipherSuiteContentSplit = Strings.split(stateMachine.getChosenCipherSuite().name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
                 stateMachine.symmetricAlgorithm = cipherSuiteContentSplit[i + 1];
@@ -130,7 +130,7 @@ public class ClientCalcSharedSecretState implements State {
     }
 
     private void setStateMachineChosenCipherSuite() {
-        stateMachine.chosenCipherSuite = serverHelloMessage.getCipherSuites()[0];
+        stateMachine.setChosenCipherSuite(serverHelloMessage.getCipherSuites()[0]);
     }
 
 
@@ -165,10 +165,10 @@ public class ClientCalcSharedSecretState implements State {
 
 
     private boolean cipherSuiteUsesKyberKEM() {
-        return stateMachine.chosenCipherSuite.ordinal() != 0 && !cipherSuiteUsesFrodoKEM();
+        return stateMachine.getChosenCipherSuite().ordinal() != 0 && !cipherSuiteUsesFrodoKEM();
     }
 
     private boolean cipherSuiteUsesFrodoKEM() {
-        return stateMachine.chosenCipherSuite.ordinal() < 5 || stateMachine.chosenCipherSuite.ordinal() > 8;
+        return stateMachine.getChosenCipherSuite().ordinal() < 5 || stateMachine.getChosenCipherSuite().ordinal() > 8;
     }
 }

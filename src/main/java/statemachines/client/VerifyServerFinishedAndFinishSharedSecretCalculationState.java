@@ -43,21 +43,21 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
             this.alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.decrypt_error);
         }
         if(this.alertMessage == null){
-            stateMachine.finished = true;
+            stateMachine.setFinished(true);
         }
     }
 
     private void finishSharedSecretCalculation() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         ArrayList<byte[]> buffer = new ArrayList<>();
-        for (int i = 0; i < stateMachine.messages.size(); i++) {
-            buffer.add(stateMachine.messages.get(i).getBytes());
+        for (int i = 0; i < stateMachine.getMessages().size(); i++) {
+            buffer.add(stateMachine.getMessages().get(i).getBytes());
         }
-        stateMachine.sharedSecretHolder.deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
+        stateMachine.getSharedSecretHolder().deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
     }
 
     private void resetCalculatedMessages() {
         concatenatedMessages.clear();
-        for(PQTLSMessage message : stateMachine.messages){
+        for(PQTLSMessage message : stateMachine.getMessages()){
             concatenatedMessages.add(message.getBytes());
         }
     }
@@ -71,15 +71,15 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
     private byte[] calculateServerVerifyData() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         return new FinishedMessage(
                 concatenatedMessages,
-                stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
-                stateMachine.sharedSecretHolder.getHashName()
+                stateMachine.getSharedSecretHolder().getServerHandShakeSecret(),
+                stateMachine.getSharedSecretHolder().getHashName()
         ).getVerifyData();
     }
 
     private void setConcatenatedMessagesUntilServerEncryptedExtensions() {
         concatenatedMessages = new ArrayList<>();
         for(int i = 0; i < 3; i++){
-            concatenatedMessages.add(stateMachine.messages.get(i).getBytes());
+            concatenatedMessages.add(stateMachine.getMessages().get(i).getBytes());
         }
     }
 
@@ -90,26 +90,26 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
                     alertMessage,
                     Constants.ALERT_MESSAGE,
                     CryptographyModule.keys.byteArrToSymmetricKey(
-                            stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
+                            stateMachine.getSharedSecretHolder().getClientHandShakeSecret(),
                             stateMachine.symmetricAlgorithm
                     ),
-                    stateMachine.sharedSecretHolder.getClientHandShakeIVAndIncrement(),
-                    stateMachine.chosenCipherSuite
+                    stateMachine.getSharedSecretHolder().getClientHandShakeIVAndIncrement(),
+                    stateMachine.getChosenCipherSuite()
             );
         }
         return new WrappedRecord(
                 new FinishedMessage(
                         concatenatedMessages,
-                        stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
-                        stateMachine.sharedSecretHolder.getHashName()
+                        stateMachine.getSharedSecretHolder().getClientHandShakeSecret(),
+                        stateMachine.getSharedSecretHolder().getHashName()
                 ),
                 Constants.HANDSHAKE_TYPE_FINISHED,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
+                        stateMachine.getSharedSecretHolder().getClientHandShakeSecret(),
                         stateMachine.symmetricAlgorithm
                 ),
-                stateMachine.sharedSecretHolder.getClientHandShakeIVAndIncrement(),
-                stateMachine.chosenCipherSuite
+                stateMachine.getSharedSecretHolder().getClientHandShakeIVAndIncrement(),
+                stateMachine.getChosenCipherSuite()
         );
     }
 

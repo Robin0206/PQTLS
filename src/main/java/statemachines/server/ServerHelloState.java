@@ -16,6 +16,7 @@ import misc.ByteUtils;
 import misc.Constants;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 import java.security.*;
@@ -64,7 +65,7 @@ public class ServerHelloState implements State {
     private int getPreferredCurveIndexInKeyShareExtension() throws Exception {
         CurveIdentifier[] clientSupportedCurves = getSupportedCurvesByClient();
         for (int i = 0; i < clientSupportedCurves.length; i++) {
-            if(clientSupportedCurves[i] == stateMachine.preferredCurveIdentifier){
+            if(clientSupportedCurves[i] == stateMachine.getChosenCurve()){
                 return i;
             }
         }
@@ -95,16 +96,16 @@ public class ServerHelloState implements State {
             }
         }
         byte[] concatenatedMessages = Arrays.concatenate(new byte[][]{
-                stateMachine.messages.getFirst().getBytes(),
+                stateMachine.getMessages().getFirst().getBytes(),
                 this.getMessage().getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.sharedSecretHolder = new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.messages.getFirst().getBytes(), stateMachine.preferredCipherSuite);
+        stateMachine.setSharedSecretHolder(new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.getMessages().getFirst().getBytes(), stateMachine.getChosenCipherSuite()));
         //stateMachine.sharedSecret.setSymmetricAlgName(stateMachine.getPreferredSymmetricAlgorithm());
     }
 
     private String getSymmetricCipherNameFromCipherSuite() {
-        String[] cipherSuiteContentSplit = Strings.split(stateMachine.preferredCipherSuite.name(), '_');
+        String[] cipherSuiteContentSplit = Strings.split(stateMachine.getChosenCipherSuite().name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if(Objects.equals(cipherSuiteContentSplit[i], "WITH")){
                 return cipherSuiteContentSplit[i+1];
@@ -126,7 +127,7 @@ public class ServerHelloState implements State {
         for (int i = 0; i < keysArray.length; i++) {
             keysArray[i] = keyBuffer.get(i);
         }
-        keyShareExtension =  new KeyShareExtension(keysArray, stateMachine.preferredCurveIdentifier);
+        keyShareExtension =  new KeyShareExtension(keysArray, stateMachine.getChosenCurve());
 
     }
     private void extractPQKeyPairsFromClientHelloMessage() throws Exception {
@@ -174,7 +175,7 @@ public class ServerHelloState implements State {
     //TODO
     // will be rewritten with the use of a keystore
     private void setStateMachineKeyPairs() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        stateMachine.ecKeyPair = CryptographyModule.keys.generateECKeyPair(stateMachine.preferredCurveIdentifier);
+        stateMachine.ecKeyPair = CryptographyModule.keys.generateECKeyPair(stateMachine.getChosenCurve());
         if(cipherSuiteUsesFrodoKEM()){
             stateMachine.frodoEncapsulatedSecret = CryptographyModule.keys.generateEncapsulatedSecret(
                     clientPublicKeyFrodo,
@@ -192,11 +193,11 @@ public class ServerHelloState implements State {
     }
 
     private boolean cipherSuiteUsesKyberKEM() {
-        return stateMachine.preferredCipherSuite.ordinal() >= 5 && stateMachine.preferredCipherSuite.ordinal() <= 8;
+        return stateMachine.getChosenCipherSuite().ordinal() >= 5 && stateMachine.getChosenCipherSuite().ordinal() <= 8;
     }
 
     private boolean cipherSuiteUsesFrodoKEM() {
-        return stateMachine.preferredCipherSuite.ordinal() < 5 || stateMachine.preferredCipherSuite.ordinal() > 8;
+        return stateMachine.getChosenCipherSuite().ordinal() < 5 || stateMachine.getChosenCipherSuite().ordinal() > 8;
     }
 
     private boolean clientHelloCipherSuitesContainOneWithFrodoKEM(){
@@ -216,12 +217,12 @@ public class ServerHelloState implements State {
         return false;
     }
     private void setStateMachinePreferredCurve() throws Exception {
-        CurveIdentifier[] supportedCurvesByServer = stateMachine.supportedCurves;
+        CurveIdentifier[] supportedCurvesByServer = stateMachine.getSupportedCurves();
         CurveIdentifier[] supportedCurvesByClient = getSupportedCurvesByClient();
         for(CurveIdentifier curveIdentifierClient : supportedCurvesByClient){
             for(CurveIdentifier curveIdentifierServer : supportedCurvesByServer){
                 if(curveIdentifierClient == curveIdentifierServer){
-                    stateMachine.preferredCurveIdentifier = curveIdentifierClient;
+                    stateMachine.setChosenCurve(curveIdentifierClient);
                     return;
                 }
             }
@@ -259,11 +260,11 @@ public class ServerHelloState implements State {
     private void setStateMachinePreferredCipherSuite() {
         PQTLSCipherSuite[] clientCipherSuites = clientHelloMessage
                 .getCipherSuites();
-        for (int i = 0; i < stateMachine.supportedCipherSuites.length; i++) {
+        for (int i = 0; i < stateMachine.getSupportedCipherSuites().length; i++) {
             for (int j = 0; j < clientCipherSuites.length; j++) {
-                if(stateMachine.supportedCipherSuites[i] == clientCipherSuites[j]){
+                if(stateMachine.getSupportedCipherSuites()[i] == clientCipherSuites[j]){
                     //This if-statement will always be reached since there is a mandatory cipher suite
-                    stateMachine.preferredCipherSuite = clientCipherSuites[j];
+                    stateMachine.setChosenCipherSuite(clientCipherSuites[j]);
                     return;
                 }
             }
@@ -276,7 +277,7 @@ public class ServerHelloState implements State {
         if(alertMessage == null){
             return new HelloMessage.HelloBuilder()
                     .extensions(new PQTLSExtension[]{keyShareExtension})
-                    .cipherSuites(new PQTLSCipherSuite[]{stateMachine.preferredCipherSuite})
+                    .cipherSuites(new PQTLSCipherSuite[]{stateMachine.getChosenCipherSuite()})
                     .sessionID(stateMachine.sessionID)
                     .LegacyVersion(new byte[]{0x03, 0x03})
                     .handShakeType(Constants.HELLO_MESSAGE_HANDSHAKE_TYPE_SERVER_HELLO)
@@ -306,6 +307,7 @@ public class ServerHelloState implements State {
     public void setStateMachine(ServerStateMachine stateMachine) {
         this.stateMachine = stateMachine;
     }
+
 
     @Override
     public boolean stepWithoutWaitingForMessage() {

@@ -1,6 +1,5 @@
 package statemachines.client;
 
-import crypto.SharedSecretHolder;
 import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.ECPointFormat;
@@ -9,7 +8,7 @@ import messages.extensions.PQTLSExtension;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import statemachines.FinishedState;
-import statemachines.State;
+import statemachines.PQTLSStateMachine;
 
 import java.security.*;
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ import java.util.ArrayList;
 Uses fluent builder pattern
 The first state is always the ClientHelloState
  */
-public class ClientStateMachine {
+public class ClientStateMachine extends PQTLSStateMachine {
 
     protected boolean verifiedServerFinishedMessage;
     protected ArrayList<X509CertificateHolder> trustedCertificates;
@@ -29,70 +28,46 @@ public class ClientStateMachine {
     protected ArrayList<PQTLSExtension> extensions;
     protected int chosenCurveKeyIndex;
     protected PQTLSMessage serverEncryptedExtensions;
-    protected PQTLSCipherSuite chosenCipherSuite;
-    protected SharedSecretHolder sharedSecretHolder;
     protected KeyPair[] ecKeyPairs;
     protected KeyPair frodoKey;
     protected KeyPair kyberKey;
     protected String symmetricAlgorithm;
-    protected State currentState;
-    protected PQTLSCipherSuite[] cipherSuites;
-    protected CurveIdentifier[] curveIdentifiers;
-    protected CurveIdentifier chosenCurve;
     protected ECPointFormat[] ecPointFormats;
-    protected byte[] supportedSignatureAlgorithms;
     protected int numberOfCurvesToSendByClientHello;
     protected byte[] extensionIdentifiers;
-    protected ArrayList<PQTLSMessage> messages;
 
-    private boolean stepWithoutWaiting;
-    protected boolean finished = false;
+
 
     private ClientStateMachine(ClientStateMachineBuilder builder){
-        messages = new ArrayList<>();
-        this.cipherSuites = builder.cipherSuites;
-        this.curveIdentifiers = builder.curveIdentifiers;
+        super();
+        this.setSupportedCurves(builder.curveIdentifiers);
+        this.setSupportedSignatureAlgorithms(builder.supportedSignatureAlgorithms);
+        this.setSupportedCipherSuites(builder.cipherSuites);
+        setCurrentState(new ClientHelloState());
+        setMessages(new ArrayList<>());
         this.ecPointFormats = builder.ecPointFormats;
-        this.supportedSignatureAlgorithms = builder.supportedSignatureAlgorithms;
         this.numberOfCurvesToSendByClientHello = builder.numberOfCurvesSendByClientHello;
         this.extensionIdentifiers = builder.extensionIdentifiers;
         this.trustedCertificates = builder.trustedCertificates;
-        currentState = new ClientHelloState();
     }
 
     public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
-        currentState.setStateMachine(this);
-        currentState.setPreviousMessage(previousMessage);
+        getCurrentState().setStateMachine(this);
+        getCurrentState().setPreviousMessage(previousMessage);
         if (isNotNullMessage(previousMessage)) {
-            messages.add(previousMessage);
+            getMessages().add(previousMessage);
         }
-        currentState.calculate();
-        PQTLSMessage result = currentState.getMessage();
+        getCurrentState().calculate();
+        PQTLSMessage result = getCurrentState().getMessage();
         if (isNotNullMessage(result)) {
-            messages.add(result);
+            getMessages().add(result);
         }
-        stepWithoutWaiting = currentState.stepWithoutWaitingForMessage();
-        currentState = currentState.next();
-        if(currentState instanceof FinishedState){
-            this.finished = true;
+        setStepWithoutWaiting(getCurrentState().stepWithoutWaitingForMessage());
+        setCurrentState(getCurrentState().next());
+        if(getCurrentState() instanceof FinishedState){
+            this.setFinished(true);
         }
         return result;
-    }
-
-    private boolean isNotNullMessage(PQTLSMessage message) {
-        return message.getBytes()[0] != (byte) 0xff;
-    }
-
-    public CurveIdentifier[] getSupportedGroups() {
-        return curveIdentifiers;
-    }
-
-    public void setEcKeyPairs(KeyPair[] ecKeyPairs) {
-        this.ecKeyPairs = ecKeyPairs;
-    }
-
-    public SharedSecretHolder getSharedSecret() {
-        return sharedSecretHolder;
     }
 
     public boolean getCertificatesTrusted() {
@@ -103,20 +78,12 @@ public class ClientStateMachine {
         return signatureValid;
     }
 
-    public ArrayList<PQTLSMessage> getMessages() {
-        return messages;
+    public void setEcKeyPairs(KeyPair[] ecKeyPairs) {
+        this.ecKeyPairs = ecKeyPairs;
     }
 
     public boolean verifiedServerFinishedMessage() {
         return verifiedServerFinishedMessage;
-    }
-
-    public boolean stepWithoutWaiting() {
-        return this.stepWithoutWaiting;
-    }
-
-    public boolean finished() {
-        return this.finished;
     }
 
     public static class ClientStateMachineBuilder {

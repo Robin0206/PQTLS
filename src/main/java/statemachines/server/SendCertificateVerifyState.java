@@ -35,7 +35,7 @@ public class SendCertificateVerifyState implements State {
     private void setMessagesToSign() {
         ArrayList<Byte> messagesConcatenated = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-            for(Byte b : stateMachine.messages.get(i).getBytes()){
+            for(Byte b : stateMachine.getMessages().get(i).getBytes()){
                 messagesConcatenated.add(b);
             }
         }
@@ -68,11 +68,11 @@ public class SendCertificateVerifyState implements State {
                 new CertificateVerifyMessage(signature, true),
                 (byte) 0x0f,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
+                        stateMachine.getSharedSecretHolder().getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
                 ),
-                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
-                stateMachine.preferredCipherSuite
+                stateMachine.getSharedSecretHolder().getServerHandShakeIVAndIncrement(),
+                stateMachine.getChosenCipherSuite()
         );
     }
 

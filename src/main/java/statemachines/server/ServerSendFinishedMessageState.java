@@ -29,7 +29,7 @@ public class ServerSendFinishedMessageState implements State {
     private void setConcatenatedMessages() {
         concatenatedMessages = new ArrayList<>();
         for(int i = 0; i < 3; i++){
-            concatenatedMessages.add(stateMachine.messages.get(i).getBytes());
+            concatenatedMessages.add(stateMachine.getMessages().get(i).getBytes());
         }
     }
 
@@ -38,16 +38,16 @@ public class ServerSendFinishedMessageState implements State {
         return new WrappedRecord(
                 new FinishedMessage(
                         concatenatedMessages,
-                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
-                        stateMachine.sharedSecretHolder.getHashName()
+                        stateMachine.getSharedSecretHolder().getServerHandShakeSecret(),
+                        stateMachine.getSharedSecretHolder().getHashName()
                 ),
                 Constants.HANDSHAKE_TYPE_FINISHED,
                 CryptographyModule.keys.byteArrToSymmetricKey(
-                        stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
+                        stateMachine.getSharedSecretHolder().getServerHandShakeSecret(),
                         stateMachine.getPreferredSymmetricAlgorithm()
                 ),
-                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
-                stateMachine.preferredCipherSuite
+                stateMachine.getSharedSecretHolder().getServerHandShakeIVAndIncrement(),
+                stateMachine.getChosenCipherSuite()
         );
     }
 

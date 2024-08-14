@@ -38,16 +38,16 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
         if(!stateMachine.verifiedClientFinished){
             this.alertMessage = new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.decrypt_error);
         }else{
-            stateMachine.finished = true;
+            stateMachine.setFinished(true);
         }
     }
 
     private void finishSharedSecretCalculation() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         ArrayList<byte[]> buffer =  new ArrayList<>();
-        for (int i = 0; i < stateMachine.messages.size() - 1; i++) {//loop over all messages except the last(which is the client finished message)
-            buffer.add(stateMachine.messages.get(i).getBytes());
+        for (int i = 0; i < stateMachine.getMessages().size() - 1; i++) {//loop over all messages except the last(which is the client finished message)
+            buffer.add(stateMachine.getMessages().get(i).getBytes());
         }
-        stateMachine.sharedSecretHolder.deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
+        stateMachine.getSharedSecretHolder().deriveSecretsAfterFinish(ByteUtils.flatten(buffer));
     }
 
     private void verifyClientVerifyData() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
@@ -58,13 +58,13 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
 
     private byte[] recalculateClientVerifyData() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         ArrayList<byte[]> concatenatedMessages = new ArrayList<>();
-        for (int i = 0; i < stateMachine.messages.size()-1; i++) {
-            concatenatedMessages.add(stateMachine.messages.get(i).getBytes());
+        for (int i = 0; i < stateMachine.getMessages().size()-1; i++) {
+            concatenatedMessages.add(stateMachine.getMessages().get(i).getBytes());
         }
         return new FinishedMessage(
                 concatenatedMessages,
-                stateMachine.sharedSecretHolder.getClientHandShakeSecret(),
-                stateMachine.sharedSecretHolder.getHashName()
+                stateMachine.getSharedSecretHolder().getClientHandShakeSecret(),
+                stateMachine.getSharedSecretHolder().getHashName()
         ).getVerifyData();
     }
 
@@ -75,11 +75,11 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
                     alertMessage,
                     Constants.ALERT_MESSAGE,
                     CryptographyModule.keys.byteArrToSymmetricKey(
-                            stateMachine.sharedSecretHolder.getServerHandShakeSecret(),
+                            stateMachine.getSharedSecretHolder().getServerHandShakeSecret(),
                             stateMachine.getPreferredSymmetricAlgorithm()
                     ),
-                    stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
-                    stateMachine.preferredCipherSuite
+                    stateMachine.getSharedSecretHolder().getServerHandShakeIVAndIncrement(),
+                    stateMachine.getChosenCipherSuite()
             );
         }
 

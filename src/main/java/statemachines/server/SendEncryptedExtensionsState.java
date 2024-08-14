@@ -31,9 +31,9 @@ public class SendEncryptedExtensionsState implements State {
         return new WrappedRecord(
                 new EncryptedExtensions(new PQTLSExtension[]{}),
                 (byte)0x08,
-                CryptographyModule.keys.byteArrToSymmetricKey(stateMachine.sharedSecretHolder.getServerHandShakeSecret(), getSymmetricCipherNameFromCipherSuite()),
-                stateMachine.sharedSecretHolder.getServerHandShakeIVAndIncrement(),
-                stateMachine.preferredCipherSuite
+                CryptographyModule.keys.byteArrToSymmetricKey(stateMachine.getSharedSecretHolder().getServerHandShakeSecret(), getSymmetricCipherNameFromCipherSuite()),
+                stateMachine.getSharedSecretHolder().getServerHandShakeIVAndIncrement(),
+                stateMachine.getChosenCipherSuite()
         );
     }
 
@@ -64,10 +64,10 @@ public class SendEncryptedExtensionsState implements State {
 
 
     private String getSymmetricCipherNameFromCipherSuite() {
-        String[] cipherSuiteContentSplit = Strings.split(stateMachine.preferredCipherSuite.name(), '_');
+        String[] cipherSuiteContentSplit = Strings.split(stateMachine.getChosenCipherSuite().name(), '_');
         for (int i = 0; i < cipherSuiteContentSplit.length; i++) {
             if (Objects.equals(cipherSuiteContentSplit[i], "WITH")) {
-                stateMachine.sharedSecretHolder.setSymmetricAlgName(cipherSuiteContentSplit[i + 1]);
+                stateMachine.getSharedSecretHolder().setSymmetricAlgName(cipherSuiteContentSplit[i + 1]);
                 return cipherSuiteContentSplit[i + 1];
             }
         }

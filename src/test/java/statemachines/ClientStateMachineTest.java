@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ClientStateMachineTest {
     static SecureRandom random;
-    ClientStateMachine clientStateMachine;
+    PQTLSStateMachine clientStateMachine;
 
     @BeforeAll
     public static void initialize() {

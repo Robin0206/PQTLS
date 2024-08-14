@@ -7,16 +7,8 @@ import messages.messageConverter.ClientMessageConverter;
 import messages.messageConverter.PQTLSMessageConverter;
 import statemachines.server.ServerStateMachine;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 
 public class ServerHandshakeConnection {
     private final Socket clientSocket;
@@ -50,7 +42,7 @@ public class ServerHandshakeConnection {
                     messageToSend.printVerbose();
                     clientSocket.getOutputStream().write(messageToSend.getBytes());
                 }
-                while(stateMachine.stepWithoutWaitingForMessage()){
+                while(stateMachine.stepWithoutWaiting()){
                     messageToSend = stateMachine.step(new NullMessage());
                     if(!(messageToSend instanceof NullMessage)){
                         System.out.println("Server sends: ");
