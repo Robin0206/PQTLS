@@ -51,24 +51,7 @@ public class ClientStateMachine extends PQTLSStateMachine {
         this.trustedCertificates = builder.trustedCertificates;
     }
 
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
-        getCurrentState().setStateMachine(this);
-        getCurrentState().setPreviousMessage(previousMessage);
-        if (isNotNullMessage(previousMessage)) {
-            getMessages().add(previousMessage);
-        }
-        getCurrentState().calculate();
-        PQTLSMessage result = getCurrentState().getMessage();
-        if (isNotNullMessage(result)) {
-            getMessages().add(result);
-        }
-        setStepWithoutWaiting(getCurrentState().stepWithoutWaitingForMessage());
-        setCurrentState(getCurrentState().next());
-        if(getCurrentState() instanceof FinishedState){
-            this.setFinished(true);
-        }
-        return result;
-    }
+
 
     public boolean getCertificatesTrusted() {
         return certificatesTrusted;

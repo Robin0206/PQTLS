@@ -41,25 +41,6 @@ public class ServerStateMachine extends PQTLSStateMachine {
         setStepWithoutWaiting(false);
     }
 
-    public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
-        getCurrentState().setStateMachine(this);
-        getCurrentState().setPreviousMessage(previousMessage);
-        if (isNotNullMessage(previousMessage)) {
-            getMessages().add(previousMessage);
-        }
-        getCurrentState().calculate();
-        PQTLSMessage result = getCurrentState().getMessage();
-        if (result != null && isNotNullMessage(result)) {
-            getMessages().add(result);
-        }
-        setStepWithoutWaiting(getCurrentState().stepWithoutWaitingForMessage());
-        setCurrentState(getCurrentState().next());
-        if (getCurrentState() instanceof FinishedState) {
-            this.setFinished(true);
-        }
-        return result;
-    }
-
     public String getPreferredSymmetricAlgorithm() {
         String[] splitCipherSuite = getChosenCipherSuite().toString().split("_");
         for (int i = 0; i < splitCipherSuite.length; i++) {

@@ -15,7 +15,6 @@ public interface State {
     PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException;
     State next();
     void setPreviousMessage(PQTLSMessage message);
-    void setStateMachine(ClientStateMachine stateMachine);
-    void setStateMachine(ServerStateMachine stateMachine);
+    void setStateMachine(PQTLSStateMachine stateMachine);
     boolean stepWithoutWaitingForMessage();
 }

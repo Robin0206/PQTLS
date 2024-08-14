@@ -11,6 +11,7 @@ import messages.implementations.alerts.PQTLSAlertMessage;
 import misc.ByteUtils;
 import misc.Constants;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
 
@@ -97,13 +98,8 @@ public class SignatureVerifyState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ClientStateMachine) stateMachine;
     }
 
     @Override

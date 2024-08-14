@@ -37,13 +37,7 @@ public class FinishedState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
     }
 
     @Override

@@ -10,6 +10,7 @@ import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.SupportedGroupsExtension;
 import messages.implementations.HelloMessage;
 import misc.Constants;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
 
@@ -141,13 +142,8 @@ public class ClientHelloState implements State {
     public void setPreviousMessage(PQTLSMessage message) {}
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ClientStateMachine) stateMachine;
     }
 
     @Override

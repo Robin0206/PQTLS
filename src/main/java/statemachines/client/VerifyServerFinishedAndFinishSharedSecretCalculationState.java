@@ -10,6 +10,7 @@ import messages.implementations.alerts.PQTLSAlertMessage;
 import misc.ByteUtils;
 import misc.Constants;
 import statemachines.FinishedState;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
 
@@ -124,13 +125,8 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ClientStateMachine) stateMachine;
     }
 
     @Override

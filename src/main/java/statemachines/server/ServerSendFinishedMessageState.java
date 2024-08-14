@@ -5,6 +5,7 @@ import messages.PQTLSMessage;
 import messages.implementations.FinishedMessage;
 import messages.implementations.WrappedRecord;
 import misc.Constants;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 
@@ -62,13 +63,8 @@ public class ServerSendFinishedMessageState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ServerStateMachine) stateMachine;
     }
 
     @Override

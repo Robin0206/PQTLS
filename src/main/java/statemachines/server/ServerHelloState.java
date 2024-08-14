@@ -299,13 +299,8 @@ public class ServerHelloState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ServerStateMachine) stateMachine;
     }
 
 

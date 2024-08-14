@@ -6,6 +6,7 @@ import messages.extensions.PQTLSExtension;
 import messages.implementations.EncryptedExtensions;
 import messages.implementations.WrappedRecord;
 import org.bouncycastle.util.Strings;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 
@@ -48,13 +49,8 @@ public class SendEncryptedExtensionsState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ServerStateMachine) stateMachine;
     }
 
     @Override

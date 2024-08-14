@@ -10,6 +10,7 @@ import messages.implementations.WrappedRecord;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.client.ClientStateMachine;
 
@@ -142,13 +143,8 @@ public class SendingCertificatesState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ServerStateMachine) stateMachine;
     }
 
     @Override

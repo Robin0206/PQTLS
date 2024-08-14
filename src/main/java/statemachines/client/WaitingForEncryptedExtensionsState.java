@@ -3,6 +3,7 @@ package statemachines.client;
 import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
 import messages.implementations.WrappedRecord;
+import statemachines.PQTLSStateMachine;
 import statemachines.State;
 import statemachines.server.ServerStateMachine;
 
@@ -41,13 +42,8 @@ public class WaitingForEncryptedExtensionsState implements State {
     }
 
     @Override
-    public void setStateMachine(ClientStateMachine stateMachine) {
-        this.stateMachine = stateMachine;
-    }
-
-    @Override
-    public void setStateMachine(ServerStateMachine stateMachine) {
-
+    public void setStateMachine(PQTLSStateMachine stateMachine) {
+        this.stateMachine = (ClientStateMachine) stateMachine;
     }
 
     @Override

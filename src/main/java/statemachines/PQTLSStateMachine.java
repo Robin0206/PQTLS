@@ -19,6 +19,25 @@ public class PQTLSStateMachine {
     private boolean finished = false;
     private ArrayList<PQTLSMessage> messages;
 
+    public PQTLSMessage step(PQTLSMessage previousMessage) throws Exception {
+        getCurrentState().setStateMachine(this);
+        getCurrentState().setPreviousMessage(previousMessage);
+        if (isNotNullMessage(previousMessage)) {
+            getMessages().add(previousMessage);
+        }
+        getCurrentState().calculate();
+        PQTLSMessage result = getCurrentState().getMessage();
+        if (result != null && isNotNullMessage(result)) {
+            getMessages().add(result);
+        }
+        setStepWithoutWaiting(getCurrentState().stepWithoutWaitingForMessage());
+        setCurrentState(getCurrentState().next());
+        if(getCurrentState() instanceof FinishedState){
+            this.setFinished(true);
+        }
+        return result;
+    }
+
     protected boolean isNotNullMessage(PQTLSMessage message) {
         return message.getBytes()[0] != (byte) 0xff;
     }
