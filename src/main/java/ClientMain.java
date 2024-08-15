@@ -24,13 +24,14 @@ public class ClientMain {
         PQTLSClient client = new PQTLSClient.PQTLSClientBuilder()
                 .cipherSuites(
                         new PQTLSCipherSuite[]{
-                                PQTLSCipherSuite.TLS_ECDHE_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA256,
+                                PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_KYBER_DILITHIUM_WITH_CHACHA20_POLY1305_SHA256,
                                 Constants.MANDATORY_CIPHERSUITE
                         }
                 ).curveIdentifiers(
                         new CurveIdentifier[]{
+                                Constants.MANDATORY_CURVE,
                                 CurveIdentifier.secp384r1,
-                                CurveIdentifier.secp256r1
+                                CurveIdentifier.secp521r1
                         }
                 ).port(4443)
                 .truststore(trustStore)

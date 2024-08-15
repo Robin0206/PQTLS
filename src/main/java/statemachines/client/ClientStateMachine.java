@@ -7,7 +7,6 @@ import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
-import statemachines.FinishedState;
 import statemachines.PQTLSStateMachine;
 
 import java.security.*;
@@ -119,9 +118,22 @@ public class ClientStateMachine extends PQTLSStateMachine {
             if (curveIdentifiers.length < 1) {
                 throw new IllegalArgumentException("curveIdentifiers.length must be bigger than 0");
             }
+            if(curveIdentifiersDoNotContainMandatoryCurve(curveIdentifiers)){
+                throw new IllegalArgumentException("curveIdentifiers do not contain mandatory curve: " + CurveIdentifier.secp256r1.toString());
+
+            }
             this.curveIdentifiers = curveIdentifiers;
             curveIdentifiersSet = true;
             return this;
+        }
+
+        private boolean curveIdentifiersDoNotContainMandatoryCurve(CurveIdentifier[] curveIdentifiers) {
+            for(CurveIdentifier curveIdentifier : curveIdentifiers){
+                if(curveIdentifier == Constants.MANDATORY_CURVE){
+                    return false;
+                }
+            }
+            return true;
         }
 
         public ClientStateMachineBuilder ecPointFormats(ECPointFormat[] ecPointFormats) {

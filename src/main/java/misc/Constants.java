@@ -1,5 +1,6 @@
 package misc;
 
+import crypto.enums.CurveIdentifier;
 import crypto.enums.PQTLSCipherSuite;
 
 public class Constants {
@@ -26,5 +27,6 @@ public class Constants {
     public static final byte HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS = 0x08;
     public static final byte ALERT_MESSAGE = 0x15;
     public static final PQTLSCipherSuite MANDATORY_CIPHERSUITE = PQTLSCipherSuite.TLS_ECDHE_FRODOKEM_SPHINCS_WITH_CHACHA20_POLY1305_SHA256;
+    public static final CurveIdentifier MANDATORY_CURVE = CurveIdentifier.secp256r1;
     public static final byte MESSAGE_TYPE_WRAPPED_RECORD = 0x17;
 }

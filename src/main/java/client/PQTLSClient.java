@@ -4,9 +4,7 @@ import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.tls.TlsClient;
 import org.bouncycastle.tls.TlsClientProtocol;
-import org.bouncycastle.tls.TlsServerProtocol;
 import statemachines.client.ClientStateMachine;
 
 import java.io.Closeable;
@@ -30,7 +28,7 @@ public class PQTLSClient implements Closeable {
         ClientStateMachine stateMachine = buildStateMachine(pqtlsClientBuilder);
         handShakeConnection = new ClientHandShakeConnection(stateMachine, socket, this, pqtlsClientBuilder.printHandShakeMessages);
         handShakeConnection.doHandshake();
-        pskConnection = new ClientPSKConnection(handShakeConnection.getStateMachine().getSharedSecret(), socket);
+        pskConnection = new ClientPSKConnection(handShakeConnection.getStateMachine().getSharedSecret());
         protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
         protocol.connect(this.pskConnection);
     }

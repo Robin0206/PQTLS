@@ -83,8 +83,6 @@ public class ClientHelloState implements State {
         }
         return new KeyShareExtension(keys);
     }
-    //TODO
-    //  Will later use a keystore
     //sets them in this class and the clientHelloStateMachine
     private void calculateAndSetKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //calculate Keys
@@ -96,7 +94,7 @@ public class ClientHelloState implements State {
 
     private boolean cipherSuitesContainOneWithKyberKEM() {
         for(PQTLSCipherSuite cipherSuite : stateMachine.getSupportedCipherSuites()){
-            if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
+            if(cipherSuite.ordinal() >= 5){
                 return true;
             }
         }

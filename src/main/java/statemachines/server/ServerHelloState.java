@@ -101,7 +101,6 @@ public class ServerHelloState implements State {
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
         stateMachine.setSharedSecretHolder(new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.getMessages().getFirst().getBytes(), stateMachine.getChosenCipherSuite()));
-        //stateMachine.sharedSecret.setSymmetricAlgName(stateMachine.getPreferredSymmetricAlgorithm());
     }
 
     private String getSymmetricCipherNameFromCipherSuite() {
@@ -172,8 +171,6 @@ public class ServerHelloState implements State {
         throw new Exception("");
     }
 
-    //TODO
-    // will be rewritten with the use of a keystore
     private void setStateMachineKeyPairs() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
         stateMachine.ecKeyPair = CryptographyModule.keys.generateECKeyPair(stateMachine.getChosenCurve());
         if(cipherSuiteUsesFrodoKEM()){
@@ -193,7 +190,7 @@ public class ServerHelloState implements State {
     }
 
     private boolean cipherSuiteUsesKyberKEM() {
-        return stateMachine.getChosenCipherSuite().ordinal() >= 5 && stateMachine.getChosenCipherSuite().ordinal() <= 8;
+        return stateMachine.getChosenCipherSuite().ordinal() >= 5;
     }
 
     private boolean cipherSuiteUsesFrodoKEM() {
@@ -210,7 +207,7 @@ public class ServerHelloState implements State {
     }
     private boolean clientHelloCipherSuitesContainOneWithKyberKEM(){
         for(PQTLSCipherSuite cipherSuite: clientHelloMessage.getCipherSuites()){
-            if(cipherSuite.ordinal() >= 5 && cipherSuite.ordinal() <= 8){
+            if(cipherSuite.ordinal() >= 5){
                 return true;
             }
         }

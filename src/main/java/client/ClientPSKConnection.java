@@ -4,20 +4,15 @@ import crypto.SharedSecretHolder;
 import org.bouncycastle.tls.*;
 import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 
-import java.io.IOException;
-import java.net.Socket;
-
 public class ClientPSKConnection extends PSKTlsClient {
     private final SharedSecretHolder sharedSecretHolder;
-    private final Socket socket;
     private final byte[] identity;
     private final byte[] key;
 
-    public ClientPSKConnection(SharedSecretHolder sharedSecretHolder, Socket socket) {
+    public ClientPSKConnection(SharedSecretHolder sharedSecretHolder) {
         super(new BcTlsCrypto(), "identity".getBytes(), sharedSecretHolder.getServerApplicationSecret());
         identity = "identity".getBytes();
         this.sharedSecretHolder = sharedSecretHolder;
-        this.socket = socket;
         this.key = sharedSecretHolder.getServerApplicationSecret();
     }
 

@@ -42,7 +42,7 @@ public class StatemachineInteractionTest {
     }
 
     @Test
-    void randomMachinesInteractingShouldNotThrow(){;
+    void randomMachinesInteractingShouldNotThrow(){
         assertDoesNotThrow(()->{
             for (int i = 0; i < 100; i++) {
                 System.out.println("randomMachinesInteractingShouldNotThrowTest: " + i + " of " + "100");
@@ -61,6 +61,72 @@ public class StatemachineInteractionTest {
                 PQTLSMessage serverHandshakeFinishedMessage = serverStateMachine.step(new NullMessage());
                 PQTLSMessage clientHandshakeFinishedMessage = clientStateMachine.step(serverHandshakeFinishedMessage);
                 serverStateMachine.step(clientHandshakeFinishedMessage);
+            }
+        });
+    }
+
+    @Test
+    void randomMachinesInteractingCertTrustedTest(){
+        assertAll(()->{
+            for (int i = 0; i < 100; i++) {
+                System.out.println("randomMachinesInteractingCertTrustedTest: " + i + " of " + "100");
+                clientStateMachine = buildRandomClientStateMachine();
+                serverStateMachine = buildRandomServerStateMachine();
+                PQTLSMessage clientHelloMessage = clientStateMachine.step(new NullMessage());
+                PQTLSMessage serverHelloMessage = serverStateMachine.step(clientHelloMessage);
+                System.out.println("\t Cipher suite: " + serverStateMachine.getSharedSecret().getCipherSuite());
+                clientStateMachine.step(serverHelloMessage);
+                PQTLSMessage encryptedExtensionsMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(encryptedExtensionsMessage);
+                PQTLSMessage certMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(certMessage);
+                assertTrue(clientStateMachine.getCertificatesTrusted());
+            }
+        });
+    }
+    @Test
+    void randomMachinesInteractingSigVerifiedTest(){
+        assertAll(()->{
+            for (int i = 0; i < 100; i++) {
+                System.out.println("randomMachinesInteractingSigVerifiedTest: " + i + " of " + "100");
+                clientStateMachine = buildRandomClientStateMachine();
+                serverStateMachine = buildRandomServerStateMachine();
+                PQTLSMessage clientHelloMessage = clientStateMachine.step(new NullMessage());
+                PQTLSMessage serverHelloMessage = serverStateMachine.step(clientHelloMessage);
+                System.out.println("\t Cipher suite: " + serverStateMachine.getSharedSecret().getCipherSuite());
+                clientStateMachine.step(serverHelloMessage);
+                PQTLSMessage encryptedExtensionsMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(encryptedExtensionsMessage);
+                PQTLSMessage certMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(certMessage);
+                PQTLSMessage sigVerifyMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(sigVerifyMessage);
+                assertTrue(clientStateMachine.getSignatureVerified());
+            }
+        });
+    }
+    @Test
+    void randomMachinesInteractingServerFinishMessagesVerifiedTest(){
+        assertAll(()->{
+            for (int i = 0; i < 100; i++) {
+                System.out.println("randomMachinesInteractingServerFinishMessagesVerifiedTest: " + i + " of " + "100");
+                clientStateMachine = buildRandomClientStateMachine();
+                serverStateMachine = buildRandomServerStateMachine();
+                PQTLSMessage clientHelloMessage = clientStateMachine.step(new NullMessage());
+                PQTLSMessage serverHelloMessage = serverStateMachine.step(clientHelloMessage);
+                System.out.println("\t Cipher suite: " + serverStateMachine.getSharedSecret().getCipherSuite());
+                clientStateMachine.step(serverHelloMessage);
+                PQTLSMessage encryptedExtensionsMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(encryptedExtensionsMessage);
+                PQTLSMessage certMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(certMessage);
+                PQTLSMessage certVerifyMessage = serverStateMachine.step(new NullMessage());
+                clientStateMachine.step(certVerifyMessage);
+                PQTLSMessage serverHandshakeFinishedMessage = serverStateMachine.step(new NullMessage());
+                PQTLSMessage clientHandshakeFinishedMessage = clientStateMachine.step(serverHandshakeFinishedMessage);
+                serverStateMachine.step(clientHandshakeFinishedMessage);
+                assertTrue(serverStateMachine.verifiedClientFinishedMessage());
+                assertTrue(clientStateMachine.verifiedServerFinishedMessage());
             }
         });
     }

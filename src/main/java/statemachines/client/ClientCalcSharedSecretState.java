@@ -74,7 +74,7 @@ public class ClientCalcSharedSecretState implements State {
                 sharedSecretBuffer.add(b);
             }
             byte[] kyberSharedSecret = CryptographyModule.keys.decapsulateSecret(
-                    stateMachine.frodoKey.getPrivate(),
+                    stateMachine.kyberKey.getPrivate(),
                     serverHelloKeys[serverHelloKeys.length - 1],
                     "Kyber",
                     stateMachine.symmetricAlgorithm
@@ -162,7 +162,7 @@ public class ClientCalcSharedSecretState implements State {
 
 
     private boolean cipherSuiteUsesKyberKEM() {
-        return stateMachine.getChosenCipherSuite().ordinal() != 0 && !cipherSuiteUsesFrodoKEM();
+        return stateMachine.getChosenCipherSuite().ordinal() >= 5;
     }
 
     private boolean cipherSuiteUsesFrodoKEM() {
