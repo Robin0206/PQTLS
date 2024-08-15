@@ -13,12 +13,17 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.server.ServerStateMachine;
 
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
+
+/*
+State responsible for calculating the shared Secret after the Hello Messages.
+It expects the ServerHelloMessage as an argument to setPreviousMessage.
+The next Method returns the WaitingForEncryptedExtensionsState.
+ */
 
 public class ClientCalcSharedSecretState implements State {
     private HelloMessage serverHelloMessage;
@@ -54,6 +59,8 @@ public class ClientCalcSharedSecretState implements State {
 
     private void setStateMachineSharedSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException {
         ArrayList<Byte> sharedSecretBuffer = new ArrayList<>();
+
+        //add the ecSharedSecret to the buffer
         byte[] ecSharedSecret = CryptographyModule.keys.generateECSharedSecret(
                 stateMachine.ecKeyPairs[stateMachine.chosenCurveKeyIndex].getPrivate(),
                 getECPublicKeyFromServerHello(),
@@ -62,6 +69,8 @@ public class ClientCalcSharedSecretState implements State {
         for (byte b : ecSharedSecret) {
             sharedSecretBuffer.add(b);
         }
+
+        // add the hybrid keys
         byte[][] serverHelloKeys = serverHelloKeyShareExtension.getKeys();
         if (cipherSuiteUsesFrodoKEM() && cipherSuiteUsesKyberKEM()) {
             byte[] frodoSharedSecret = CryptographyModule.keys.decapsulateSecret(
@@ -108,9 +117,15 @@ public class ClientCalcSharedSecretState implements State {
                 stateMachine.getMessages().get(1).getBytes()
         });
         byte[] sharedSecret = ByteUtils.toByteArray(sharedSecretBuffer);
-        stateMachine.setSharedSecretHolder(new SharedSecretHolder(sharedSecret, concatenatedMessages, stateMachine.getMessages().get(0).getBytes(), serverHelloMessage.getCipherSuites()[0]));
+        stateMachine.setSharedSecretHolder(
+                new SharedSecretHolder(
+                        sharedSecret,
+                        concatenatedMessages,
+                        stateMachine.getMessages().get(0).getBytes(),
+                        serverHelloMessage.getCipherSuites()[0]
+                )
+        );
     }
-
 
     private PublicKey getECPublicKeyFromServerHello() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
         return CryptographyModule.keys.byteArrToPublicKey(

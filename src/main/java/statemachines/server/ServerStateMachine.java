@@ -2,20 +2,50 @@ package statemachines.server;
 
 import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
-import messages.PQTLSMessage;
 import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
-import statemachines.FinishedState;
 import statemachines.PQTLSStateMachine;
 
 import java.io.IOException;
 import java.security.*;
 import java.util.*;
 
+/*
+Uses fluent builder pattern
+The first state is always the ServerHelloState
 
+StateGraph:
+    Format: inputMessage --> state --> outputMessage
+                               |
+                               |
+                               V
+                           next state
+
+                      ClientHelloMessage --> ServerHelloState --> ServerHello
+                                                    |
+                                                    |
+                                                    V
+                        NullMessage --> EncryptedExtensionsState --> Wrapped EncryptedExtensions message
+                                                    |
+                                                    |
+                                                    V
+                        NullMessage --> SendingCertificatesState --> Wrapped CertificateMessage
+                                                    |
+                                                    |
+                                                    V
+                        NullMessage --> SendingCertificateVerifyState --> Wrapped CertificateVerifyMessage
+                                                    |
+                                                    |
+                                                    V
+                        NullMessage --> ServerSendFinishedMessageState --> FinishedMessage
+                                                    |
+                                                    |
+                                                    V
+Wrapped FinishedMessage --> VerifyClientFinishedAndFinishSharedSecretCalculationState --> NullMessage
+ */
 public class ServerStateMachine extends PQTLSStateMachine {
 
     protected String sigAlgUsedInCertificate;

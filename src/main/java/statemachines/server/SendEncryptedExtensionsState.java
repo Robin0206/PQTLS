@@ -8,8 +8,6 @@ import messages.implementations.WrappedRecord;
 import org.bouncycastle.util.Strings;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -20,6 +18,14 @@ import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Objects;
 
+/*
+This State is responsible for building the EncryptedExtensionsMessage.
+This State doesn't make use of any prior message.
+(The Statemachine calls the setPreviousMessage method with an NullMessage
+as an argument)
+The method getMessage returns the wrapped EncryptedExtensions message
+The method next returns the SendingCertificatesState
+ */
 public class SendEncryptedExtensionsState implements State {
     private ServerStateMachine stateMachine;
 

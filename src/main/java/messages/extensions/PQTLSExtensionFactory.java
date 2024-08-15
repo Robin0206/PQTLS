@@ -5,10 +5,12 @@ import messages.extensions.implementations.KeyShareExtension;
 import messages.extensions.implementations.SignatureAlgorithmsExtension;
 import messages.extensions.implementations.SupportedGroupsExtension;
 import misc.ByteUtils;
-
 import java.util.ArrayList;
-
 import static misc.Constants.*;
+
+/*
+Class that's responsible for splitting and parsing extension bytes
+ */
 
 public class PQTLSExtensionFactory {
     public static PQTLSExtension generateFromBytes(byte[] input){

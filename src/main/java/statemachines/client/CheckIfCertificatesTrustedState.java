@@ -13,8 +13,6 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.server.ServerStateMachine;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -23,6 +21,10 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
+// This State expects a wrapped certificate message as an Argument to setPreviousMessage()
+// Responsible for checking if there is a trusted certificate in the servers certificate chains
+// If it cant find one the getMessage Method will return a Bad Certificate alert message
+// The next State is always the CertificateVerifyState
 public class CheckIfCertificatesTrustedState implements State {
     ClientStateMachine stateMachine;
     private WrappedRecord wrappedCertificateMessage;

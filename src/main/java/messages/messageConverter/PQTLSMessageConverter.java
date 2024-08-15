@@ -22,6 +22,7 @@ import java.security.*;
 import java.util.ArrayList;
 
 
+//class responsible for the byte conversion of messages
 public abstract class PQTLSMessageConverter {
 
     protected SharedSecretHolder sharedSecretHolder;
@@ -34,10 +35,10 @@ public abstract class PQTLSMessageConverter {
         this.sharedSecretHolder = statemachine.getSharedSecret();
     }
 
-    public PQTLSMessage convertMessage(byte[] messageByteBuffer) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, NoSuchProviderException, InvalidKeyException {
+    public PQTLSMessage convertMessage(byte[] messageByteBuffer){
         if (isHelloMessage(messageByteBuffer)) {
             return new HelloMessage.HelloBuilder().fromBytes(messageByteBuffer).build();
-        } else {// if its not an Hellomessage it must be an wrapped record or an alert message
+        } else {// if it's not a Hellomessage it must be a wrapped record or an alert message
             try{
                 WrappedRecord message = new WrappedRecord(
                         messageByteBuffer,
@@ -49,7 +50,7 @@ public abstract class PQTLSMessageConverter {
                         sharedSecretHolder.getCipherSuite()
                 );
                 return message;
-            }catch (Exception e){// if it cant be converted into an wrapped record, return an internal error alert
+            }catch (Exception e){// if it cant be converted into an wrapped record, return an internal error alert and print the stacktrace
                 e.printStackTrace();
                 return new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.internal_error);
             }
@@ -90,7 +91,7 @@ public abstract class PQTLSMessageConverter {
         return result;
     }
 
-    //this method doesnt return until there are n bytes in the stream
+    //this method doesn't return until there are n bytes in the stream
     static byte[] readNBytesBlocking(InputStream stream, int numOfBytes) throws IOException {
         ArrayList<Byte> buffer = new ArrayList<>();
         int remaining = numOfBytes;

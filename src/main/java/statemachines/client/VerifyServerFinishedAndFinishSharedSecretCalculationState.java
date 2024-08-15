@@ -12,7 +12,6 @@ import misc.Constants;
 import statemachines.FinishedState;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.server.ServerStateMachine;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -23,6 +22,15 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+/*
+This state is responsible for verifying the servers finished message.
+It is also responsible for calling the deriveSecretsAfterFinish Method of the SharedSecretHolder.
+It expects a Wrapped Record with the servers finished message in it as the argument to setPreviousMessage().
+If the message cant be decrypted or the servers finished message cant be verified, getMessage will return a decrypt error alert.
+Otherwise, getMessage will return a wrapped Record with the clients FinishedMessage in it.
+Next returns the FinishedState.
+ */
 
 public class VerifyServerFinishedAndFinishSharedSecretCalculationState implements State {
     private ArrayList<byte[]> concatenatedMessages;

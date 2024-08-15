@@ -12,8 +12,6 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -23,6 +21,16 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
+
+/*
+This state is responsible for bulding the servers CertificateMessage
+This State doesn't make use of any prior message.
+(The Statemachine calls the setPreviousMessage method with an NullMessage
+as an argument)
+The method getMessage doesn't return any alert messages,
+it always returns a wrapped CertificateMessage.
+The method next returns the SendCertificateVerifyState.
+ */
 
 public class SendingCertificatesState implements State {
     ServerStateMachine stateMachine;

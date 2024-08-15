@@ -18,12 +18,19 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
-
+/*
+Class responsible for building the ServerHello message.
+Expects the ClientHello Message as an argument for setPreviousMessage().
+getMessage() can return:
+    -a missing extensions alert message
+    -a handshake failure alert message
+    -a ServerHello message
+The method next returns a SendingEncryptedExtensionsState.
+ */
 public class ServerHelloState implements State {
     ServerStateMachine stateMachine;
     private HelloMessage clientHelloMessage;

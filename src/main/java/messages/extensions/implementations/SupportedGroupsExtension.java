@@ -10,9 +10,12 @@ import java.util.Hashtable;
 import static crypto.enums.CurveIdentifier.*;
 import static misc.Constants.EXTENSION_IDENTIFIER_SUPPORTED_GROUPS;
 
+//Source: https://www.rfc-editor.org/rfc/rfc8446 section-4.2.7
+//Extension used to negotiate the elliptic curve used in hybrid key exchange
 /*
-||...Identifier...||...numOfFollowingBytes...||...curveIdentifiers...||
-||----2-bytes-----||--------2-bytes----------||
+Structure:
+||...Identifier...||...numOfFollowingBytes...||......curveIdentifiers......||
+||----2-bytes-----||--------2-bytes----------||---2-bytes per identifier---||
  */
 
 public class SupportedGroupsExtension implements PQTLSExtension {

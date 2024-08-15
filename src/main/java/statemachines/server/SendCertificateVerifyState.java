@@ -7,8 +7,6 @@ import messages.implementations.WrappedRecord;
 import misc.ByteUtils;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -18,6 +16,16 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+/*
+This state is responsible for building the Certificate Verify Message.
+This State doesn't make use of any prior message.
+(The Statemachine calls the setPreviousMessage method with an NullMessage
+as an argument)
+The method getMessage doesn't return any alert messages, it only returns
+the CertificateVerifyMessage.
+The method next returns the ServerSendFinishedMessageState.
+ */
 
 public class SendCertificateVerifyState implements State {
 

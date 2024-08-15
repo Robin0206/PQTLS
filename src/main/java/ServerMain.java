@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.security.*;
 
+//Little test program that shows the usage of the PQTLSServer class
+
 public class ServerMain {
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastleProvider());

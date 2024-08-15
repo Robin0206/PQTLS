@@ -5,9 +5,8 @@ import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
 import misc.Constants;
 
-import java.util.ArrayList;
-
 /*
+Just used for testing
 ||...identifier...||...numOfFollowingBytes...||...values...||
 ||-----2 bytes----||--------2 bytes..........||
  */

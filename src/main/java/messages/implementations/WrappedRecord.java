@@ -6,7 +6,6 @@ import messages.PQTLSMessage;
 import misc.Constants;
 import misc.ByteUtils;
 import org.bouncycastle.util.Strings;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -15,6 +14,16 @@ import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
+
+/*
+Message that always encapsulates another message
+This class is also responsible for en decrypting the message
+Always disguised as an Application Data Message
+The real message type is the last byte of the message
+
+Inspired by https://www.rfc-editor.org/rfc/rfc8446#section-5.2
+(Byte Structure from page 80 used)
+ */
 
 public class WrappedRecord implements PQTLSMessage {
     PQTLSMessage messageToWrap;
@@ -96,10 +105,14 @@ public class WrappedRecord implements PQTLSMessage {
         }
         //add actual record type
         buffer.add(actualRecordType);
+
+        //copy from buffer to message bytes
         messageBytes = new byte[buffer.size()];
         for (int i = 0; i < buffer.size(); i++) {
             messageBytes[i] = buffer.get(i);
         }
+
+        //fil the numOfFollowingBytes field
         byte[] numOfFollowingBytes = ByteUtils.shortToByteArr((short) (buffer.size() - 5));
         messageBytes[3] = numOfFollowingBytes[0];
         messageBytes[4] = numOfFollowingBytes[1];

@@ -2,8 +2,6 @@ package statemachines;
 
 import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
-import statemachines.client.ClientStateMachine;
-import statemachines.server.ServerStateMachine;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

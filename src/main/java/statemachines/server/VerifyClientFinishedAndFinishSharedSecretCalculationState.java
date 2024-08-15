@@ -13,8 +13,6 @@ import misc.Constants;
 import statemachines.FinishedState;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -24,7 +22,16 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
-
+/*
+This state is responsible for building the Certificate Verify Message.
+It is also responsible for calling the deriveSecretsAfterFinish Method of the SharedSecretHolder.
+The setPreviousMessage method expects a WrappedRecord with the clients
+FinishedMessage in it.
+The method getMessage can return:
+    -a NullMessage
+    -a decrypt error alert(if the clients FinishedMessage cant be verified)
+The method next returns the FinishedState.
+ */
 public class VerifyClientFinishedAndFinishSharedSecretCalculationState implements State {
     private ServerStateMachine stateMachine;
     private FinishedMessage clientFinishedMessage;

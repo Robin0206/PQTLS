@@ -15,6 +15,43 @@ import java.util.ArrayList;
 /*
 Uses fluent builder pattern
 The first state is always the ClientHelloState
+
+StateGraph:
+    Format: inputMessage --> state --> outputMessage
+                               |
+                               |
+                               V
+                           next state
+
+
+
+                        NullMessage --> ClientHelloState --> ClientHelloMessage
+                                                |
+                                                |
+                                                V
+                  ServerHello --> ClientCalcSharedSecretState --> NullMessage
+                                                |
+                                                |
+                                                V
+Wrapped EncryptedExtensions --> WaitingForEncryptedExtensionsState --> NullMessage
+                                                |
+                                                |
+                                                V
+Wrapped Certificate Message --> CheckIfCertificatesTrustedState --> NullMessage
+                                                |
+                                                |
+                                                V
+Wrapped CertificateVerify Message --> SignatureVerifyState --> NullMessage
+                                                |
+                                                |
+                                                V
+Wrapped Finished Message --> VerifyServerFinishedAndFinishSharedSecretCalculationState --> Wrapped FinishedMessage
+                                                |
+                                                |
+                                                V
+                                          FinishedState
+
+
  */
 public class ClientStateMachine extends PQTLSStateMachine {
 
@@ -63,6 +100,7 @@ public class ClientStateMachine extends PQTLSStateMachine {
     public void setEcKeyPairs(KeyPair[] ecKeyPairs) {
         this.ecKeyPairs = ecKeyPairs;
     }
+
 
     public boolean verifiedServerFinishedMessage() {
         return verifiedServerFinishedMessage;

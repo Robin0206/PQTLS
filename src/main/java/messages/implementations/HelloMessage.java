@@ -11,7 +11,10 @@ import java.util.ArrayList;
 
 import static misc.Constants.*;
 
-//Builder Pattern
+//Uses the Fluent Builder Pattern
+//This class is used for building the client and the server hello messages
+//Follows the byte structure detailed in https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 page 28
+
 public class HelloMessage implements PQTLSMessage {
 
     //Constructor gets only used in the builder

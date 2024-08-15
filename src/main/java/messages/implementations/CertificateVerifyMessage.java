@@ -5,7 +5,10 @@ import misc.ByteUtils;
 
 import java.util.Arrays;
 
-//TODO
+/*
+Message in which the server sends its signature to the client.
+Follows the structure detailed in: https://www.rfc-editor.org/rfc/rfc8446 section-4.4.3
+ */
 public class CertificateVerifyMessage implements PQTLSMessage {
     private final byte[] signature;
 

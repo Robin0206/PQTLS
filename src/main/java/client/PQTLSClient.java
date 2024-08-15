@@ -33,8 +33,6 @@ public class PQTLSClient implements Closeable {
         protocol.connect(this.pskConnection);
     }
 
-    private PQTLSClient() {}
-
     public TlsClientProtocol getProtocol(){
         return protocol;
     }

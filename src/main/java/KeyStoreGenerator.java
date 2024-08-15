@@ -16,6 +16,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+//Little program that generates the key and trustStores
+
 public class KeyStoreGenerator {
 
     private static X509CertificateHolder[] rootCaCerts;

@@ -13,8 +13,6 @@ import misc.Constants;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.server.ServerStateMachine;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -23,6 +21,13 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+
+/*
+Class responsible for verifying the signature the server sent in his CertificateVerify Message.
+Expects a Wrapped Record with an CertificateVerify Message in it as an argument to setPreviousMessage.
+getMessage Returns a bad certificate alert if it cant verify the signature otherwise a NullMessage.
+next returns a VerifyServerFinishedAndFinishSharedSecretCalculationState Object
+ */
 
 public class SignatureVerifyState implements State {
     private CertificateVerifyMessage certificateVerifyMessage;

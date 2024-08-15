@@ -4,7 +4,6 @@ import crypto.enums.CurveIdentifier;
 import misc.Constants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.tls.TlsClientProtocol;
 import org.bouncycastle.tls.TlsProtocol;
 
 import java.io.BufferedReader;
@@ -13,6 +12,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.security.*;
+
+//Little test program that shows the usage of the PQTLSClient class
 
 public class ClientMain {
     public static void main(String[] args) throws Exception {

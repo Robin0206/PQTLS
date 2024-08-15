@@ -6,7 +6,8 @@ import java.util.Arrays;
 
 import static misc.Constants.*;
 //Signature Algorithms extension
-//Byte structure modified since there are now only 2 signature algorithms to choose from
+//Byte structure simplified since there are only 2 signature algorithms to choose from
+//inspired by https://www.rfc-editor.org/rfc/rfc8446 section 4.2.3
 //||....{0x00, 0x0d}=identifier....||....numOfFollowingBytes....||....SignatureAlgIdentifierBytes....||
 //||----------2 bytes--------------||---------2 bytes-----------||
 //Signature Algorithm Byte values:

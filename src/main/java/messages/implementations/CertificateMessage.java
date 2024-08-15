@@ -10,7 +10,11 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-//TODO
+/*
+Message that the server sends to the client which contains one or more certificate chains from the server
+The structure is the same as in https://www.rfc-editor.org/rfc/rfc8446 section-4.4.2
+ */
+
 public class CertificateMessage implements PQTLSMessage {
 
     private X509CertificateHolder[] certificates;
@@ -74,13 +78,6 @@ public class CertificateMessage implements PQTLSMessage {
         byte requestContextLength = messageBytes[4];
         requestContext = new byte[requestContextLength];
         System.arraycopy(messageBytes, 5, requestContext, 0, requestContextLength);
-    }
-
-    public CertificateMessage(X509CertificateHolder[] input, byte[] requestContext) throws IOException {
-        this.certificates = input;
-        this.requestContext = requestContext;
-        setCertificateBytes();
-        setMessageBytes();
     }
 
     public CertificateMessage(X509CertificateHolder[] input) throws IOException {

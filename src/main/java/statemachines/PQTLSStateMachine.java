@@ -4,8 +4,13 @@ import crypto.SharedSecretHolder;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.PQTLSCipherSuite;
 import messages.PQTLSMessage;
-
 import java.util.ArrayList;
+
+
+//Since there are fewer messages in this implementation than specified in https://www.rfc-editor.org/rfc/rfc8446,
+//I did not use the state machine architectures detailed at https://www.rfc-editor.org/rfc/rfc8446 appendix-A.1 and A-2
+//The state machines that I implemented use a more linear pattern and never jump back to a previous state, which makes them
+//much more simple and less error-prone
 
 public class PQTLSStateMachine {
     private CurveIdentifier[] supportedCurves;
@@ -15,7 +20,7 @@ public class PQTLSStateMachine {
     private CurveIdentifier chosenCurve;
     private PQTLSCipherSuite[] supportedCipherSuites;
     private State currentState;
-    private boolean stepWithoutWaiting;
+    private boolean stepWithoutWaiting;// signifies the client/server to immediately call step again without waiting for a new Message to arrive
     private boolean finished = false;
     private ArrayList<PQTLSMessage> messages;
 

@@ -25,9 +25,6 @@ public class PQTLSServer implements Closeable {
     protected ServerPSKConnection pskConnection;
     protected TlsServerProtocol protocol;
 
-    private PQTLSServer() {
-
-    }
 
     private PQTLSServer(PQTLSServerBuilder builder) throws Exception {
         this.serverSocket = new ServerSocket(builder.port);

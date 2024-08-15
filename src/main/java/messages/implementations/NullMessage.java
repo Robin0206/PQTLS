@@ -2,6 +2,7 @@ package messages.implementations;
 
 import messages.PQTLSMessage;
 
+
 public class NullMessage implements PQTLSMessage {
     @Override
     public byte[] getBytes() {

@@ -10,7 +10,9 @@ import java.util.Arrays;
 import static misc.Constants.*;
 
 //Key Share extension
-//Byte structure modified to allow for multiple keys
+//Inspired by https://www.rfc-editor.org/rfc/rfc8446 section 4.2.8, modified to allow for elliptic curve and hybrid keys and some other minor changes
+
+//Structure:
 //{0x00, 0x33}=Identifier||..numOfFollowingBytes..||..curve identifier..||..number of keys..||..keyLength Fields..||..Keys..||
 //-------2 bytes---------||-------2 bytes---------||-------1 byte-------||-------1 byte-----||-2 bytes per field--||
 //the first keys are ec keys like in the standard case. Depending on the cipher suite, the last keys are the hybrid keys in
@@ -21,6 +23,8 @@ public class KeyShareExtension implements PQTLSExtension {
     byte[][] keyLengths;
     byte[] byteRepresentation;
     byte curveIdentifier;//Only one byte because of the use with enums
+
+    //Two constructors because the server chooses the content of the curveIdentifier byte
     public KeyShareExtension(byte[][] keys){
         throwExceptionIfNecessary(keys);
         this.keys = keys;

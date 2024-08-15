@@ -7,7 +7,6 @@ import messages.implementations.WrappedRecord;
 import misc.Constants;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.client.ClientStateMachine;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -18,6 +17,15 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 
+/*
+This state is responsible for bulding the servers FinishedMessage
+This State doesn't make use of any prior message.
+(The Statemachine calls the setPreviousMessage method with an NullMessage
+as an argument)
+The method getMessage doesn't return any alert messages,
+it always returns a wrapped FinishedMessage.
+The method next returns the VerifyClientFinishedAndFinishSharedSecretCalculationState.
+ */
 public class ServerSendFinishedMessageState implements State {
     private ArrayList<byte[]> concatenatedMessages;
     private ServerStateMachine stateMachine;
