@@ -12,10 +12,12 @@ import statemachines.PQTLSStateMachine;
 import java.security.*;
 import java.util.ArrayList;
 
-/*
+/**
+ * @author Robin Kroker
 Uses fluent builder pattern
 The first state is always the ClientHelloState
-
+*/
+/*
 StateGraph:
     Format: inputMessage --> state --> outputMessage
                                |
@@ -53,10 +55,11 @@ Wrapped Finished Message --> VerifyServerFinishedAndFinishSharedSecretCalculatio
 
 
  */
+
 public class ClientStateMachine extends PQTLSStateMachine {
 
     protected boolean verifiedServerFinishedMessage;
-    protected ArrayList<X509CertificateHolder> trustedCertificates;
+    protected final ArrayList<X509CertificateHolder> trustedCertificates;
     protected boolean certificatesTrusted;
     protected X509CertificateHolder certificateUsedByServer;
     protected String sigAlgUsedByServer;
@@ -68,9 +71,9 @@ public class ClientStateMachine extends PQTLSStateMachine {
     protected KeyPair frodoKey;
     protected KeyPair kyberKey;
     protected String symmetricAlgorithm;
-    protected ECPointFormat[] ecPointFormats;
-    protected int numberOfCurvesToSendByClientHello;
-    protected byte[] extensionIdentifiers;
+    protected final ECPointFormat[] ecPointFormats;
+    protected final int numberOfCurvesToSendByClientHello;
+    protected final byte[] extensionIdentifiers;
 
 
 
@@ -157,7 +160,7 @@ public class ClientStateMachine extends PQTLSStateMachine {
                 throw new IllegalArgumentException("curveIdentifiers.length must be bigger than 0");
             }
             if(curveIdentifiersDoNotContainMandatoryCurve(curveIdentifiers)){
-                throw new IllegalArgumentException("curveIdentifiers do not contain mandatory curve: " + CurveIdentifier.secp256r1.toString());
+                throw new IllegalArgumentException("curveIdentifiers do not contain mandatory curve: " + CurveIdentifier.secp256r1);
 
             }
             this.curveIdentifiers = curveIdentifiers;

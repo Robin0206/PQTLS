@@ -17,7 +17,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/*
+/**
+ * @author Robin Kroker
 This state is responsible for building the Certificate Verify Message.
 This State doesn't make use of any prior message.
 (The Statemachine calls the setPreviousMessage method with an NullMessage
@@ -35,7 +36,7 @@ public class SendCertificateVerifyState implements State {
     private PrivateKey privateKey;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
+    public void calculate() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         determinePrivateKeyToUse();
         setMessagesToSign();
         setSignature();
@@ -72,7 +73,7 @@ public class SendCertificateVerifyState implements State {
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         return new WrappedRecord(
                 new CertificateVerifyMessage(signature, true),
                 (byte) 0x0f,

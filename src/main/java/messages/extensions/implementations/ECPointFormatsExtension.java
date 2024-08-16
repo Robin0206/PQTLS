@@ -5,7 +5,8 @@ import messages.extensions.PQTLSExtension;
 import misc.ByteUtils;
 import misc.Constants;
 
-/*
+/**
+ * @author Robin Kroker
 Just used for testing
 ||...identifier...||...numOfFollowingBytes...||...values...||
 ||-----2 bytes----||--------2 bytes..........||

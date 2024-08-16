@@ -16,13 +16,13 @@ import statemachines.State;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 
-/*
+/**
+ * @author Robin Kroker
 Class responsible for verifying the signature the server sent in his CertificateVerify Message.
 Expects a Wrapped Record with an CertificateVerify Message in it as an argument to setPreviousMessage.
 getMessage Returns a bad certificate alert if it cant verify the signature otherwise a NullMessage.
@@ -37,7 +37,7 @@ public class SignatureVerifyState implements State {
     private PQTLSAlertMessage alertMessage;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
+    public void calculate() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
         setSignatureSendByServer();
         setConcatenatedMessages();
         verifySignature();
@@ -76,7 +76,7 @@ public class SignatureVerifyState implements State {
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         if (!(alertMessage == null)) {
             return new WrappedRecord(
                     alertMessage,

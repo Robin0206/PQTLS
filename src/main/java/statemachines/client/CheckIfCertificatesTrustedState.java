@@ -16,24 +16,25 @@ import statemachines.State;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-// This State expects a wrapped certificate message as an Argument to setPreviousMessage()
-// Responsible for checking if there is a trusted certificate in the servers certificate chains
-// If it cant find one the getMessage Method will return a Bad Certificate alert message
-// The next State is always the CertificateVerifyState
+/**
+ * @author Robin Kroker
+ * This State expects a wrapped certificate message as an Argument to setPreviousMessage()
+ * Responsible for checking if there is a trusted certificate in the servers certificate chains
+ * If it cant find one the getMessage Method will return a Bad Certificate alert message
+ * The next State is always the CertificateVerifyState
+ */
 public class CheckIfCertificatesTrustedState implements State {
     ClientStateMachine stateMachine;
-    private WrappedRecord wrappedCertificateMessage;
     private CertificateMessage certificateMessage;
     private PQTLSMessage alertMessage;
 
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
+    public void calculate() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
         stateMachine.certificatesTrusted = checkIfCertificateChainsAreTrusted();
         //https://www.rfc-editor.org/rfc/rfc8446
         //page 88
@@ -58,7 +59,7 @@ public class CheckIfCertificatesTrustedState implements State {
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         if (!(alertMessage == null)) {
             return new WrappedRecord(
                     alertMessage,
@@ -81,7 +82,6 @@ public class CheckIfCertificatesTrustedState implements State {
 
     @Override
     public void setPreviousMessage(PQTLSMessage message) {
-        this.wrappedCertificateMessage = (WrappedRecord) message;
         this.certificateMessage = (CertificateMessage) (((WrappedRecord) message).getWrappedMessage());
     }
 

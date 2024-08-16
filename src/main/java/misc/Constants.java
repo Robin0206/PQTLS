@@ -3,6 +3,9 @@ package misc;
 import crypto.enums.CurveIdentifier;
 import crypto.enums.PQTLSCipherSuite;
 
+/**
+ * @author Robin Kroker
+ */
 public class Constants {
 
     public static final byte HELLO_MESSAGE_HANDSHAKE_TYPE_CLIENT_HELLO = 0x01;

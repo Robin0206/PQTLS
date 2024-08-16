@@ -103,7 +103,7 @@ class WrappedRecordTest {
         };
     }
 
-    static HelloMessage generateRandomHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    static HelloMessage generateRandomHelloMessage() {
         SecureRandom rand = new SecureRandom();
         PQTLSCipherSuite[] cipherSuites = new PQTLSCipherSuite[1+ Math.abs(rand.nextInt())%4];
         for (int i = 0; i < cipherSuites.length; i++) {

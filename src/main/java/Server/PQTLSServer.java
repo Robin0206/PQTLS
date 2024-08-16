@@ -17,7 +17,10 @@ import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-
+/**
+ * @author Robin Kroker
+ * Uses fluent builder pattern
+ */
 public class PQTLSServer implements Closeable {
     private Socket clientSocket;
     protected ServerSocket serverSocket;
@@ -25,7 +28,11 @@ public class PQTLSServer implements Closeable {
     protected ServerPSKConnection pskConnection;
     protected TlsServerProtocol protocol;
 
-
+    /**
+     * Private constructor, that's used by the fluent builder
+     * @param builder
+     * @throws Exception
+     */
     private PQTLSServer(PQTLSServerBuilder builder) throws Exception {
         this.serverSocket = new ServerSocket(builder.port);
         this.clientSocket = this.serverSocket.accept();
@@ -43,11 +50,20 @@ public class PQTLSServer implements Closeable {
         protocol = new TlsServerProtocol(clientSocket.getInputStream(), clientSocket.getOutputStream());
         protocol.accept(this.pskConnection);
     }
-
+    /**
+     * Returns the TlsServerProtocol object that's meant to be used for communication after the handshake
+     * @return TlsServerProtocol
+     */
     public TlsServerProtocol getProtocol(){
         return protocol;
     }
 
+    /**
+     * Builds the statemachine that's used b the handshake connection
+     * @param builder
+     * @return
+     * @throws Exception
+     */
     private ServerStateMachine buildStateMachine(PQTLSServerBuilder builder) throws Exception {
         return new ServerStateMachine.ServerStateMachineBuilder()
                 .supportedCurves(builder.curveIdentifiers)
@@ -56,7 +72,9 @@ public class PQTLSServer implements Closeable {
                 .cipherSuites(builder.cipherSuites)
                 .build();
     }
-
+    /**
+     * Prints the Client and Server Application Secret that's calculated by the Shared Secret holder
+     */
     public void printApplicationSecrets() {
         handshakeConnection.getStateMachine().getSharedSecret().printApplicationTrafficSecrets();
     }
@@ -67,7 +85,9 @@ public class PQTLSServer implements Closeable {
         this.clientSocket.close();
         this.serverSocket.close();
     }
-
+    /**
+     * @author Robin Kroker
+     */
     public static class PQTLSServerBuilder {
         private int port;
         private PQTLSCipherSuite[] cipherSuites;
@@ -78,29 +98,47 @@ public class PQTLSServer implements Closeable {
         private ArrayList<X509CertificateHolder[]> certificateChains;
         private KeyPair[] keyPairs;
         private boolean printHandShakeMessages = false;
-
+        /**
+         * if this method is called, the resulting PQTLSServer will print handShakeMessages
+         * @return PQTLSClientBuilder
+         */
         public PQTLSServerBuilder printHandShakeMessages() {
             this.printHandShakeMessages = true;
             return this;
         }
+        /**
+         * Sets the port
+         * @return PQTLSClientBuilder
+         */
         public PQTLSServerBuilder port(int port) {
             this.port = port;
             this.portSet = true;
             return this;
         }
-
+        /**
+         * Sets the cipher suites
+         * @param cipherSuites
+         * @return
+         */
         public PQTLSServerBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites) {
             this.cipherSuites = cipherSuites;
             this.cipherSuitesSet = true;
             return this;
         }
-
+        /**
+         * Sets the curve identifiers
+         * @param curveIdentifiers
+         * @return PQTLSClientBuilder
+         */
         public PQTLSServerBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers) {
             this.curveIdentifiers = curveIdentifiers;
             this.curveIdentifiersSet = true;
             return this;
         }
-
+        /**
+         * sets the keyStore that's used for the handshake
+         * @return PQTLSClientBuilder
+         */
         public PQTLSServerBuilder keyStore(KeyStore keyStore, char[] password) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateEncodingException, IOException {
             ArrayList<KeyPair> keyPairBuffer = new ArrayList<>();
             certificateChains = new ArrayList<>();
@@ -126,12 +164,17 @@ public class PQTLSServer implements Closeable {
             }
             return this;
         }
-
+        /**
+         * Fluent Builder build() method
+         * @return PQTLSClient
+         */
         public PQTLSServer build() throws Exception {
             throwExceptionIfNecessary();
             return new PQTLSServer(this);
         }
-
+        /**
+         * Throws an exception if not all necessary builder methods are called before the final build();
+         */
         private void throwExceptionIfNecessary() {
             if (!portSet) {
                 throw new IllegalStateException("Port must be set before calling build()");

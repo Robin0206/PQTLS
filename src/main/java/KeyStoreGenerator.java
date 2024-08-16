@@ -20,12 +20,8 @@ import java.util.Date;
 
 public class KeyStoreGenerator {
 
-    private static X509CertificateHolder[] rootCaCerts;
     private static KeyPair[] rootKeyPairs;
-    private static X509CertificateHolder[][] serverCertificateChains;
-    private static X509CertificateHolder[] clientTrustedCertificates;
     static KeyStore clientTrustStore;
-    private static KeyStore serverKeyStore;
 
 
     public static void main(String[] args) throws Exception {
@@ -33,11 +29,11 @@ public class KeyStoreGenerator {
         Security.addProvider(new BouncyCastleProvider());
         Security.addProvider(new BouncyCastleProvider());
         rootKeyPairs = generateRootCaKeyPairs();
-        rootCaCerts = generateRootCaCerts(rootKeyPairs);
-        serverCertificateChains = generateServerCertificateChains(rootCaCerts);
-        clientTrustedCertificates = rootCaCerts;
+        X509CertificateHolder[] rootCaCerts = generateRootCaCerts(rootKeyPairs);
+        X509CertificateHolder[][] serverCertificateChains = generateServerCertificateChains(rootCaCerts);
+        X509CertificateHolder[] clientTrustedCertificates = rootCaCerts;
         clientTrustStore = generateClientTrustStore(clientTrustedCertificates);
-        serverKeyStore = generateServerKeyStore(serverCertificateChains, rootKeyPairs);
+        KeyStore serverKeyStore = generateServerKeyStore(serverCertificateChains, rootKeyPairs);
         FileOutputStream f1 = new FileOutputStream("serverKeyStore.jks");
         FileOutputStream f2 = new FileOutputStream("clientTrustStore.jks");
         clientTrustStore.store(f2, "password".toCharArray());
@@ -96,7 +92,7 @@ public class KeyStoreGenerator {
         return result;
     }
 
-    private static X509CertificateHolder[] generateRootCaCerts(KeyPair[] kp) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+    private static X509CertificateHolder[] generateRootCaCerts(KeyPair[] kp) throws OperatorCreationException {
         X509CertificateHolder[] result = new X509CertificateHolder[2];
         result[0] = CryptographyModule.certificate.generateSelfSignedTestCertificate(kp[0], "SPHINCSPlus");
         result[1] = CryptographyModule.certificate.generateSelfSignedTestCertificate(kp[1], "Dilithium");

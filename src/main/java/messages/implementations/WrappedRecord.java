@@ -15,25 +15,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
-/*
-Message that always encapsulates another message
-This class is also responsible for en decrypting the message
-Always disguised as an Application Data Message
-The real message type is the last byte of the message
-
-Inspired by https://www.rfc-editor.org/rfc/rfc8446#section-5.2
-(Byte Structure from page 80 used)
+/**
+ * @author Robin Kroker
+ *Message that always encapsulates another message
+ *This class is also responsible for en decrypting the message
+ *Always disguised as an Application Data Message
+ *The real message type is the last byte of the message
+ *Inspired by https://www.rfc-editor.org/rfc/rfc8446#section-5.2
+ *(Byte Structure from page 80 used)
  */
 
 public class WrappedRecord implements PQTLSMessage {
     PQTLSMessage messageToWrap;
-    byte actualRecordType;
+    final byte actualRecordType;
     byte[] encryptedMessage;
-    Key key;
+    final Key key;
     byte[] messageBytes;
     byte[] decryptedMessageToWrapBytes;
 
-    //Constructor that takes the message as an PQTLSMessage Object and also encrypts the message
+    /**
+     * Constructor that takes the message as an PQTLSMessage Object and also encrypts the message
+     */
     public WrappedRecord(
             PQTLSMessage messageToWrap,
             byte actualRecordType,
@@ -53,7 +55,9 @@ public class WrappedRecord implements PQTLSMessage {
         fillMessageBytes();
     }
 
-    //Constructor that takes the message as an PQTLSMessage Object and also decrypts the message
+    /**
+     * Constructor that takes the message as an PQTLSMessage Object and also decrypts the message
+     */
     public WrappedRecord(
             byte[] messageBytes,
             Key key,

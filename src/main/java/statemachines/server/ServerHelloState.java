@@ -22,7 +22,8 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
-/*
+/**
+ * @author Robin Kroker
 Class responsible for building the ServerHello message.
 Expects the ClientHello Message as an argument for setPreviousMessage().
 getMessage() can return:

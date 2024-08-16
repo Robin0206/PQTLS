@@ -1,5 +1,7 @@
 package crypto.enums;
-
+/**
+ * @author Robin Kroker
+ */
 public enum PQTLSCipherSuite {
     TLS_NULL_ENCRYPTION,
     TLS_ECDHE_FRODOKEM_DILITHIUM_WITH_AES_256_GCM_SHA384,

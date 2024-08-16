@@ -2,8 +2,11 @@ package messages;
 
 import java.security.cert.CertificateException;
 
+/**
+ * @author Robin Kroker
+ */
 public interface PQTLSMessage {
-    public byte[] getBytes();
-    public void printVerbose() throws CertificateException;
-    public boolean equals(PQTLSMessage message);
+    byte[] getBytes();
+    void printVerbose() throws CertificateException;
+    boolean equals(PQTLSMessage message);
 }

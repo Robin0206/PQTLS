@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Robin Kroker
+ */
 public class ByteUtils {
     public static byte[] shortToByteArr(short input) {
         return new byte[]{(byte) (input / 128), (byte) (input % 128)};

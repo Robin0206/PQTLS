@@ -22,7 +22,10 @@ import java.security.*;
 import java.util.ArrayList;
 
 
-//class responsible for the byte conversion of messages
+/**
+ * @author Robin Kroker
+ * class responsible for the byte conversion of messages
+ */
 public abstract class PQTLSMessageConverter {
 
     protected SharedSecretHolder sharedSecretHolder;
@@ -40,7 +43,7 @@ public abstract class PQTLSMessageConverter {
             return new HelloMessage.HelloBuilder().fromBytes(messageByteBuffer).build();
         } else {// if it's not a Hellomessage it must be a wrapped record or an alert message
             try{
-                WrappedRecord message = new WrappedRecord(
+                return new WrappedRecord(
                         messageByteBuffer,
                         CryptographyModule.keys.byteArrToSymmetricKey(
                                 getHandshakeSecret(),
@@ -49,7 +52,6 @@ public abstract class PQTLSMessageConverter {
                         getIVAndIncrement(),
                         sharedSecretHolder.getCipherSuite()
                 );
-                return message;
             }catch (Exception e){// if it cant be converted into an wrapped record, return an internal error alert and print the stacktrace
                 e.printStackTrace();
                 return new PQTLSAlertMessage(AlertLevel.fatal, AlertDescription.internal_error);

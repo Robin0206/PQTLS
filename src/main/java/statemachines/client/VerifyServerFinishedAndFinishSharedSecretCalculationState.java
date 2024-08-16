@@ -23,7 +23,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/*
+/**
+ * @author Robin Kroker
 This state is responsible for verifying the servers finished message.
 It is also responsible for calling the deriveSecretsAfterFinish Method of the SharedSecretHolder.
 It expects a Wrapped Record with the servers finished message in it as the argument to setPreviousMessage().
@@ -39,7 +40,7 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
     private PQTLSAlertMessage alertMessage;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
+    public void calculate() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         //verify serverFinishedMessage
         setConcatenatedMessagesUntilServerEncryptedExtensions();
         verifyServerFinishedMessage();
@@ -93,7 +94,7 @@ public class VerifyServerFinishedAndFinishSharedSecretCalculationState implement
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         if(!(alertMessage == null)){
             return new WrappedRecord(
                     alertMessage,

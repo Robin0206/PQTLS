@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ServerStateMachineTest {
     static SecureRandom random;
-    ServerStateMachine serverStateMachine;
     static KeyPair sphincsKeyPair;
     static KeyPair dilithiumKeyPair;
 

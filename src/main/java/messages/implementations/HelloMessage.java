@@ -11,13 +11,18 @@ import java.util.ArrayList;
 
 import static misc.Constants.*;
 
-//Uses the Fluent Builder Pattern
-//This class is used for building the client and the server hello messages
-//Follows the byte structure detailed in https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 page 28
+/**
+ * @author Robin KRoker
+ * Uses the Fluent Builder Pattern
+ * This class is used for building the client and the server hello messages
+ * Follows the byte structure detailed in https://www.rfc-editor.org/rfc/rfc8446#section-4.1.2 page 28
+ */
 
 public class HelloMessage implements PQTLSMessage {
 
-    //Constructor gets only used in the builder
+    /**
+     * Constructor gets only used in the builder
+     */
     private HelloMessage(HelloBuilder builder) {
         this.handShakeMessageType = builder.handShakeMessageType;
         this.legacyVersion = builder.legacyVersion;
@@ -34,7 +39,9 @@ public class HelloMessage implements PQTLSMessage {
         this.messageBytes = builder.messageBytes;
     }
 
-    //Used for testing
+    /**
+     * Used for testing
+     */
     public boolean equals(PQTLSMessage messageToCast) {
         HelloMessage message = (HelloMessage) messageToCast;
         return (java.util.Arrays.equals(this.legacyVersion, message.legacyVersion) &&
@@ -52,11 +59,11 @@ public class HelloMessage implements PQTLSMessage {
         );
     }
 
-    //record header
-    private final byte recordType = 0x16;
     private final short lengthAfterRecordHeader;
 
-    //handshake header
+    /**
+     * handshake header
+     */
     private int handShakeMessageType = 0x01;
     private final int lengthAfterHandshakeHeader;
 
@@ -74,10 +81,6 @@ public class HelloMessage implements PQTLSMessage {
     private final byte cipherSuitesLength;
     private final PQTLSCipherSuite[] cipherSuites;
 
-    //compression methods
-    private final byte compressionMethodsLength = 0x1;
-    private final byte compressionMethods = 0x00; //default null compression
-
     //extensions
     private final short extensionsLength;
     private final PQTLSExtension[] extensions;
@@ -92,6 +95,8 @@ public class HelloMessage implements PQTLSMessage {
         } else {
             System.out.println("====================================Server Hello====================================");
         }
+        //record header
+        byte recordType = 0x16;
         System.out.println("RecordType:      " + recordType);
         System.out.println("LegacyVersion: " + java.util.Arrays.toString(legacyVersion));
         System.out.println("LengthAfterRecordHeader: " + lengthAfterRecordHeader);
@@ -108,7 +113,11 @@ public class HelloMessage implements PQTLSMessage {
             System.out.println("\t" + cipherSuites[i].name());
         }
         System.out.println();
+        //compression methods
+        byte compressionMethodsLength = 0x1;
         System.out.println("CompressionMethodsLength: " + compressionMethodsLength);
+        //default null compression
+        byte compressionMethods = 0x00;
         System.out.println("CompressionMethods: " + compressionMethods);
         System.out.println("ExtensionsLength: " + extensionsLength);
         System.out.println();
@@ -261,7 +270,7 @@ public class HelloMessage implements PQTLSMessage {
             return this;
         }
 
-        /*
+        /**
         Sets all variables from the raw message bytes.
         Cant be called with any other builder-method except build().
          */
@@ -369,7 +378,7 @@ public class HelloMessage implements PQTLSMessage {
             messageBytes[8] = (byte) (lengthAfterHandshakeHeader % 128);
             return new HelloMessage(this);
         }
-        /*
+        /**
         Fills the CipherSuite Array by using the bytes as ordinals
          */
         private void fillCipherSuitesFromBytes() {

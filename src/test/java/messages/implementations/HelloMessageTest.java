@@ -20,7 +20,7 @@ class HelloMessageTest {
     static HelloMessage message1;
     static HelloMessage message2;
     @BeforeAll
-    static void setUpBeforeClass() throws Exception {
+    static void setUpBeforeClass() {
         Security.addProvider(new BouncyCastlePQCProvider());
         Security.addProvider(new BouncyCastleJsseProvider());
         Security.addProvider(new BouncyCastleProvider());
@@ -39,7 +39,7 @@ class HelloMessageTest {
                 .build();
     }
     @Test
-    void shouldNotThrowAnyException() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+    void shouldNotThrowAnyException() {
         assertAll(()->{
             assertDoesNotThrow(()->{
                 for (int i = 0; i < 10000; i++) {
@@ -171,7 +171,7 @@ class HelloMessageTest {
         });
 
     }
-    static HelloMessage buildRandomClientHelloMessage() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    static HelloMessage buildRandomClientHelloMessage() {
         SecureRandom rand = new SecureRandom();
         PQTLSCipherSuite[] cipherSuites = new PQTLSCipherSuite[1+ Math.abs(rand.nextInt())%4];
         for (int i = 0; i < cipherSuites.length; i++) {

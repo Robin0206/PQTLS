@@ -2,7 +2,9 @@ package messages.implementations;
 
 import messages.PQTLSMessage;
 
-
+/**
+ * @author Robin Kroker
+ */
 public class NullMessage implements PQTLSMessage {
     @Override
     public byte[] getBytes() {

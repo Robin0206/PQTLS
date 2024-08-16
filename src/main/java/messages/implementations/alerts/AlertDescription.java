@@ -1,7 +1,11 @@
 package messages.implementations.alerts;
 
-//RFC8446 Page 86
-//https://www.rfc-editor.org/rfc/rfc8446#section-6.2
+/**
+ *
+ * @author Robin Kroker
+ * RFC8446 Page 86
+ * https://www.rfc-editor.org/rfc/rfc8446#section-6.2
+ */
 public enum AlertDescription {
     close_notify,
     unexpected_message,

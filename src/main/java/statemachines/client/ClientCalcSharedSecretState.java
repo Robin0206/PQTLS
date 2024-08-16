@@ -19,10 +19,11 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-/*
-State responsible for calculating the shared Secret after the Hello Messages.
-It expects the ServerHelloMessage as an argument to setPreviousMessage.
-The next Method returns the WaitingForEncryptedExtensionsState.
+/**
+ * @author Robin Kroker
+ * State responsible for calculating the shared Secret after the Hello Messages.
+ * It expects the ServerHelloMessage as an argument to setPreviousMessage.
+ * The next Method returns the WaitingForEncryptedExtensionsState.
  */
 
 public class ClientCalcSharedSecretState implements State {

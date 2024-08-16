@@ -177,7 +177,7 @@ public class Main {
                 }
 
                 @Override
-                public Hashtable getClientExtensions() throws IOException {
+                public Hashtable getClientExtensions() {
                     return null;
                 }
 
@@ -192,7 +192,7 @@ public class Main {
                 }
 
                 @Override
-                public void notifyServerVersion(ProtocolVersion protocolVersion) throws IOException {
+                public void notifyServerVersion(ProtocolVersion protocolVersion) {
 
                 }
 
@@ -212,52 +212,52 @@ public class Main {
                 }
 
                 @Override
-                public void notifySelectedPSK(TlsPSK tlsPSK) throws IOException {
+                public void notifySelectedPSK(TlsPSK tlsPSK) {
 
                 }
 
                 @Override
-                public void processServerExtensions(Hashtable hashtable) throws IOException {
+                public void processServerExtensions(Hashtable hashtable) {
 
                 }
 
                 @Override
-                public void processServerSupplementalData(Vector vector) throws IOException {
+                public void processServerSupplementalData(Vector vector) {
 
                 }
 
                 @Override
-                public TlsPSKIdentity getPSKIdentity() throws IOException {
+                public TlsPSKIdentity getPSKIdentity() {
                     return null;
                 }
 
                 @Override
-                public TlsSRPIdentity getSRPIdentity() throws IOException {
+                public TlsSRPIdentity getSRPIdentity() {
                     return null;
                 }
 
                 @Override
-                public TlsDHGroupVerifier getDHGroupVerifier() throws IOException {
+                public TlsDHGroupVerifier getDHGroupVerifier() {
                     return null;
                 }
 
                 @Override
-                public TlsSRPConfigVerifier getSRPConfigVerifier() throws IOException {
+                public TlsSRPConfigVerifier getSRPConfigVerifier() {
                     return null;
                 }
 
                 @Override
-                public TlsAuthentication getAuthentication() throws IOException {
+                public TlsAuthentication getAuthentication() {
                     return null;
                 }
 
                 @Override
-                public Vector getClientSupplementalData() throws IOException {
+                public Vector getClientSupplementalData() {
                     return null;
                 }
 
                 @Override
-                public void notifyNewSessionTicket(NewSessionTicket newSessionTicket) throws IOException {
+                public void notifyNewSessionTicket(NewSessionTicket newSessionTicket) {
 
                 }
 
@@ -272,7 +272,7 @@ public class Main {
                 }
 
                 @Override
-                public void cancel() throws IOException {
+                public void cancel() {
 
                 }
 
@@ -287,7 +287,7 @@ public class Main {
                 }
 
                 @Override
-                public void notifyHandshakeBeginning() throws IOException {
+                public void notifyHandshakeBeginning() {
 
                 }
 
@@ -352,12 +352,12 @@ public class Main {
                 }
 
                 @Override
-                public void notifySecureRenegotiation(boolean b) throws IOException {
+                public void notifySecureRenegotiation(boolean b) {
 
                 }
 
                 @Override
-                public TlsKeyExchangeFactory getKeyExchangeFactory() throws IOException {
+                public TlsKeyExchangeFactory getKeyExchangeFactory() {
                     return null;
                 }
 
@@ -377,7 +377,7 @@ public class Main {
                 }
 
                 @Override
-                public void notifyHandshakeComplete() throws IOException {
+                public void notifyHandshakeComplete() {
 
                 }
 

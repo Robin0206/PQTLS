@@ -17,7 +17,8 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 
-/*
+/**
+ * @author Robin Kroker
 This state is responsible for bulding the servers FinishedMessage
 This State doesn't make use of any prior message.
 (The Statemachine calls the setPreviousMessage method with an NullMessage
@@ -31,7 +32,7 @@ public class ServerSendFinishedMessageState implements State {
     private ServerStateMachine stateMachine;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
+    public void calculate() {
         setConcatenatedMessages();
     }
 
@@ -43,7 +44,7 @@ public class ServerSendFinishedMessageState implements State {
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         return new WrappedRecord(
                 new FinishedMessage(
                         concatenatedMessages,

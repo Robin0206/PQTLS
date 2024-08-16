@@ -11,19 +11,22 @@ import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * @author Robin Kroker
+ */
 public class FinishedMessage implements PQTLSMessage {
     byte[] messageBytes;
     public FinishedMessage(byte[] messageBytes) {
         this.messageBytes = messageBytes;
     }
 
-    //Usage taken from https://www.rfc-editor.org/rfc/rfc8446 page 62
-
-    //Usage for Server:
-    //concatenatedMessages: Client-Hello -> EncryptedExtensions, Key: serverHandshakeTrafficSecret
-
-    //Usage for Client:
-    //concatenatedMessages: Client-Hello -> Server-Finished, Key: clientHandshakeTrafficSecret
+    /**
+     * Usage taken from https://www.rfc-editor.org/rfc/rfc8446 page 62
+     * Usage for Server:
+     * concatenatedMessages: Client-Hello -> EncryptedExtensions, Key: serverHandshakeTrafficSecret
+     * Usage for Client:
+     * concatenatedMessages: Client-Hello -> Server-Finished, Key: clientHandshakeTrafficSecret
+     */
     public FinishedMessage(ArrayList<byte[]> concatenatedMessages, byte[] baseKey, String hashName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         byte[] finishedData = calculateVerifyData(concatenatedMessages, baseKey, hashName);
         fillMessageBytes(finishedData);
@@ -42,7 +45,9 @@ public class FinishedMessage implements PQTLSMessage {
         messageBytes = ByteUtils.toByteArray(buffer);
     }
 
-    //calculation taken from https://www.rfc-editor.org/rfc/rfc8446 page 72
+    /**
+     * calculation taken from https://www.rfc-editor.org/rfc/rfc8446 page 72
+     */
     private byte[] calculateVerifyData(ArrayList<byte[]> concatenatedMessages, byte[] baseKey, String hashName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         byte[] finishedKey = CryptographyModule.hashing.hkdfExpandLabel(
                 baseKey,

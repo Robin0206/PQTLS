@@ -16,13 +16,20 @@ import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
+/**
+ * @author Robin Kroker
+ */
 public class PQTLSClient implements Closeable {
     ClientHandShakeConnection handShakeConnection;
     ClientPSKConnection pskConnection;
     Socket socket;
     TlsClientProtocol protocol;
 
+    /**
+     * Private constructor that's used by the fluent builder
+     * @param pqtlsClientBuilder
+     * @throws Exception
+     */
     private PQTLSClient(PQTLSClientBuilder pqtlsClientBuilder) throws Exception {
         this.socket = new Socket(pqtlsClientBuilder.address, pqtlsClientBuilder.port);
         ClientStateMachine stateMachine = buildStateMachine(pqtlsClientBuilder);
@@ -33,10 +40,19 @@ public class PQTLSClient implements Closeable {
         protocol.connect(this.pskConnection);
     }
 
+    /**
+     * Returns the TlsClientProtocol object that's meant to be used for communication after the handshake
+     * @return TlsClientProtocol
+     */
     public TlsClientProtocol getProtocol(){
         return protocol;
     }
 
+    /**
+     * builds the statemachine that's used by the handshake connection
+     * @param builder
+     * @return ClientStateMachine
+     */
     private ClientStateMachine buildStateMachine(PQTLSClientBuilder builder) {
         return new ClientStateMachine.ClientStateMachineBuilder()
                 .cipherSuites(builder.cipherSuites)
@@ -58,17 +74,22 @@ public class PQTLSClient implements Closeable {
         socket.close();
     }
 
+    /**
+     * Prints the Client and Server Application Secret that's calculated by the Shared Secret holder
+     */
     public void printApplicationSecrets() {
         handShakeConnection.getStateMachine().getSharedSecret().printApplicationTrafficSecrets();
     }
-
+    /**
+     * @author Robin Kroker
+     */
     public static class PQTLSClientBuilder {
         private PQTLSCipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
-        private byte[] algIdentifiers;
         private ArrayList<X509CertificateHolder> trustedCertificates;
         private int port;
         private InetAddress address;
+        byte[] algIdentifiers;
         private boolean printHandShakeMessages = false;
         private boolean portSet = false;
         private boolean addressSet = false;
@@ -76,56 +97,84 @@ public class PQTLSClient implements Closeable {
         private boolean curveIdentifiersSet = false;
         private boolean cipherSuiteSet = false;
 
+        /**
+         * Sets the cipher suites
+         * @param cipherSuites
+         * @return
+         */
         public PQTLSClientBuilder cipherSuites(PQTLSCipherSuite[] cipherSuites) {
             this.cipherSuites = cipherSuites;
             this.cipherSuiteSet = true;
             for (PQTLSCipherSuite c : cipherSuites) {
                 if (c.toString().contains("DILITHIUM")) {
-                    this.algIdentifiers = new byte[]{0, 1};// supports sphincs and dilithium
+                    algIdentifiers = new byte[]{0, 1};// supports sphincs and dilithium
                     return this;
                 }
             }
             // only supports sphincs
-            this.algIdentifiers = new byte[]{0};
+            algIdentifiers = new byte[]{0};
             return this;
         }
 
+        /**
+         * Sets the curve identifiers
+         * @param curveIdentifiers
+         * @return PQTLSClientBuilder
+         */
         public PQTLSClientBuilder curveIdentifiers(CurveIdentifier[] curveIdentifiers) {
             this.curveIdentifiers = curveIdentifiers;
             this.curveIdentifiersSet = true;
             return this;
         }
-
+        /**
+         * if this method is called, the resulting PQTLSClient will print handShakeMessages
+         * @return PQTLSClientBuilder
+         */
         public PQTLSClientBuilder printHandShakeMessages() {
             this.printHandShakeMessages = true;
             return this;
         }
-
+        /**
+         * sets the trustStore that's used for the handshake
+         * @return PQTLSClientBuilder
+         */
         public PQTLSClientBuilder truststore(KeyStore keystore) throws KeyStoreException, CertificateEncodingException, IOException {
             this.trustedCertificates = extractCertsFromKeyStore(keystore);
             this.trustedCertificatesSet = true;
             return this;
         }
 
-
+        /**
+         * Sets the port
+         * @return PQTLSClientBuilder
+         */
         public PQTLSClientBuilder port(int port) {
             this.port = port;
             this.portSet = true;
             return this;
         }
-
+        /**
+         * Sets the address
+         * @return PQTLSClientBuilder
+         */
         public PQTLSClientBuilder address(InetAddress address) {
             this.address = address;
             this.addressSet = true;
             return this;
         }
 
-
+        /**
+         * Fluent Builder build() method
+         * @return PQTLSClient
+         */
         public PQTLSClient build() throws Exception {
             throwExceptionIfNecessary();
             return new PQTLSClient(this);
         }
 
+        /**
+         * Throws an exception if not all necessary builder methods are called before the final build();
+         */
         private void throwExceptionIfNecessary() {
             if (!portSet) {
                 throw new IllegalStateException("Port must be set before building");
@@ -145,6 +194,14 @@ public class PQTLSClient implements Closeable {
         }
     }
 
+    /**
+     * Private method to extract the trusted certificates from the keystore
+     * @param keystore
+     * @return
+     * @throws KeyStoreException
+     * @throws CertificateEncodingException
+     * @throws IOException
+     */
     private static ArrayList<X509CertificateHolder> extractCertsFromKeyStore(KeyStore keystore) throws KeyStoreException, CertificateEncodingException, IOException {
         ArrayList<X509CertificateHolder> result = new ArrayList<>();
         Enumeration<String> aliases = keystore.aliases();

@@ -5,29 +5,22 @@ import messages.implementations.NullMessage;
 import messages.implementations.WrappedRecord;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.server.ServerStateMachine;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
-
+/**
+ * @author Robin Kroker
+ */
 public class WaitingForEncryptedExtensionsState implements State {
     private WrappedRecord previousMessage;
     private ClientStateMachine stateMachine;
 
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
+    public void calculate() {
         stateMachine.serverEncryptedExtensions = previousMessage.getWrappedMessage();
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
+    public PQTLSMessage getMessage() {
         return new NullMessage();
     }
 

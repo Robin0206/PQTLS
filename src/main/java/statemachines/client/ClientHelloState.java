@@ -12,11 +12,15 @@ import messages.implementations.HelloMessage;
 import misc.Constants;
 import statemachines.PQTLSStateMachine;
 import statemachines.State;
-import statemachines.server.ServerStateMachine;
 
 import java.security.*;
 import java.util.ArrayList;
 
+/**
+ * @author Robin Kroker
+ * State responsible for building the client Hello Message
+ * The next method returns the ClientCalcSharedSecretState
+ */
 public class ClientHelloState implements State {
     private ClientStateMachine stateMachine;
 
@@ -83,7 +87,9 @@ public class ClientHelloState implements State {
         }
         return new KeyShareExtension(keys);
     }
-    //sets them in this class and the clientHelloStateMachine
+    /**
+     * sets the keys in this class and the clientHelloStateMachine
+     */
     private void calculateAndSetKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //calculate Keys
         this.stateMachine.ecKeyPairs = CryptographyModule.keys.generateECKeyPairs(stateMachine.getSupportedCurves());

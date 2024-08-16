@@ -1,7 +1,9 @@
 package messages.extensions;
-
+/**
+ * @author Robin Kroker
+ */
 public interface PQTLSExtension {
-    public byte[] getByteRepresentation();
-    public void printVerbose();
-    public byte getIdentifier();
+    byte[] getByteRepresentation();
+    void printVerbose();
+    byte getIdentifier();
 }

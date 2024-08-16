@@ -22,7 +22,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-/*
+/**
+ * @author Robin Kroker
 This state is responsible for bulding the servers CertificateMessage
 This State doesn't make use of any prior message.
 (The Statemachine calls the setPreviousMessage method with an NullMessage
@@ -37,7 +38,7 @@ public class SendingCertificatesState implements State {
     byte[] clientSupportedSignatureAlgorithms;
     X509CertificateHolder[] certificatesToSend;
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException {
+    public void calculate() throws CertificateException {
         determineClientSupportedSignatureAlgorithms();
         setCertificatesToSend();
         stateMachine.publicKeyUsedInCertificate =  new JcaX509CertificateConverter().getCertificate(certificatesToSend[0]).getPublicKey();

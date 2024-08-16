@@ -13,10 +13,12 @@ import java.io.IOException;
 import java.security.*;
 import java.util.*;
 
-/*
+/**
+ * @author Robin Kroker
 Uses fluent builder pattern
 The first state is always the ServerHelloState
-
+*/
+/*
 StateGraph:
     Format: inputMessage --> state --> outputMessage
                                |
@@ -50,8 +52,8 @@ public class ServerStateMachine extends PQTLSStateMachine {
 
     protected String sigAlgUsedInCertificate;
     protected PublicKey publicKeyUsedInCertificate;
-    protected ArrayList<X509CertificateHolder[]> certificateChains;
-    protected KeyPair[] signatureKeyPairs;
+    protected final ArrayList<X509CertificateHolder[]> certificateChains;
+    protected final KeyPair[] signatureKeyPairs;
     protected KeyPair ecKeyPair;
     protected SecretKeyWithEncapsulation frodoEncapsulatedSecret;
     protected SecretKeyWithEncapsulation kyberEncapsulatedSecret;
@@ -113,7 +115,7 @@ public class ServerStateMachine extends PQTLSStateMachine {
             return this;
         }
 
-        private void setSupportedSignatureAlgorithms(ArrayList<X509CertificateHolder[]> certificateChains) throws IOException {
+        private void setSupportedSignatureAlgorithms(ArrayList<X509CertificateHolder[]> certificateChains) {
             //dilithium 1.3.6.1.4.1.2.267.12.8.7
             //Sphincs 1.3.6.1.4.1.22554.2.5
             Set<Byte> supportedSignatureAlgorithmsBuffer = new HashSet<>();

@@ -8,7 +8,9 @@ import messages.messageConverter.PQTLSMessageConverter;
 import statemachines.server.ServerStateMachine;
 
 import java.net.Socket;
-
+/**
+ * @author Robin Kroker
+ */
 public class ServerHandshakeConnection {
     private final Socket clientSocket;
     private final ServerStateMachine stateMachine;
@@ -23,7 +25,10 @@ public class ServerHandshakeConnection {
         this.messageConverter = new ClientMessageConverter(this.stateMachine);
         this.printHandShakeMessages = printHandShakeMessages;
     }
-
+    /**
+     * Starts the Handshake, Servers doHandShake method must be called first
+     * @throws Exception
+     */
     public void doHandshake() throws Exception {
         synchronized(server){
             //wait for message
@@ -58,7 +63,10 @@ public class ServerHandshakeConnection {
             }
         }
     }
-
+    /**
+     * Returns the statemachine used by this HandShakeConnection
+     * @return ClientStateMachine
+     */
     public ServerStateMachine getStateMachine() {
         return this.stateMachine;
     }

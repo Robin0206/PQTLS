@@ -18,7 +18,8 @@ import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Objects;
 
-/*
+/**
+ * @author Robin Kroker
 This State is responsible for building the EncryptedExtensionsMessage.
 This State doesn't make use of any prior message.
 (The Statemachine calls the setPreviousMessage method with an NullMessage
@@ -30,7 +31,7 @@ public class SendEncryptedExtensionsState implements State {
     private ServerStateMachine stateMachine;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException {
+    public void calculate() {
     }
 
     @Override

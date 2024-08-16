@@ -10,15 +10,18 @@ import java.security.cert.Extension;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-// Follows the structure detailed in https://www.rfc-editor.org/rfc/rfc8446 section 4.3.1
-// Since there are no extensions used after the key agreement this message is always empty
-// Also always sent as a wrapped record
-// Byte structure:
-// ||..identifier = 0x08..||..numOfFollowingExtensionBytes..||..extensionBytes..||
-// ||--------1 byte-------||-------------3 bytes------------||
+/**
+ * @author Robin Kroker
+ * Follows the structure detailed in https://www.rfc-editor.org/rfc/rfc8446 section 4.3.1
+ * Since there are no extensions used after the key agreement this message is always empty
+ * Also always sent as a wrapped record
+ * Byte structure:
+ * ||..identifier = 0x08..||..numOfFollowingExtensionBytes..||..extensionBytes..||
+ * ||--------1 byte-------||-------------3 bytes------------||
+ */
 public class EncryptedExtensions implements PQTLSMessage{
 
-    private PQTLSExtension[] extensions;
+    private final PQTLSExtension[] extensions;
     private byte[] messageBytes;
     private byte[] extensionBytes;
     

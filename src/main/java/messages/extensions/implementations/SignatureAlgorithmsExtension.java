@@ -5,16 +5,19 @@ import messages.extensions.PQTLSExtension;
 import java.util.Arrays;
 
 import static misc.Constants.*;
-//Signature Algorithms extension
-//Byte structure simplified since there are only 2 signature algorithms to choose from
-//inspired by https://www.rfc-editor.org/rfc/rfc8446 section 4.2.3
-//||....{0x00, 0x0d}=identifier....||....numOfFollowingBytes....||....SignatureAlgIdentifierBytes....||
-//||----------2 bytes--------------||---------2 bytes-----------||
-//Signature Algorithm Byte values:
-// 0x00 = supports Sphincs
-// 0x01 = supports Dilithium
+/**
+ * @author Robin Kroker
+ * Signature Algorithms extension
+ * Byte structure simplified since there are only 2 signature algorithms to choose from
+ * inspired by https://www.rfc-editor.org/rfc/rfc8446 section 4.2.3
+ * ||....{0x00, 0x0d}=identifier....||....numOfFollowingBytes....||....SignatureAlgIdentifierBytes....||
+ * ||----------2 bytes--------------||---------2 bytes-----------||
+ * Signature Algorithm Byte values:
+ * 0x00 = supports Sphincs
+ * 0x01 = supports Dilithium
+ */
 public class SignatureAlgorithmsExtension implements PQTLSExtension {
-    byte[] supportedSignatureAlgorithms;
+    final byte[] supportedSignatureAlgorithms;
     byte[] byteRepresentation;
     public SignatureAlgorithmsExtension(byte[] supportedSignatureAlgorithms){
         this.supportedSignatureAlgorithms = supportedSignatureAlgorithms;

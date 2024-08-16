@@ -143,7 +143,7 @@ public class StatemachineInteractionTest {
             }
         });
     }
-    private ClientStateMachine buildRandomClientStateMachine() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+    private ClientStateMachine buildRandomClientStateMachine() {
         ArrayList<X509CertificateHolder> certificates = new ArrayList<>();
         certificates.add(sphincsCert);
         certificates.add(dilithiumCert);

@@ -2,12 +2,12 @@ package messages.implementations.alerts;
 
 import messages.PQTLSMessage;
 import misc.ByteUtils;
-
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 import static messages.implementations.alerts.AlertDescription.*;
-
+/**
+ * @author Robin Kroker
+ */
 public class PQTLSAlertMessage implements PQTLSMessage {
     private final AlertLevel alertLevel;
     private final AlertDescription alertDescription;
@@ -43,7 +43,7 @@ public class PQTLSAlertMessage implements PQTLSMessage {
     }
 
     @Override
-    public void printVerbose() throws CertificateException {
+    public void printVerbose() {
         System.out.println("=======================================Alert========================================");
         System.out.println("Alert level:       " + this.alertLevel.toString());
         System.out.println("Alert Description: " + this.alertDescription.toString());

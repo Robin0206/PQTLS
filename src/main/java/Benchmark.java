@@ -6,14 +6,11 @@ import messages.implementations.NullMessage;
 import misc.Constants;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.tls.CipherSuite;
 import statemachines.PQTLSStateMachine;
 import statemachines.client.ClientStateMachine;
 import statemachines.server.ServerStateMachine;
 
-import java.io.IOException;
 import java.security.*;
 import java.util.ArrayList;
 

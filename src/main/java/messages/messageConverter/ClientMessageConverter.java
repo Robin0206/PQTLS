@@ -1,7 +1,9 @@
 package messages.messageConverter;
 
 import statemachines.server.ServerStateMachine;
-
+/**
+ * @author Robin Kroker
+ */
 public class ClientMessageConverter extends PQTLSMessageConverter{
 
     public ClientMessageConverter(ServerStateMachine statemachine) {

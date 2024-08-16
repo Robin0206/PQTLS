@@ -12,15 +12,19 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
+/**
+ * State that's returned by the next method from the state machines last state
+ * @author Robin Kroker
+ */
 public class FinishedState implements State {
 
     @Override
-    public void calculate() throws Exception {
+    public void calculate() {
 
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() {
         return new NullMessage();
     }
 

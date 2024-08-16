@@ -8,8 +8,9 @@ import misc.ByteUtils;
 import java.util.ArrayList;
 import static misc.Constants.*;
 
-/*
-Class that's responsible for splitting and parsing extension bytes
+/**
+ * @author Robin Kroker
+ * Class that's responsible for splitting and parsing extension bytes
  */
 
 public class PQTLSExtensionFactory {

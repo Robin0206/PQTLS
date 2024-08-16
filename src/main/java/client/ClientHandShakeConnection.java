@@ -1,14 +1,17 @@
 package client;
 
+
+
 import messages.messageConverter.PQTLSMessageConverter;
 import messages.PQTLSMessage;
 import messages.implementations.NullMessage;
 import messages.messageConverter.ServerMessageConverter;
 import statemachines.client.ClientStateMachine;
-
-import java.io.*;
 import java.net.Socket;
 
+/**
+ * @author Robin Kroker
+ */
 public class ClientHandShakeConnection {
     private final ClientStateMachine statemachine;
     private final Socket socket;
@@ -16,7 +19,13 @@ public class ClientHandShakeConnection {
     private final boolean printHandShakeMessages;
     private PQTLSMessageConverter messageConverter;
 
-    public ClientHandShakeConnection(ClientStateMachine stateMachine, Socket socket, PQTLSClient pqtlsClient, boolean printHandShakeMessages) throws IOException {
+    /**
+     * @param stateMachine
+     * @param socket
+     * @param pqtlsClient
+     * @param printHandShakeMessages
+     */
+    public ClientHandShakeConnection(ClientStateMachine stateMachine, Socket socket, PQTLSClient pqtlsClient, boolean printHandShakeMessages){
         this.statemachine = stateMachine;
         this.socket = socket;
         this.client = pqtlsClient;
@@ -24,11 +33,18 @@ public class ClientHandShakeConnection {
         this.printHandShakeMessages = printHandShakeMessages;
     }
 
-
+    /**
+     * Returns the statemachine used by this HandShakeConnection
+     * @return ClientStateMachine
+     */
     public ClientStateMachine getStateMachine() {
         return statemachine;
     }
 
+    /**
+     * Starts the Handshake, Servers doHandShake method must be called first
+     * @throws Exception
+     */
     public void doHandshake() throws Exception {
         // The synchronized block avoids other methods being called on the client before the handshake is finished
         synchronized (client) {

@@ -10,9 +10,11 @@ import java.security.NoSuchProviderException;
 import java.util.Arrays;
 import java.util.Objects;
 
-
-// Main source is https://www.rfc-editor.org/rfc/rfc8446
-// The constructor and the method deriveSecretsAfterFinish together exactly follow the figure on page 93
+/**
+ * Main source is https://www.rfc-editor.org/rfc/rfc8446
+ * The constructor and the method deriveSecretsAfterFinish together exactly follow the figure on page 93
+ * @author Robin Kroker
+ */
 public class SharedSecretHolder {
     PQTLSCipherSuite cipherSuite;
     String
@@ -76,11 +78,20 @@ public class SharedSecretHolder {
         deriveMasterSecret();
     }
 
+    /**
+     *
+     * @param cipherSuite
+     * @return
+     */
     private String deriveHashNameFromCipherSuite(PQTLSCipherSuite cipherSuite) {
         String[] cipherSuiteSplit = cipherSuite.toString().split("_");
         return cipherSuiteSplit[cipherSuiteSplit.length-1].toLowerCase();
     }
 
+    /**
+     *
+     * @param cipherSuite
+     */
     private void setCipherSuiteAndSymmetricalAlgorithm(PQTLSCipherSuite cipherSuite) {
         this.cipherSuite = cipherSuite;
         String[] cipherSuiteSplit = cipherSuite.name().split("_");
@@ -92,7 +103,13 @@ public class SharedSecretHolder {
         }
     }
 
-
+    /**
+     *
+     * @param concatenatedMessagesHelloToFinish
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     public void deriveSecretsAfterFinish(byte[] concatenatedMessagesHelloToFinish) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         this.concatenatedMessagesHelloToFinish = concatenatedMessagesHelloToFinish;
         deriveClientApplicationTrafficSecret();
@@ -101,6 +118,12 @@ public class SharedSecretHolder {
         deriveResumptionMasterSecret();
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveResumptionMasterSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         resumptionMasterSecret = CryptographyModule.hashing.deriveSecret(
                 exporterMasterSecret,
@@ -110,6 +133,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveExporterMasterSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         exporterMasterSecret = CryptographyModule.hashing.deriveSecret(
                 serverApplicationTrafficSecret0,
@@ -119,6 +148,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveServerApplicationTrafficSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         serverApplicationTrafficSecret0 = CryptographyModule.hashing.deriveSecret(
                 clientApplicationTrafficSecret0,
@@ -129,6 +164,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveClientApplicationTrafficSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         clientApplicationTrafficSecret0 = CryptographyModule.hashing.deriveSecret(
                 masterSecret,
@@ -139,6 +180,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveMasterSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         masterSecret = CryptographyModule.hashing.hkdfExtract(
                 derivedSecret1,
@@ -147,6 +194,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveDerivedSecret1() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         derivedSecret1 = CryptographyModule.hashing.deriveSecret(
                 serverHandshakeTrafficSecret,
@@ -156,6 +209,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveServerHandshakeTrafficSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         serverHandshakeTrafficSecret = CryptographyModule.hashing.deriveSecret(
                 clientHandshakeTrafficSecret,
@@ -166,6 +225,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveClientHandshakeTrafficSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         clientHandshakeTrafficSecret = CryptographyModule.hashing.deriveSecret(
                 handShakeSecret,
@@ -176,6 +241,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveHandShakeSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         handShakeSecret = CryptographyModule.hashing.hkdfExtract(
                 derivedSecret0,
@@ -184,6 +255,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveDerivedSecret0() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         derivedSecret0 = CryptographyModule.hashing.deriveSecret(
                 earlyExporterMasterSecret,
@@ -193,6 +270,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveEarlyExporterMasterSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         earlyExporterMasterSecret = CryptographyModule.hashing.deriveSecret(
                 clientEarlyTrafficSecret,
@@ -202,6 +285,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveClientEarlyTrafficSecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         clientEarlyTrafficSecret = CryptographyModule.hashing.deriveSecret(
                 binderKey,
@@ -211,6 +300,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveBinderKey() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         binderKey = CryptographyModule.hashing.deriveSecret(
                 earlySecret,
@@ -220,6 +315,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     private void deriveEarlySecret() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         earlySecret = CryptographyModule.hashing.hkdfExtract(
                 zeroes,
@@ -228,6 +329,12 @@ public class SharedSecretHolder {
         );
     }
 
+    /**
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
     // https://www.rfc-editor.org/rfc/rfc8446 p. 95, z. 8
     private void deriveServerAndClientIV() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         byte[] iv = CryptographyModule.hashing.hkdfExpandLabel(
@@ -241,6 +348,11 @@ public class SharedSecretHolder {
         clientWriteIV = iv;
     }
 
+    /**
+     *
+     * @param sharedSecretHolder
+     * @return
+     */
     public boolean equals(SharedSecretHolder sharedSecretHolder) {
         return
                 Arrays.equals(earlySecret, sharedSecretHolder.earlySecret) &&
@@ -261,34 +373,62 @@ public class SharedSecretHolder {
                 Arrays.equals(serverWriteIV, sharedSecretHolder.serverWriteIV);
     }
 
+    /**
+     *
+     * @return
+     */
     public byte[] getServerHandShakeIVAndIncrement() {
         byte[] result = serverWriteIV.clone();
         ByteUtils.increment(serverWriteIV);
         return result;
     }
 
+    /**
+     *
+     * @return
+     */
     public byte[] getClientHandShakeIVAndIncrement() {
         byte[] result = clientWriteIV.clone();
         ByteUtils.increment(clientWriteIV);
         return result;
     }
 
+    /**
+     *
+     * @return
+     */
     public byte[] getServerHandShakeSecret() {
         return serverHandshakeTrafficSecret;
     }
 
+    /**
+     *
+     * @return
+     */
     public byte[] getClientHandShakeSecret() {
         return clientHandshakeTrafficSecret;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getHashName() {
         return hashName;
     }
 
+    /**
+     *
+     * @param symmetricAlgName
+     */
     public void setSymmetricAlgName(String symmetricAlgName) {
         this.symmetricAlgName = symmetricAlgName;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getSymmetricalAlgName() {
         return symmetricAlgName;
     }
@@ -297,11 +437,18 @@ public class SharedSecretHolder {
         return cipherSuite;
     }
 
+    /**
+     *
+     */
     public void printApplicationTrafficSecrets(){
         System.out.println("Client: " + Arrays.toString(clientApplicationTrafficSecret0));
         System.out.println("Server: " + Arrays.toString(serverApplicationTrafficSecret0));
     }
 
+    /**
+     *
+     * @return
+     */
     public byte[] getServerApplicationSecret() {
         return serverApplicationTrafficSecret0;
     }

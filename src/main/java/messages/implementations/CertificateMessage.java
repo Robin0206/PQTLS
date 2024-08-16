@@ -10,9 +10,10 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/*
-Message that the server sends to the client which contains one or more certificate chains from the server
-The structure is the same as in https://www.rfc-editor.org/rfc/rfc8446 section-4.4.2
+/**
+ * @author Robin Kroker
+ * Message that the server sends to the client which contains one or more certificate chains from the server
+ * The structure is the same as in https://www.rfc-editor.org/rfc/rfc8446 section-4.4.2
  */
 
 public class CertificateMessage implements PQTLSMessage {

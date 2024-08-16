@@ -22,7 +22,8 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
-/*
+/**
+ * @author Robin Kroker
 This state is responsible for building the Certificate Verify Message.
 It is also responsible for calling the deriveSecretsAfterFinish Method of the SharedSecretHolder.
 The setPreviousMessage method expects a WrappedRecord with the clients
@@ -38,7 +39,7 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
     private PQTLSAlertMessage alertMessage;
 
     @Override
-    public void calculate() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
+    public void calculate() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
         verifyClientVerifyData();
         finishSharedSecretCalculation();
         //https://www.rfc-editor.org/rfc/rfc8446
@@ -77,7 +78,7 @@ public class VerifyClientFinishedAndFinishSharedSecretCalculationState implement
     }
 
     @Override
-    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException, IOException {
+    public PQTLSMessage getMessage() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
         if(!(alertMessage == null)){
             return new WrappedRecord(
                     alertMessage,
