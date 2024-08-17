@@ -25,6 +25,9 @@ import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.text.DateFormat;
+import java.time.DateTimeException;
+import java.util.Calendar;
 import java.util.Date;
 
 import misc.ByteUtils;
@@ -484,11 +487,17 @@ public class CryptographyModule {
             X500Name name = new X500Name("CN=TestCertificate");
             KeyPair keyPair = algName == "SPHINCSPlus" ? keys.generateSPHINCSKeyPair() : keys.generateDilithiumKeyPair();
             PrivateKey privateKey = keyPair.getPrivate();
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.YEAR, -1);
+            Date start = cal.getTime();
+            cal.add(Calendar.YEAR, 2);
+            Date end = cal.getTime();
+
             X509v1CertificateBuilder certBldr = new JcaX509v1CertificateBuilder(
                     name,
                     BigInteger.valueOf(0),
-                    new Date(),
-                    new Date(),
+                    start,
+                    end,
                     name,
                     keyPair.getPublic()
             );
@@ -510,11 +519,16 @@ public class CryptographyModule {
         public static X509CertificateHolder generateSelfSignedTestCertificate(KeyPair keyPair, String algName) throws OperatorCreationException {
             X500Name name = new X500Name("CN=TestCertificate");
             PrivateKey privateKey = keyPair.getPrivate();
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.YEAR, -1);
+            Date start = cal.getTime();
+            cal.add(Calendar.YEAR, 2);
+            Date end = cal.getTime();
             X509v1CertificateBuilder certBldr = new JcaX509v1CertificateBuilder(
                     name,
                     BigInteger.valueOf(0),
-                    new Date(),
-                    new Date(),
+                    start,
+                    end,
                     name,
                     keyPair.getPublic()
             );
@@ -559,8 +573,21 @@ public class CryptographyModule {
                 if (!verifySignature(signersPublicKey, signersSigAlgName, messageCertBytes, messageSignature)) {
                     return false;
                 }
+                if(CryptographyModule.certificate.verifyDate(messageCert)){
+
+                }
             }
             return true;
+        }
+
+        /**
+         * Checks if a certificates NotBefore and NotAfter fields are still valid
+         * @param messageCert
+         * @return
+         */
+        public static boolean verifyDate(X509Certificate messageCert) {
+            Date now = new Date();
+            return messageCert.getNotBefore().before(now) && messageCert.getNotAfter().after(now);
         }
 
         /**

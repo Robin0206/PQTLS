@@ -35,7 +35,8 @@ public class CheckIfCertificatesTrustedState implements State {
 
     @Override
     public void calculate() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, CertificateException, SignatureException {
-        stateMachine.certificatesTrusted = checkIfCertificateChainsAreTrusted();
+        stateMachine.certificatesTrusted =
+                checkIfCertificateChainsAreTrusted() && checkCertificatesDates();
         //https://www.rfc-editor.org/rfc/rfc8446
         //page 88
         if (!stateMachine.certificatesTrusted) {
@@ -43,6 +44,7 @@ public class CheckIfCertificatesTrustedState implements State {
         }
     }
 
+    
     private boolean checkIfCertificateChainsAreTrusted() throws CertificateException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
         for (X509CertificateHolder serverCertificate : certificateMessage.getCertificates()) {
             for (X509CertificateHolder clientCertificate : stateMachine.trustedCertificates) {
@@ -56,6 +58,15 @@ public class CheckIfCertificatesTrustedState implements State {
             }
         }
         return false;
+    }
+
+    private boolean checkCertificatesDates() throws CertificateException {
+        for (X509CertificateHolder serverCertificate : certificateMessage.getCertificates()){
+            if(!CryptographyModule.certificate.verifyDate(CryptographyModule.certificate.holderToCertificate(serverCertificate))){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package messages.extensions.test;
 
-import messages.extensions.PQTLSExtension;
 import messages.extensions.PQTLSExtensionFactory;
 import messages.extensions.implementations.KeyShareExtension;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
