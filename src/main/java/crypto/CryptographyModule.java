@@ -25,8 +25,6 @@ import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.text.DateFormat;
-import java.time.DateTimeException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -572,9 +570,6 @@ public class CryptographyModule {
                 String signersSigAlgName = signersCert.getSigAlgName();
                 if (!verifySignature(signersPublicKey, signersSigAlgName, messageCertBytes, messageSignature)) {
                     return false;
-                }
-                if(CryptographyModule.certificate.verifyDate(messageCert)){
-
                 }
             }
             return true;

@@ -64,8 +64,8 @@ public class ClientPSKConnection extends PSKTlsClient {
     }
 
     /**
-     *Needs to be overwritten.
-     *In this use case we don't need the method to return anything,
+     * Needs to be overwritten.
+     * In this use case we don't need the method to return anything,
      * because authentication already happened
      * @return
      */

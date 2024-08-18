@@ -103,7 +103,7 @@ public class HelloMessage implements PQTLSMessage {
         System.out.println("HandShakeMessageType: " + handShakeMessageType);
         System.out.println("lengthAfterHandshakeHeader: " + lengthAfterHandshakeHeader);
         System.out.println("LegacyVersion: " + java.util.Arrays.toString(legacyVersion));
-        System.out.println("Client Random: " + java.util.Arrays.toString(random));
+        System.out.println("Random: " + java.util.Arrays.toString(random));
         System.out.println("SessionIDLength: " + sessionIDLength);
         System.out.println("SessionID: " + java.util.Arrays.toString(sessionID));
         System.out.println("CipherSuiteLength: " + cipherSuitesLength);

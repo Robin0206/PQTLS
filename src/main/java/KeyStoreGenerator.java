@@ -1,3 +1,4 @@
+/*
 import crypto.CryptographyModule;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -20,7 +21,7 @@ import java.util.Date;
  * @author Robin Kroker
  *  Little program that generates the key and trustStores
  *  */
-
+/*
 public class KeyStoreGenerator {
 
     private static KeyPair[] rootKeyPairs;
@@ -121,4 +122,4 @@ public class KeyStoreGenerator {
     }
 
 }
-
+*/
