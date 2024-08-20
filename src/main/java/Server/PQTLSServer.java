@@ -92,12 +92,14 @@ public class PQTLSServer implements Closeable {
         private int port;
         private PQTLSCipherSuite[] cipherSuites;
         private CurveIdentifier[] curveIdentifiers;
-        private boolean curveIdentifiersSet = false;
-        private boolean portSet = false;
-        private boolean cipherSuitesSet = false;
         private ArrayList<X509CertificateHolder[]> certificateChains;
         private KeyPair[] keyPairs;
         private boolean printHandShakeMessages = false;
+        private boolean curveIdentifiersSet = false;
+        private boolean portSet = false;
+        private boolean cipherSuitesSet = false;
+        private boolean keyStoreSet = false;
+
         /**
          * if this method is called, the resulting PQTLSServer will print handShakeMessages
          * @return PQTLSClientBuilder
@@ -162,6 +164,7 @@ public class PQTLSServer implements Closeable {
             for (int i = 0; i < keyPairBuffer.size(); i++) {
                 keyPairs[i] = keyPairBuffer.get(i);
             }
+            this.keyStoreSet = true;
             return this;
         }
         /**
@@ -184,6 +187,9 @@ public class PQTLSServer implements Closeable {
             }
             if (!curveIdentifiersSet) {
                 throw new IllegalStateException("Supported curves must be set before calling build()");
+            }
+            if (!keyStoreSet) {
+                throw new IllegalStateException("KeyStore must be set before calling build()");
             }
         }
     }

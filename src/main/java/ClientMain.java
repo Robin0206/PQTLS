@@ -1,4 +1,4 @@
-/*
+
 import client.PQTLSClient;
 import crypto.enums.PQTLSCipherSuite;
 import crypto.enums.CurveIdentifier;
@@ -50,4 +50,3 @@ public class ClientMain {
         System.out.println("Server response: " + response);
     }
 }
-*/
