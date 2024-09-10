@@ -8,13 +8,13 @@
 
 <img width="200" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/providers.png"/>
 
-<p font-size="10">You also need top add the following providers:<p/>
+<p font-size="10">You also need to add the following providers:<p/>
 
 <img width="500" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/buildPath.png"/>
-<p font-size="10">To make a server object you can use the class PQTLSServer.PQTLSServerBuilder. All methods shown in the picture below mut be called:<p/>
+<p font-size="10">To make a server object you can use the class PQTLSServer.PQTLSServerBuilder. All methods shown in the picture below must be called:<p/>
 
 <img width="800" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/server.png"/>
-<p font-size="10">To make a client object you can use the class PQTLSClient.PQTLSClientBuilder. All methods shown in the picture below mut be called:<p/>
+<p font-size="10">To make a client object you can use the class PQTLSClient.PQTLSClientBuilder. All methods shown in the picture below must be called:<p/>
 
 <img width="800" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/client.png"/>
 
