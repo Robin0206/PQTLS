@@ -6,7 +6,7 @@
   
 <p font-size="10">Add the pqtls.jar to your build path you also need to include the bouncy castle jars shown on the following picture:<p/>
 
-<img width="100" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/prviders.png"/>
+<img width="100" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/providers.png"/>
 
 <p font-size="10">You also need top add the following providers:<p/>
 
