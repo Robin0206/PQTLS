@@ -9,6 +9,6 @@
 
 <p font-size="10">You also need top add the following providers:<p/>
 
-<p font-size="10">To make a server object you can use the class PQTLSServer.PQTLSServerBuilder. All methods shown in the picture below mut be called!<p/>
+<p font-size="10">To make a server object you can use the class PQTLSServer.PQTLSServerBuilder. All methods shown in the picture below mut be called:<p/>
 
-<p font-size="10">To make a client object you can use the class PQTLSClient.PQTLSClientBuilder. All methods shown in the picture below mut be called!<p/>
+<p font-size="10">To make a client object you can use the class PQTLSClient.PQTLSClientBuilder. All methods shown in the picture below mut be called:<p/>
