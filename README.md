@@ -1,7 +1,7 @@
 <h1>TLS-Library with quantum resistant cryptographic primitives<h1/>
 
 
-<h4>primitives are provided by the Bouncy Castle library<h4/>
+<h4>Project for my Bachelor-thesis. Cryptographic primitives and PSK connection are provided by the Bouncy Castle library<h4/>
 <p font-size="12">Usage in an Intellij project:<p/>
   
 <p font-size="10">-Add the pqtls.jar to your build path you also need to include the bouncy castle jars shown on the following picture:<p/>
