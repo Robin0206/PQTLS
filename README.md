@@ -18,6 +18,6 @@
 
 <img width="800" alt="image" src="https://github.com/Robin0206/PQTLS/blob/main/client.png"/>
 
-<p>-Calling the build method on the server also starts the server</p>
-<p>-Calling the build method on the client also starts the handshake</p>
+<p>-Calling the build method on the server starts the server</p>
+<p>-Calling the build method on the client starts the handshake</p>
 <p>You can use the method getProtocol on the client and the server. The return-value can be used like a regular object of class socket</p>
